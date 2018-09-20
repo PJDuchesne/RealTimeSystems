@@ -30,7 +30,7 @@ void Monitor::CentralLoop() {
   char data = char();
 
   PrintMsg(clear_screen);
-  PrintMsg(new_line);
+  PrintNewLine();
 
   // Loop Forever
   while(1)
@@ -87,7 +87,7 @@ void Monitor::HandleUART(char data) {
           break;
         }
       }
-      PrintMsg(new_line);
+      PrintNewLine();
       data_buffer_->Reset();
       break;
     default:  // All other characters, add to buffer
@@ -104,8 +104,7 @@ void Monitor::HandleSYSTICK() {
 }
 
 void Monitor::PrintNewLine() {
-  PrintMsg(single_char);
-      data_buffer_->Reset();
+  PrintMsg(new_line);
 }
 
 void Monitor::PrintMsg(std::string msg) {

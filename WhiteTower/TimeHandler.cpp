@@ -19,32 +19,25 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Singleton Instance
 TimeHandler *TimeHandler::TimeHandlerInstance_ = new TimeHandler;
 
-void TimeHandler::SetTime(uint8_t &sec, uint8_t &min, uint8_t &hour) {
-  // TODO: Do this in one line by knowing structure size
+void TimeHandler::SetTime(smh_t &new_smh) {
   current_time_.tenth_sec_ = 0;
-  current_time_.sec_       = sec;
-  current_time_.min_       = min;
-  current_time_.hour_      = hour;
+  current_time_.smh_ = new_smh;
+
+  // TODO: Alarm handling? Check with Hughes
 }
 
-void TimeHandler::SetDate(uint8_t &day, uint8_t &month, uint16_t &year) {
-  current_time_.day_   = day;
-  current_time_.month_ = month;
-  current_time_.year_  = year;
+void TimeHandler::SetDate(dmy_t &new_dmy) {
+  current_time_.dmy_ = new_dmy;
 }
 
-void TimeHandler::SetAlarm(ti_time_t &alarm_time) {
-  // TODO: Add alarm to alarm array (vector?)
-
-  // Alarms should be ordered within the array
-  // Find correct position by just checking integer value of entire array
+void TimeHandler::SetAlarm(smh_t &alarm_time) {
+  // TODO: Calculate new alarm time in the future, including rollover
 }
 
 #define MAX_TENTH_SEC 9
 void TimeHandler::TickTenthSec() {
   if (++current_time_.tenth_sec_ > MAX_TENTH_SEC) TickSec();
-  
-  CheckAlarms();
+  CheckAlarm();
 }
 
 #define MAX_SEC 59
@@ -84,7 +77,61 @@ void TimeHandler::TickYear() {
   if (++current_time_.year_ > MAX_YEAR) current_time_.year_ = 0;
 }
 
-void TimeHandler::CheckAlarms() {}
+void TimeHandler::CheckLeapYear() {
+  uint16_t year = current_time_.year_;
+
+  /* Gregorian calendar and the concept of Feb 29 was in 1582
+  if (year <= 1582) {
+    leap_year_ = false;
+    return
+  } 
+  */
+
+  if (year % 4 == 0 && ((year % 100 != 0) || (year % 400 == 0))) leap_year_ = true;
+  else leap_year_ = false;  
+}
+
+// TODO: Ask Hughes about the interaction with the user changing the date while an alarm is active
+void TimeHandler::CheckAlarm() {
+  if (true) {
+  // if (int(current_time_.smh_) == int(alarm_.alarm_time_.smh_)) {
+    // '\a' is the BEL (bell) character, which makes a noise if possible
+    Monitor::GetMonitor()->PrintMsg("\a* ALARM * " + CreateSMHStr(alarm_.alarm_time_.smh_) + " *");
+    alarm_.is_active_ = false;
+  }
+}
+
+std::string TimeHandler::CreateSMHStr(smh_t &smh) {
+  std::string msg = LexicalIntToString(smh.sec, 2) + ":" 
+                  + LexicalIntToString(smh.min, 2) + ":"
+                  + LexicalIntToString(smh.hour, 2);
+
+  return msg;
+}
+
+std::string TimeHandler::CreateDMYStr(dmy_t &dmy) {
+  std::string msg = LexicalIntToString(dmy.day, 2) + "-" 
+                  + months_str[dmy.month] + "-"
+                  + LexicalIntToString(dmy.year, 4);
+
+  return msg;
+}
+
+std::string TimeHandler::LexicalIntToString(uint16_t input_int, uint8_t desired_len) {
+  std::string return_val = std::to_string(input_int);
+  uint8_t str_len = return_val.length();
+
+  if (str_len > desired_len) {
+    std::cout << "[LexicalIntToString] ERROR: NUMBER TO LARGE FOR LENGTH\n";
+    std::cout << "\t>>" << input_int << "<<  >>" << return_val << "<<\n";
+    return "";
+  }
+
+  // Else it is either too small or the correct size
+  for (int i = 0; i < (desired_len - str_len); i++) return_val = "0" + return_val;
+
+  return return_val;
+}
 
 TimeHandler* TimeHandler::GetTimeHandler() {
     // if (!TimeHandlerInstance) TimeHandlerInstance = new TimeHandler;
