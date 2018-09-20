@@ -1,0 +1,21 @@
+TODO: Notes for A1
+
+Five Broad Tasks
+	1. ISR for UART0
+	2. ISR for SysTick
+	3. Monitor
+	4. Queue Between Monitor and ISRs
+	5. "Command Support Routines"
+
+
+Classes to Make
+	- UART Driver
+	- SYSTIck Driver
+	- Monitor
+	- Buffer (Templated for the 3 uses)
+	- CommandCenter (Time, Date, Alarm)
+	- Time Class (To keep track of time and such)
+
+	TODO: Rename ISRMsgMaker -> ISRMsgHandler (or something)
+
+	TODO: Zoo function

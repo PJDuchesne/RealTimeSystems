@@ -1,0 +1,7 @@
+LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/arch=x86
+LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/name=Local
+LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/os=win32
+configDescList=org.eclipse.launchbar.core.descriptorType.default\:WhiteTower
+eclipse.preferences.version=1
+org.eclipse.launchbar.core.descriptorType.default\:WhiteTower/activeLaunchMode=debug
+org.eclipse.launchbar.core.descriptorType.default\:WhiteTower/activeLaunchTarget=org.eclipse.launchbar.core.launchTargetType.local\:Local

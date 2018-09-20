@@ -1,0 +1,40 @@
+/*
+__/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____        
+ _\/\\\/////////\\\__\/////\\\///__\/\\\////////\\\__       
+  _\/\\\_______\/\\\______\/\\\_____\/\\\______\//\\\_      
+   _\/\\\\\\\\\\\\\/_______\/\\\_____\/\\\_______\/\\\_     
+    _\/\\\/////////_________\/\\\_____\/\\\_______\/\\\_    
+     _\/\\\__________________\/\\\_____\/\\\_______\/\\\_   
+      _\/\\\___________/\\\___\/\\\_____\/\\\_______/\\\__  
+       _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
+        _\///____________\/////////_______\////////////_____
+-> Name:  main.cpp
+-> Date: Sept 13, 2018	(Created)
+-> Author: Paul Duchesne (B00332119)
+-> Contact: pl332718@dal.ca
+*/
+
+// To allow global configurations (i.e. Master ISR setups)
+#include "Includes/GlobalConfig.h"
+
+// To allow the main to set up UART
+#include "Includes/UART0_Driver.h"
+
+/**
+ * main.cpp
+ */
+int main(void)
+{
+
+	InterruptEnable(UART_INT_RX | UART_INT_TX);
+	InterruptMasterEnable();
+
+	while(1)
+    {
+        /* Wait for input data */
+        GotData = false;
+        while (!GotData);
+        /* Input data - xmit directly */
+        UART0_DR_R = Data;
+    }
+}

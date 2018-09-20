@@ -1,0 +1,14 @@
+
+
+/**
+ * main.c
+ */
+int main(void)
+{
+    volatile int counter = 1;
+
+    counter++;
+    counter--;
+
+	return 0;
+}
