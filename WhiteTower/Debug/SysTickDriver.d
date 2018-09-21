@@ -2,7 +2,7 @@
 
 SysTickDriver.obj: ../SysTickDriver.cpp
 SysTickDriver.obj: ../Includes/SysTickDriver.h
-SysTickDriver.obj: ../Includes/ISRMsgMaker.h
+SysTickDriver.obj: ../Includes/ISRMsgHandler.h
 SysTickDriver.obj: ../Includes/GlobalConfig.h
 SysTickDriver.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/iostream
 SysTickDriver.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__config
@@ -129,11 +129,11 @@ SysTickDriver.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libc
 SysTickDriver.obj: ../Includes/RingBuffer.h
 SysTickDriver.obj: ../Includes/../RingBuffer.tpp
 SysTickDriver.obj: ../Includes/UART0Driver.h
-SysTickDriver.obj: ../Includes/ISRMsgMaker.h
+SysTickDriver.obj: ../Includes/ISRMsgHandler.h
 
 ../SysTickDriver.cpp: 
 ../Includes/SysTickDriver.h: 
-../Includes/ISRMsgMaker.h: 
+../Includes/ISRMsgHandler.h: 
 ../Includes/GlobalConfig.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/iostream: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__config: 
@@ -260,4 +260,4 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros:
 ../Includes/RingBuffer.h: 
 ../Includes/../RingBuffer.tpp: 
 ../Includes/UART0Driver.h: 
-../Includes/ISRMsgMaker.h: 
+../Includes/ISRMsgHandler.h: 

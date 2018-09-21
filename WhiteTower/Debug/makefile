@@ -13,7 +13,7 @@ ORDERED_OBJS += \
 "./ComandCenter.obj" \
 "./GlobalConfig.obj" \
 "./Glue.obj" \
-"./ISRMsgMaker.obj" \
+"./ISRMsgHandler.obj" \
 "./Monitor.obj" \
 "./SysTickDriver.obj" \
 "./TimeHandler.obj" \
@@ -163,9 +163,9 @@ WhiteTower.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "ComandCenter.obj" "GlobalConfig.obj" "Glue.obj" "ISRMsgMaker.obj" "Monitor.obj" "SysTickDriver.obj" "TimeHandler.obj" "UART0Driver.obj" "main.obj" "tm4c1294ncpdt_startup_ccs.obj" 
+	-$(RM) "ComandCenter.obj" "GlobalConfig.obj" "Glue.obj" "ISRMsgHandler.obj" "Monitor.obj" "SysTickDriver.obj" "TimeHandler.obj" "UART0Driver.obj" "main.obj" "tm4c1294ncpdt_startup_ccs.obj" 
 	-$(RM) "tm4c1294ncpdt_startup_ccs.d" 
-	-$(RM) "ComandCenter.d" "GlobalConfig.d" "Glue.d" "ISRMsgMaker.d" "Monitor.d" "SysTickDriver.d" "TimeHandler.d" "UART0Driver.d" "main.d" 
+	-$(RM) "ComandCenter.d" "GlobalConfig.d" "Glue.d" "ISRMsgHandler.d" "Monitor.d" "SysTickDriver.d" "TimeHandler.d" "UART0Driver.d" "main.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

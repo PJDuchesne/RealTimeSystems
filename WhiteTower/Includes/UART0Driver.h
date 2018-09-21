@@ -17,7 +17,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "ISRMsgMaker.h"
+#include "ISRMsgHandler.h"
 #include "RingBuffer.h"
 
 #include <memory>
@@ -75,10 +75,10 @@ volatile bool GotData;   /* T|F - Data available from UART */
 class UART0Driver {
     private:
         static UART0Driver* UART0DriverInstance_;
-    public:
-        UART0Driver();
         void UART0Init();
         void UART0Enable(unsigned long flags);
+    public:
+        UART0Driver();
         void UART0Handler();
         void JumpStartOutput(char first_char);
         static UART0Driver* GetUART0Driver();

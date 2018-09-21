@@ -30,11 +30,6 @@ void RingBuffer<T>::Add(T data) {
     full_ = (front_ == back_);
     empty_ = false;
 
-    // std::cout << "BUFFER: ADD\n";
-    // std::cout << "\tfront_: >>" << front_ << "<<\n";
-    // std::cout << "\tback_: >>" << back_ << "<<\n";
-    // std::cout << "\tfull_: >>" << full_ << "<<\n";
-    // std::cout << "\tempty_: >>" << empty_ << "<<\n";
   }
 }
 
@@ -42,11 +37,7 @@ template <class T>
 T RingBuffer<T>::Get() {
 
   // If empty, returns an unitialized value of type T (i.e. 0 for int)
-  if (Empty()) {
-    // std::cout << "RETURNING EMPTY\n";
-    return T();
-  }
-
+  if (Empty()) return T();
 
   T return_val = buffer_[back_];
   // Decrement 'back_'
@@ -57,13 +48,16 @@ T RingBuffer<T>::Get() {
   full_ = false;
   empty_ = (front_ == back_);
 
-  // std::cout << "BUFFER: GET\n";
-  // std::cout << "\tfront_: >>" << front_ << "<<\n";
-  // std::cout << "\tback_: >>" << back_ << "<<\n";
-  // std::cout << "\tfull_: >>" << full_ << "<<\n";
-  // std::cout << "\tempty_: >>" << empty_ << "<<\n";
-
   return return_val;
+}
+
+  // Decrement front to erase latest data
+template <class T>
+void RingBuffer<T>::Pop() {
+  if (Empty()) return;
+  full_ = false;
+  front_ = (front_ + buffer_size_ - 1) % buffer_size_;
+  empty_ = (front_ == back_);
 }
 
 template <class T>

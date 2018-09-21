@@ -19,8 +19,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "GlobalConfig.h"
 #include "Monitor.h"
+#include "TimeHandler.h"
+#include "TimeDefinitions.h"
+#include "ZooKeeper.h"
 
-#define NUM_VALID_COMMANDS  3
+#define NUM_VALID_COMMANDS  4
 #define MAX_NUM_TOKENS      2
 
 enum CommandTokens {
@@ -31,7 +34,8 @@ enum CommandTokens {
 const std::string valid_commands[NUM_VALID_COMMANDS] = {
   "TIME",
   "DATE",
-  "ALARM"
+  "ALARM",
+  "ZOO"
 };
 
 class CommandCenter {
@@ -40,13 +44,23 @@ class CommandCenter {
         typedef void (CommandCenter::*FunctionPtr)(std::string arg);
         FunctionPtr FunctionTable[NUM_VALID_COMMANDS];
 
-    public:
-        CommandCenter();
-        void HandleCommand(std::string command_str);
+        // Individual Commands
         void TimeCommand(std::string arg);
         void DateCommand(std::string arg);
         void AlarmCommand(std::string arg);
+        void ZooCommand(std::string arg);
+
+        // Internal helpers
         void ToUpper(std::string &str);
+        bool ParseTimeArg(std::string &input, smh_t &output);
+        bool ParseDateArg(std::string &input, dmy_t &output);
+        int SafeStoi(std::string input_substr);
+
+    public:
+        CommandCenter();
+
+        void HandleCommand(std::string command_str);
+
         static CommandCenter* GetCommandCenter();
 };
 

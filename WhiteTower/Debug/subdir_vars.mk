@@ -9,7 +9,7 @@ CPP_SRCS += \
 ../ComandCenter.cpp \
 ../GlobalConfig.cpp \
 ../Glue.cpp \
-../ISRMsgMaker.cpp \
+../ISRMsgHandler.cpp \
 ../Monitor.cpp \
 ../SysTickDriver.cpp \
 ../TimeHandler.cpp \
@@ -29,7 +29,7 @@ OBJS += \
 ./ComandCenter.obj \
 ./GlobalConfig.obj \
 ./Glue.obj \
-./ISRMsgMaker.obj \
+./ISRMsgHandler.obj \
 ./Monitor.obj \
 ./SysTickDriver.obj \
 ./TimeHandler.obj \
@@ -41,7 +41,7 @@ CPP_DEPS += \
 ./ComandCenter.d \
 ./GlobalConfig.d \
 ./Glue.d \
-./ISRMsgMaker.d \
+./ISRMsgHandler.d \
 ./Monitor.d \
 ./SysTickDriver.d \
 ./TimeHandler.d \
@@ -52,7 +52,7 @@ OBJS__QUOTED += \
 "ComandCenter.obj" \
 "GlobalConfig.obj" \
 "Glue.obj" \
-"ISRMsgMaker.obj" \
+"ISRMsgHandler.obj" \
 "Monitor.obj" \
 "SysTickDriver.obj" \
 "TimeHandler.obj" \
@@ -67,7 +67,7 @@ CPP_DEPS__QUOTED += \
 "ComandCenter.d" \
 "GlobalConfig.d" \
 "Glue.d" \
-"ISRMsgMaker.d" \
+"ISRMsgHandler.d" \
 "Monitor.d" \
 "SysTickDriver.d" \
 "TimeHandler.d" \
@@ -78,7 +78,7 @@ CPP_SRCS__QUOTED += \
 "../ComandCenter.cpp" \
 "../GlobalConfig.cpp" \
 "../Glue.cpp" \
-"../ISRMsgMaker.cpp" \
+"../ISRMsgHandler.cpp" \
 "../Monitor.cpp" \
 "../SysTickDriver.cpp" \
 "../TimeHandler.cpp" \

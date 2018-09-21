@@ -23,6 +23,14 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 template <class T>
 class RingBuffer {
+  private:
+    std::unique_ptr<T[]> buffer_;
+    const int buffer_size_; // Should not be changed after initialization
+    int front_; // Where data is put in (points to next position to place data)
+    int back_;  // Where data is removed
+    bool full_;
+    bool empty_;
+
   public:
 
     RingBuffer(int size) : buffer_(std::unique_ptr<T[]>(new T[size])),
@@ -34,19 +42,11 @@ class RingBuffer {
 
     void Add(T data);
     T Get();
-    void GetAll(T data[]); // TODO: Gets all data and returns it as an array 
-    void Reset(); // Not actually sure what this will be used for, but it seems useful to have
+    void Pop();
+    void Reset();
     bool Empty() const;
     bool Full() const;
 
-  private:
-    std::unique_ptr<T[]> buffer_;
-    const int buffer_size_; // Should not be changed after initialization
-    int front_; // Where data is put in (points to next position to place data)
-    int back_;  // Where data is removed
-    bool full_;
-    bool empty_;
-           
 };
 
 #include "../RingBuffer.tpp"

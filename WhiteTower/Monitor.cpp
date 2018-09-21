@@ -19,31 +19,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Singleton Instance
 Monitor *Monitor::MonitorInstance_ = new Monitor;
 
-Monitor::Monitor() {
-  data_buffer_.reset(new RingBuffer<char>(DATA_BUFFER_SIZE));
-  single_char = new char[2];
-  single_char[1] = NULL;
-}
-
-void Monitor::CentralLoop() {
-  MsgType_t type = NONE;
-  char data = char();
-
-  PrintMsg(clear_screen);
-  PrintNewLine();
-
-  // Loop Forever
-  while(1)
-  {
-    CheckMessageHandler(type, data);
-  }
-}
-
 void Monitor::CheckMessageHandler(MsgType_t &type, char &data) {
   // If the queue is empty, return
-  if (ISRMsgMaker::GetISRMsgMaker()->CheckISRQueue()) return;
+  if (ISRMsgHandler::GetISRMsgHandler()->CheckISRQueue()) return;
 
-  ISRMsgMaker::GetISRMsgMaker()->GetFromQueue(type, data);
+  ISRMsgHandler::GetISRMsgHandler()->GetFromQueue(type, data);
   if (type == NONE) return;
 
   switch (type) {
@@ -60,7 +40,6 @@ void Monitor::CheckMessageHandler(MsgType_t &type, char &data) {
 
 }
 
-// TODO: Handle UART
 void Monitor::HandleUART(char data) {
   char fetched_char;
   std::string command_string = "";
@@ -73,12 +52,11 @@ void Monitor::HandleUART(char data) {
       if (!data_buffer_->Empty()) {
         single_char[0] = data;
         PrintMsg(single_char);
-        data_buffer_->Get();
+        data_buffer_->Pop();
       }
 
       break;
     case 0x0D: // Enter (Carriage Return)
-      // TODO: Write a more elegant "GetAll" function that avoids this loop
       while (1) {
         fetched_char = data_buffer_->Get();
         if (fetched_char) command_string += fetched_char;
@@ -91,7 +69,6 @@ void Monitor::HandleUART(char data) {
       data_buffer_->Reset();
       break;
     default:  // All other characters, add to buffer
-      // Add data to buffer
       data_buffer_->Add(data);
       single_char[0] = data;
       PrintMsg(single_char);
@@ -99,16 +76,40 @@ void Monitor::HandleUART(char data) {
   }
 }
 
-// TODO: HandleSYSTICK
 void Monitor::HandleSYSTICK() {
+  TimeHandler::GetTimeHandler()->TickTenthSec();
 }
 
 void Monitor::PrintNewLine() {
-  PrintMsg(new_line);
+  PrintMsg(NEW_LINE);
+}
+
+Monitor::Monitor() {
+  data_buffer_.reset(new RingBuffer<char>(DATA_BUFFER_SIZE));
+  single_char = new char[2];
+  single_char[1] = NULL;
+}
+
+void Monitor::CentralLoop() {
+  MsgType_t type = NONE;
+  char data = char();
+
+  PrintMsg(CLEAR_SCREEN);
+  PrintNewLine();
+
+  // Loop Forever
+  while(1)
+  {
+    CheckMessageHandler(type, data);
+  }
 }
 
 void Monitor::PrintMsg(std::string msg) {
-  ISRMsgMaker::GetISRMsgMaker()->QueueOutputMsg(msg);
+  ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg(msg);
+}
+
+void Monitor::PrintErrorMsg(std::string msg) {
+  PrintMsg("\r\n\r ? >>" + msg + "<<");
 }
 
 Monitor* Monitor::GetMonitor() {

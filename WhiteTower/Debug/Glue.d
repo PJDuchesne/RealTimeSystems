@@ -2,7 +2,7 @@
 
 Glue.obj: ../Glue.cpp
 Glue.obj: ../Includes/UART0Driver.h
-Glue.obj: ../Includes/ISRMsgMaker.h
+Glue.obj: ../Includes/ISRMsgHandler.h
 Glue.obj: ../Includes/GlobalConfig.h
 Glue.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/iostream
 Glue.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__config
@@ -133,7 +133,7 @@ Glue.obj: ../Includes/SysTickDriver.h
 
 ../Glue.cpp: 
 ../Includes/UART0Driver.h: 
-../Includes/ISRMsgMaker.h: 
+../Includes/ISRMsgHandler.h: 
 ../Includes/GlobalConfig.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/iostream: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__config: 

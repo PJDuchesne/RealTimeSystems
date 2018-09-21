@@ -20,14 +20,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Singleton Instance
 SysTickDriver *SysTickDriver::SysTickDriverInstance_ = new SysTickDriver;
 
-// Constructor, which initializes SysTick on startup
-SysTickDriver::SysTickDriver() {
-    // Set period to 10 sec
-    ST_RELOAD_R = MAX_WAIT - 1;
-    SysTickEnable(true);
-    SysTickStart();
-}
-
 void SysTickDriver::SysTickStart() {
     // Set the clock source to internal and enable the counter to interrupt
     ST_CTRL_R |= ST_CTRL_CLK_SRC | ST_CTRL_ENABLE;
@@ -51,9 +43,17 @@ void SysTickDriver::SysTickEnable(bool enable) {
     }
 }
 
-void SysTickDriver::SysTickHandler() {
+// Constructor, which initializes SysTick on startup
+SysTickDriver::SysTickDriver() {
+    // Set period to 10 sec
+    ST_RELOAD_R = MAX_WAIT - 1;
+    SysTickEnable(true);
+    SysTickStart();
 }
-    // ISRMsgMaker::GetISRMsgMaker()->QueueMsg(SYSTICK, char());
+
+void SysTickDriver::SysTickHandler() {
+    ISRMsgHandler::GetISRMsgHandler()->QueueMsg(SYSTICK, char());
+}
 
 SysTickDriver* SysTickDriver::GetSysTickDriver() {
     return SysTickDriverInstance_;

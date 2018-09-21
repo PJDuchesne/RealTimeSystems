@@ -127,12 +127,14 @@ main.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__unde
 main.obj: ../Includes/Monitor.h
 main.obj: ../Includes/RingBuffer.h
 main.obj: ../Includes/../RingBuffer.tpp
-main.obj: ../Includes/ISRMsgMaker.h
+main.obj: ../Includes/ISRMsgHandler.h
 main.obj: ../Includes/UART0Driver.h
-main.obj: ../Includes/ISRMsgMaker.h
+main.obj: ../Includes/ISRMsgHandler.h
 main.obj: ../Includes/CommandCenter.h
 main.obj: ../Includes/Monitor.h
 main.obj: ../Includes/TimeHandler.h
+main.obj: ../Includes/TimeDefinitions.h
+main.obj: ../Includes/ZooKeeper.h
 
 ../main.cpp: 
 ../Includes/GlobalConfig.h: 
@@ -261,9 +263,11 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros:
 ../Includes/Monitor.h: 
 ../Includes/RingBuffer.h: 
 ../Includes/../RingBuffer.tpp: 
-../Includes/ISRMsgMaker.h: 
+../Includes/ISRMsgHandler.h: 
 ../Includes/UART0Driver.h: 
-../Includes/ISRMsgMaker.h: 
+../Includes/ISRMsgHandler.h: 
 ../Includes/CommandCenter.h: 
 ../Includes/Monitor.h: 
 ../Includes/TimeHandler.h: 
+../Includes/TimeDefinitions.h: 
+../Includes/ZooKeeper.h: 

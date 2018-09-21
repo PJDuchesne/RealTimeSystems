@@ -1,8 +1,7 @@
-TODO: Notes for A1
+Notes for A1
 
 Five Broad Tasks
-	1. ISR for UART0
-	2. ISR for SysTick
+	1. ISRS (UART0 / SYSTICK)
 	3. Monitor
 	4. Queue Between Monitor and ISRs
 	5. "Command Support Routines"
@@ -16,10 +15,12 @@ Classes to Make
 	- CommandCenter (Time, Date, Alarm)
 	- Time Class (To keep track of time and such)
 
-	TODO: Rename ISRMsgMaker -> ISRMsgHandler (or something)
-
-	TODO: Zoo function
-
 	TODO: 
-	- Hook in SYSTick and test TIME
-	- Finish CommandCenter's command handling to actually do stuff (i.e. setTime after reading arugments)
+	- Zoo Memory issue
+	- Update queue to not use booleans (and instead have 1 empty space)
+	- Add CONST to most member functions
+	- VT-100 stuff
+	- Update input to only work with displayable characters (i.e. avoid arrow keys)
+	- Rewrite ISRMsgHandler to be a separate layer. It's pretty open right now
+	- Fix month array indexing
+	- Fix class ordering in cpp files

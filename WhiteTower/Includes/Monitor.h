@@ -18,15 +18,14 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 */
 
 #include "RingBuffer.h"
-#include "ISRMsgMaker.h"
+#include "ISRMsgHandler.h"
 #include "CommandCenter.h"
 #include "GlobalConfig.h"
 #include "TimeHandler.h"
 
 #define DATA_BUFFER_SIZE 80
-
-const std::string clear_screen = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-const std::string new_line = "\n\rTIVA > ";
+#define NEW_LINE         "\n\r > "
+#define CLEAR_SCREEN     "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
 
 class Monitor {
     private:
@@ -34,14 +33,20 @@ class Monitor {
         std::unique_ptr<RingBuffer<char>> data_buffer_;
         char* single_char;
 
-    public:
-        Monitor();
-        void CentralLoop();
+        // Poll the ISR Msg Queue
         void CheckMessageHandler(MsgType_t &type, char &data);
+
+        // Handle incoming msgs
         void HandleUART(char data);
         void HandleSYSTICK();
+
+    public:
+        Monitor();
+        void CentralLoop(); // Called from main() to pass control
+
         void PrintNewLine();
         void PrintMsg(std::string msg);
+        void PrintErrorMsg(std::string msg);
         static Monitor* GetMonitor();
 };
 

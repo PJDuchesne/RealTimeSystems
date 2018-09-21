@@ -2,7 +2,7 @@
 
 UART0Driver.obj: ../UART0Driver.cpp
 UART0Driver.obj: ../Includes/UART0Driver.h
-UART0Driver.obj: ../Includes/ISRMsgMaker.h
+UART0Driver.obj: ../Includes/ISRMsgHandler.h
 UART0Driver.obj: ../Includes/GlobalConfig.h
 UART0Driver.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/iostream
 UART0Driver.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__config
@@ -132,7 +132,7 @@ UART0Driver.obj: ../Includes/UART0Driver.h
 
 ../UART0Driver.cpp: 
 ../Includes/UART0Driver.h: 
-../Includes/ISRMsgMaker.h: 
+../Includes/ISRMsgHandler.h: 
 ../Includes/GlobalConfig.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/iostream: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__config: 

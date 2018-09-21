@@ -17,7 +17,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "ISRMsgMaker.h"
+#include "ISRMsgHandler.h"
 
 // SysTick Registers
 // SysTick Control and Status Register (STCTRL)
@@ -41,11 +41,11 @@ class SysTickDriver {
     private:
         static SysTickDriver* SysTickDriverInstance_;
 
-    public:
-        SysTickDriver();
         void SysTickStart();
         void SysTickStop();
         void SysTickEnable(bool enable);
+    public:
+        SysTickDriver();
         void SysTickHandler();
         static SysTickDriver* GetSysTickDriver();
 };

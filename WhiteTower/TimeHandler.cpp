@@ -19,40 +19,16 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Singleton Instance
 TimeHandler *TimeHandler::TimeHandlerInstance_ = new TimeHandler;
 
-void TimeHandler::SetTime(smh_t &new_smh) {
-  current_time_.tenth_sec_ = 0;
-  current_time_.smh_ = new_smh;
-
-  // TODO: Alarm handling? Check with Hughes
-}
-
-void TimeHandler::SetDate(dmy_t &new_dmy) {
-  current_time_.dmy_ = new_dmy;
-}
-
-void TimeHandler::SetAlarm(smh_t &alarm_time) {
-  // TODO: Calculate new alarm time in the future, including rollover
-}
-
-#define MAX_TENTH_SEC 9
-void TimeHandler::TickTenthSec() {
-  if (++current_time_.tenth_sec_ > MAX_TENTH_SEC) TickSec();
-  CheckAlarm();
-}
-
-#define MAX_SEC 59
 void TimeHandler::TickSec() {
   current_time_.tenth_sec_ = 0;
   if (++current_time_.sec_ > MAX_SEC) TickMin();
 }
 
-#define MAX_MIN 59
 void TimeHandler::TickMin() {
   current_time_.sec_ = 0;
   if (++current_time_.min_ > MAX_MIN) TickMin();
 }
 
-#define MAX_HOUR 23
 void TimeHandler::TickHour() {
   current_time_.min_ = 0;
   if (++current_time_.hour_ > MAX_HOUR) TickDay();
@@ -65,51 +41,69 @@ void TimeHandler::TickDay() {
   if (++current_time_.day_ > days_in_month) TickMonth();
 }
 
-#define MAX_MONTH 11
 void TimeHandler::TickMonth() {
   current_time_.day_ = 0;
   if (++current_time_.month_ > MAX_MONTH) TickYear();
 }
 
-#define MAX_YEAR 9999
 void TimeHandler::TickYear() {
   current_time_.month_ = 0;
   if (++current_time_.year_ > MAX_YEAR) current_time_.year_ = 0;
+  leap_year_ = CheckLeapYear(current_time_.year_);
 }
 
-void TimeHandler::CheckLeapYear() {
-  uint16_t year = current_time_.year_;
-
-  /* Gregorian calendar and the concept of Feb 29 was in 1582
-  if (year <= 1582) {
-    leap_year_ = false;
-    return
-  } 
-  */
-
-  if (year % 4 == 0 && ((year % 100 != 0) || (year % 400 == 0))) leap_year_ = true;
-  else leap_year_ = false;  
+bool TimeHandler::CheckLeapYear(uint16_t input_year) const {
+  if (input_year % 4 == 0 && ((input_year % 100 != 0) || (input_year % 400 == 0))) return true;
+  else return false;  
 }
 
-// TODO: Ask Hughes about the interaction with the user changing the date while an alarm is active
 void TimeHandler::CheckAlarm() {
-  if (true) {
-  // if (int(current_time_.smh_) == int(alarm_.alarm_time_.smh_)) {
+  if (alarm_.is_active_ && (current_time_.smh_ == alarm_.alarm_time_)) {
     // '\a' is the BEL (bell) character, which makes a noise if possible
-    Monitor::GetMonitor()->PrintMsg("\a* ALARM * " + CreateSMHStr(alarm_.alarm_time_.smh_) + " *");
+    Monitor::GetMonitor()->PrintMsg("\n\r\a* ALARM * " + CreateSMHStr(alarm_.alarm_time_) + " *");
+    Monitor::GetMonitor()->PrintNewLine();
     alarm_.is_active_ = false;
   }
 }
 
-std::string TimeHandler::CreateSMHStr(smh_t &smh) {
-  std::string msg = LexicalIntToString(smh.sec, 2) + ":" 
-                  + LexicalIntToString(smh.min, 2) + ":"
-                  + LexicalIntToString(smh.hour, 2);
+// Always used in reference to current time
+// Assumes that offset is a valid
+smh_t TimeHandler::FutureTime(smh_t &offset) const {
+  smh_t new_time = {.sec = 0, .min = 0, .hour = 0};
+
+  // Sec
+  new_time.sec = current_time_.sec_ + offset.sec;
+  if (new_time.sec > MAX_SEC) {
+    new_time.sec -= (MAX_SEC + 1);
+    new_time.min++;
+  }
+
+  // Min
+  new_time.min += current_time_.min_ + offset.min;
+  if (new_time.min > MAX_MIN) {
+    new_time.min -= (MAX_MIN + 1);
+    new_time.hour++;
+  }
+
+  // Hour
+  new_time.hour += current_time_.hour_ + offset.hour;
+  if (new_time.hour > MAX_HOUR) {
+    new_time.hour -= (MAX_HOUR + 1);
+    // Not concerned about day rolling over
+  }
+
+  return new_time;
+}
+
+std::string TimeHandler::CreateSMHStr(smh_t &smh) const {
+  std::string msg = LexicalIntToString(smh.hour, 2) + ":" 
+                  + LexicalIntToString(smh.min,  2) + ":"
+                  + LexicalIntToString(smh.sec,  2);
 
   return msg;
 }
 
-std::string TimeHandler::CreateDMYStr(dmy_t &dmy) {
+std::string TimeHandler::CreateDMYStr(dmy_t &dmy) const {
   std::string msg = LexicalIntToString(dmy.day, 2) + "-" 
                   + months_str[dmy.month] + "-"
                   + LexicalIntToString(dmy.year, 4);
@@ -117,7 +111,7 @@ std::string TimeHandler::CreateDMYStr(dmy_t &dmy) {
   return msg;
 }
 
-std::string TimeHandler::LexicalIntToString(uint16_t input_int, uint8_t desired_len) {
+std::string TimeHandler::LexicalIntToString(uint16_t input_int, uint8_t desired_len) const {
   std::string return_val = std::to_string(input_int);
   uint8_t str_len = return_val.length();
 
@@ -131,6 +125,82 @@ std::string TimeHandler::LexicalIntToString(uint16_t input_int, uint8_t desired_
   for (int i = 0; i < (desired_len - str_len); i++) return_val = "0" + return_val;
 
   return return_val;
+}
+
+TimeHandler::TimeHandler() : current_time_(ti_time_t()),
+                             alarm_(alarm_t()),
+                             leap_year_(false) {
+  current_time_.dmy_ = default_date;
+}
+
+bool TimeHandler::SetTime(smh_t &new_smh) {
+  if (!CheckValidTime(new_smh)) return false;
+  current_time_.tenth_sec_ = 0;
+  current_time_.smh_ = new_smh;
+  return true;
+}
+
+bool TimeHandler::SetDate(dmy_t &new_dmy) {
+  if (!CheckValidDate(new_dmy)) return false;
+  current_time_.dmy_ = new_dmy;
+  leap_year_ = CheckLeapYear(current_time_.year_);
+  return true;
+}
+
+bool TimeHandler::SetAlarm(smh_t &new_alarm_time) {
+  if (!CheckValidTime(new_alarm_time)) return false;
+  alarm_.is_active_ = true;
+  // Guaranteed by FutureTime() to be valid time
+  alarm_.alarm_time_ = FutureTime(new_alarm_time);
+  PrintCurrentAlarm();
+  return true;
+}
+
+void TimeHandler::ClearAlarm() {
+  alarm_.is_active_ = false;
+}
+
+void TimeHandler::TickTenthSec() {
+  if (++current_time_.tenth_sec_ > MAX_TENTH_SEC) TickSec();
+  CheckAlarm();
+}
+
+bool TimeHandler::CheckValidTime(smh_t &input_smh) const {
+  if ( (input_smh.sec > MAX_SEC) ||
+       (input_smh.min > MAX_MIN) ||
+       (input_smh.hour > MAX_HOUR) ) return false;
+
+  return true;
+}
+
+bool TimeHandler::CheckValidDate(dmy_t &input_dmy) const {
+  // Technically months can't be wrong at this stage given that they are always fed 
+  // in as numbers and the string literals have already been checked for error
+  if ( (input_dmy.year  > MAX_YEAR) ||
+       (input_dmy.month > MAX_MONTH) ) return false;
+
+  int8_t days_in_month = month_numbers[input_dmy.month];
+  if (days_in_month == -1) days_in_month = (CheckLeapYear(input_dmy.year) ? 29 : 28);
+  if ((input_dmy.day == 0) || (input_dmy.day > days_in_month)) return false;
+
+  return true;
+}
+
+void TimeHandler::PrintCurrentTime() {
+  Monitor::GetMonitor()->PrintMsg("\n\r" + CreateSMHStr(current_time_.smh_));
+}
+
+void TimeHandler::PrintCurrentDate() {
+  Monitor::GetMonitor()->PrintMsg("\n\r" + CreateDMYStr(current_time_.dmy_));
+}
+
+void TimeHandler::PrintCurrentAlarm() {
+  if (alarm_.is_active_) Monitor::GetMonitor()->PrintMsg("\n\r" + CreateSMHStr(alarm_.alarm_time_));
+  else Monitor::GetMonitor()->PrintErrorMsg("No Alarm Currently Set");
+}
+
+ti_time_t TimeHandler::GetCurrentTime() {
+  return current_time_;
 }
 
 TimeHandler* TimeHandler::GetTimeHandler() {
