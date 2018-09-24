@@ -1,0 +1,29 @@
+// Formed
+time
+date
+alarm
+TIME
+DATE
+ALARM
+tiME
+DAte
+AlArM
+time ::
+time
+time 12:34:56
+time
+date 01-JAN-2018
+date
+alarm
+alarm ::5
+
+// Malformed
+timex ::
+alarm0 12:30:42
+datey 12-jan-4003
+tim
+dat
+alorm
+foobar
+time 12:34:56 barfoo
+

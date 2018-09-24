@@ -74,6 +74,7 @@ Monitor.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/cct
 Monitor.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ctype.h
 Monitor.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/ctype.h
 Monitor.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdcl.h
+Monitor.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdef.h
 Monitor.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/wctype.h
 Monitor.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/wctype.h
 Monitor.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_ctype.h
@@ -127,12 +128,15 @@ Monitor.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__u
 Monitor.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
 Monitor.obj: ../Includes/../RingBuffer.tpp
 Monitor.obj: ../Includes/ISRMsgHandler.h
-Monitor.obj: ../Includes/GlobalConfig.h
 Monitor.obj: ../Includes/UART0Driver.h
 Monitor.obj: ../Includes/ISRMsgHandler.h
+Monitor.obj: ../Includes/SysTickDriver.h
 Monitor.obj: ../Includes/CommandCenter.h
 Monitor.obj: ../Includes/Monitor.h
 Monitor.obj: ../Includes/TimeHandler.h
+Monitor.obj: ../Includes/GlobalConfig.h
+Monitor.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/CommandCenter.h
+Monitor.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/TimeHandler.h
 Monitor.obj: ../Includes/TimeDefinitions.h
 Monitor.obj: ../Includes/ZooKeeper.h
 
@@ -210,6 +214,7 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/cctype:
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/ctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdcl.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdef.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/wctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/wctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_ctype.h: 
@@ -263,11 +268,14 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros:
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
 ../Includes/../RingBuffer.tpp: 
 ../Includes/ISRMsgHandler.h: 
-../Includes/GlobalConfig.h: 
 ../Includes/UART0Driver.h: 
 ../Includes/ISRMsgHandler.h: 
+../Includes/SysTickDriver.h: 
 ../Includes/CommandCenter.h: 
 ../Includes/Monitor.h: 
 ../Includes/TimeHandler.h: 
+../Includes/GlobalConfig.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/CommandCenter.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/TimeHandler.h: 
 ../Includes/TimeDefinitions.h: 
 ../Includes/ZooKeeper.h: 

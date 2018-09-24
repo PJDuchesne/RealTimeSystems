@@ -6,21 +6,26 @@ Five Broad Tasks
 	4. Queue Between Monitor and ISRs
 	5. "Command Support Routines"
 
+TODO: 
+	- Do a time test!
 
-Classes to Make
-	- UART Driver
-	- SYSTIck Driver
-	- Monitor
-	- Buffer (Templated for the 3 uses)
-	- CommandCenter (Time, Date, Alarm)
-	- Time Class (To keep track of time and such)
-
-	TODO: 
-	- Zoo Memory issue
-	- Update queue to not use booleans (and instead have 1 empty space)
-	- Add CONST to most member functions
-	- VT-100 stuff
-	- Update input to only work with displayable characters (i.e. avoid arrow keys)
+	Questionable TODO (Or look into):
 	- Rewrite ISRMsgHandler to be a separate layer. It's pretty open right now
-	- Fix month array indexing
-	- Fix class ordering in cpp files
+    - Check if UART was busy when message was found. See datasheet
+
+	Bonus TODO:
+	- Add buffer of previous commands
+	- VT-100 color options
+		- Two commands: Background && Foreground
+
+Test Plan:
+	1. Basic Functionality
+	2. Time: Formed
+	3. Time: Malformed
+	4. Date: Formed
+	5. Date: Malformed
+	6. Alarm: Formed
+	7. Alarm: Malformed
+	8. Manual Writing Test
+	9. VT-100 inputs (Arrow, Function keys, Keypad)
+	10. Delete

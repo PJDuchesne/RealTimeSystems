@@ -31,3 +31,12 @@ void InterruptEnable(unsigned long InterruptIndex) {
         NVIC_EN1_R = 1 << (InterruptIndex - 32);
     }
 }
+
+void SingletonSetup() {
+    UART0Driver::GetUART0Driver()->SingletonGrab();
+    SysTickDriver::GetSysTickDriver()->SingletonGrab();
+    ISRMsgHandler::GetISRMsgHandler()->SingletonGrab();
+    Monitor::GetMonitor()->SingletonGrab();
+    CommandCenter::GetCommandCenter()->SingletonGrab();
+    TimeHandler::GetTimeHandler()->SingletonGrab();
+}

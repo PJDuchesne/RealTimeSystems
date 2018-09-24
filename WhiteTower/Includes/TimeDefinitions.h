@@ -24,10 +24,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define MAX_MONTH       11
 #define MAX_YEAR        9999
 
-const std::string months_str[MAX_MONTH + 2] = { "", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", 
-                                                    "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
+const std::string months_str[MAX_MONTH + 1] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", 
+                                               "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 
-const int8_t month_numbers[MAX_MONTH + 2] = { -1, 31, -1, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+const int8_t month_numbers[MAX_MONTH + 1] = { 31, -1, 31, 30, 31, 30, 
+                                              31, 31, 30, 31, 30, 31 };
 
 // smh -> second, min, hour
 typedef struct smh {
@@ -38,10 +39,6 @@ typedef struct smh {
     return ((this->sec == r.sec) && (this->min == r.min) && (this->hour == r.hour));
   }
 } smh_t;
-
-// bool operator==(const smh &l, const smh &r) {
-//     return ((l.sec == r.sec) && (l.min == r.min) && (l.hour == r.hour));
-// }
 
 // dmy -> day, month, year
 typedef struct dmy {
@@ -71,7 +68,7 @@ typedef struct ti_time {
         struct {
            uint8_t day_;
            uint8_t month_;
-           uint8_t year_; 
+           uint16_t year_; 
         };
       };
 
@@ -85,6 +82,6 @@ typedef struct alarm {
   bool is_active_;
 } alarm_t;
 
-const dmy_t default_date { .day = 1, .month = 9, .year = 2018 };
+const dmy_t default_date { .day = 1, .month = 8, .year = 2018 };
 
 #endif /* TimeDefinitions_H */

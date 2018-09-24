@@ -18,7 +18,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <iostream>
 
 // Singleton Instance
-SysTickDriver *SysTickDriver::SysTickDriverInstance_ = new SysTickDriver;
+SysTickDriver *SysTickDriver::SysTickDriverInstance_ = 0;
 
 void SysTickDriver::SysTickStart() {
     // Set the clock source to internal and enable the counter to interrupt
@@ -43,6 +43,10 @@ void SysTickDriver::SysTickEnable(bool enable) {
     }
 }
 
+void SysTickDriver::SingletonGrab() {
+    ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
+}
+
 // Constructor, which initializes SysTick on startup
 SysTickDriver::SysTickDriver() {
     // Set period to 10 sec
@@ -52,9 +56,10 @@ SysTickDriver::SysTickDriver() {
 }
 
 void SysTickDriver::SysTickHandler() {
-    ISRMsgHandler::GetISRMsgHandler()->QueueMsg(SYSTICK, char());
+    ISRMsgHandlerInstance_->QueueMsg(SYSTICK, char());
 }
 
 SysTickDriver* SysTickDriver::GetSysTickDriver() {
+    if (!SysTickDriverInstance_) SysTickDriverInstance_ = new SysTickDriver;
     return SysTickDriverInstance_;
 }

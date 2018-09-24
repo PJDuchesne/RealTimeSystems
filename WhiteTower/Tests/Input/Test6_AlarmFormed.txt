@@ -1,0 +1,51 @@
+// Basic Alarm (Note: Same argument parsing as time, therefore same tests)
+alarm
+alarm 10:20:30
+alarm
+
+// alarm border checks
+alarm 00:00:00
+alarm
+alarm 23:59:59
+alarm
+
+// alarm Natural range
+alarm 12:12:12
+alarm
+alarm 06:20:48
+alarm
+alarm 09:50:45
+alarm
+alarm 23:40:22
+alarm
+
+// alarm 0 padding check
+alarm 1:2:3
+alarm
+alarm 04:5:1
+alarm
+
+alarm 1:20:30
+alarm
+alarm 04:5:10
+alarm
+alarm 20:30:4
+alarm
+
+// alarm autofill
+alarm ::
+alarm
+
+alarm 10::
+alarm
+alarm :20:
+alarm
+alarm ::30
+alarm
+
+alarm :40:50
+alarm
+alarm 10::20
+alarm
+alarm 03:40:
+alarm

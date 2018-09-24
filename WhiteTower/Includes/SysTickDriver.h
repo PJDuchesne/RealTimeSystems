@@ -34,18 +34,21 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Maximum period
 #define MAX_WAIT           0x199999   /* 1/10th of a second */
 
-/* Global to signal SysTick interrupt */
-volatile int elapsed;
+// Forward Declaration
+class ISRMsgHandler;
 
 class SysTickDriver {
     private:
         static SysTickDriver* SysTickDriverInstance_;
+        ISRMsgHandler *ISRMsgHandlerInstance_;
 
         void SysTickStart();
         void SysTickStop();
         void SysTickEnable(bool enable);
+
     public:
         SysTickDriver();
+        void SingletonGrab();
         void SysTickHandler();
         static SysTickDriver* GetSysTickDriver();
 };

@@ -21,12 +21,17 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "Monitor.h"
 #include "TimeDefinitions.h"
 
+// Forward Declaration
+class Monitor;
+
 class TimeHandler {
     private:
         static TimeHandler* TimeHandlerInstance_;
         ti_time_t current_time_;
         alarm_t alarm_;
         bool leap_year_;
+
+        Monitor *MonitorInstance_;
 
         // Tick functions to increment time
         void TickSec();
@@ -48,6 +53,7 @@ class TimeHandler {
 
     public:
         TimeHandler();
+        void SingletonGrab();
 
         // Functions to handle commands
         bool SetTime(smh_t &new_smh);
@@ -59,6 +65,7 @@ class TimeHandler {
         // Internal Member functions
         bool CheckValidTime(smh_t &input_smh) const;
         bool CheckValidDate(dmy_t &input_dmy) const;
+        bool CheckAlarmActive() const;
 
         void PrintCurrentTime();
         void PrintCurrentDate();

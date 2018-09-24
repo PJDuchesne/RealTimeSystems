@@ -14,19 +14,18 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-// To allow global configurations (i.e. Master ISR setups)
+// To allow global configurations (i.e. Master ISR setups, Singleton, etc.)
 #include "Includes/GlobalConfig.h"
-
-#include "Includes/Monitor.h"
 
 /**
  * main.cpp
  */
 int main(void)
-{
+ {
 	// Set up interrupts
-	InterruptEnable(INT_VEC_UART0); // Allow UART0 interrupts
-	InterruptMasterEnable();		// Enable global interrupts
+	InterruptEnable(INT_VEC_UART0);  // Allow UART0 interrupts
+	InterruptMasterEnable();		     // Enable global interrupts
+  SingletonSetup();                // Instantiates all singletons
 
 	// Pass Control to Monitor
 	Monitor::GetMonitor()->CentralLoop();

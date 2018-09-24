@@ -14,6 +14,7 @@ CPP_SRCS += \
 ../SysTickDriver.cpp \
 ../TimeHandler.cpp \
 ../UART0Driver.cpp \
+../ZooKeeper.cpp \
 ../main.cpp 
 
 CMD_SRCS += \
@@ -34,6 +35,7 @@ OBJS += \
 ./SysTickDriver.obj \
 ./TimeHandler.obj \
 ./UART0Driver.obj \
+./ZooKeeper.obj \
 ./main.obj \
 ./tm4c1294ncpdt_startup_ccs.obj 
 
@@ -46,6 +48,7 @@ CPP_DEPS += \
 ./SysTickDriver.d \
 ./TimeHandler.d \
 ./UART0Driver.d \
+./ZooKeeper.d \
 ./main.d 
 
 OBJS__QUOTED += \
@@ -57,6 +60,7 @@ OBJS__QUOTED += \
 "SysTickDriver.obj" \
 "TimeHandler.obj" \
 "UART0Driver.obj" \
+"ZooKeeper.obj" \
 "main.obj" \
 "tm4c1294ncpdt_startup_ccs.obj" 
 
@@ -72,6 +76,7 @@ CPP_DEPS__QUOTED += \
 "SysTickDriver.d" \
 "TimeHandler.d" \
 "UART0Driver.d" \
+"ZooKeeper.d" \
 "main.d" 
 
 CPP_SRCS__QUOTED += \
@@ -83,6 +88,7 @@ CPP_SRCS__QUOTED += \
 "../SysTickDriver.cpp" \
 "../TimeHandler.cpp" \
 "../UART0Driver.cpp" \
+"../ZooKeeper.cpp" \
 "../main.cpp" 
 
 C_SRCS__QUOTED += \

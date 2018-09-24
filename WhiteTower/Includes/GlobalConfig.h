@@ -22,18 +22,21 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <string>
 #include <cstdint>
 
+#include "Includes/UART0Driver.h"
+#include "Includes/SysTickDriver.h"
+#include "Includes/ISRMsgHandler.h"
+#include "Includes/Monitor.h"
+#include "Includes/CommandCenter.h"
+#include "Includes/TimeHandler.h"
+
 #define NVIC_EN0_R      (*((volatile unsigned long *)0xE000E100))   // Interrupt  0-31 Set Enable Register
 #define NVIC_EN1_R      (*((volatile unsigned long *)0xE000E104))   // Interrupt 32-54 Set Enable Register
 
 #define INT_VEC_UART0   5  // UART0 Rx and Tx interrupt index (decimal)
 
-typedef enum MsgType {
-	NONE, // --> False
-	UART,
-	SYSTICK
-} MsgType_t;
-
 void InterruptMasterEnable();
 void InterruptEnable(unsigned long InterruptIndex);
+
+void SingletonSetup();
 
 #endif /* GlobalConfig_H */

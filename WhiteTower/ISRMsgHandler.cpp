@@ -17,54 +17,59 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "Includes/ISRMsgHandler.h"
 
 // Singleton Instance
-ISRMsgHandler *ISRMsgHandler::ISRMsgHandlerInstance_ = new ISRMsgHandler;
+ISRMsgHandler *ISRMsgHandler::ISRMsgHandlerInstance_ = 0;
+
+void ISRMsgHandler::SingletonGrab() {
+    UART0DriverInstance_ = UART0Driver::GetUART0Driver();
+}
+
 
 ISRMsgHandler::ISRMsgHandler() {
-  isr_queue_.reset(new RingBuffer<ISRMsg>(ISR_QUEUE_SIZE));
-  output_data_buffer_.reset(new RingBuffer<char>(OUTPUT_DATA_BUFFER_SIZE));
+    isr_queue_.reset(new RingBuffer<ISRMsg>(ISR_QUEUE_SIZE));
+    output_data_buffer_.reset(new RingBuffer<char>(OUTPUT_DATA_BUFFER_SIZE));
 
-  uart_output_idle_ = true;
+    uart_output_idle_ = true;
 }
 
 void ISRMsgHandler::QueueMsg(MsgType_t type, char data) {
-  // Create msg to pass into ISR queue
-  ISRMsg msg = { .type = type, .data = data };
-  isr_queue_->Add(msg);
+    // Create msg to pass into ISR queue
+    ISRMsg msg = { .type = type, .data = data };
+    isr_queue_->Add(msg);
 }
 
 void ISRMsgHandler::GetFromQueue(MsgType_t &type, char &data) {
-  // Attempt to get message from queue
-  ISRMsg msg = isr_queue_->Get();
-  type = msg.type;
-  data = msg.data;
+    // Attempt to get message from queue
+    ISRMsg msg = isr_queue_->Get();
+    type = msg.type;
+    data = msg.data;
 }
 
 bool ISRMsgHandler::CheckISRQueue() {
-  return isr_queue_->Empty();
+    return isr_queue_->Empty();
 }
 
 void ISRMsgHandler::QueueOutputMsg(std::string msg) {
-  for (int i = 0; i < msg.length(); i++) {
-    output_data_buffer_->Add(char(msg[i]));
-  }
+    for (int i = 0; i < msg.length(); i++) {
+        output_data_buffer_->Add(char(msg[i]));
+    }
 
-  // Jumpstart output if necessary
-  if (uart_output_idle_) {
-      char first_char = output_data_buffer_->Get();
-      uart_output_idle_ = false;
-      UART0Driver::GetUART0Driver()->JumpStartOutput(first_char);
-  }
+    // Jumpstart output if necessary
+    if (uart_output_idle_) {
+        char first_char = output_data_buffer_->Get();
+        uart_output_idle_ = false;
+        UART0DriverInstance_->JumpStartOutput(first_char);
+    }
 }
 
 bool ISRMsgHandler::OutputBufferEmpty() {
-  return output_data_buffer_->Empty();
+    return output_data_buffer_->Empty();
 }
 
 char ISRMsgHandler::GetOutputChar() {
-  return output_data_buffer_->Get();
+    return output_data_buffer_->Get();
 }
 
 ISRMsgHandler* ISRMsgHandler::GetISRMsgHandler() {
-  // if (!ISRMsgHandlerInstance) ISRMsgHandlerInstance = new ISRMsgHandler;
-  return ISRMsgHandlerInstance_;
+    if (!ISRMsgHandlerInstance_) ISRMsgHandlerInstance_ = new ISRMsgHandler;
+    return ISRMsgHandlerInstance_;
 }

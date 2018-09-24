@@ -68,17 +68,19 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define CLEAR_USRSYSDIV     0xF83FFFFF  // Clear USRSYSDIV Bits
 #define SET_BYPASS          0x00000800  // Set BYPASS Bit
 
-/* Globals (Maybe Move into class later) */
-volatile char Data;      /* Input data from UART receive */
-volatile bool GotData;   /* T|F - Data available from UART */
+// Forward Declaration
+class ISRMsgHandler;
 
 class UART0Driver {
     private:
         static UART0Driver* UART0DriverInstance_;
+        ISRMsgHandler *ISRMsgHandlerInstance_;
         void UART0Init();
         void UART0Enable(unsigned long flags);
+
     public:
         UART0Driver();
+        void SingletonGrab();
         void UART0Handler();
         void JumpStartOutput(char first_char);
         static UART0Driver* GetUART0Driver();

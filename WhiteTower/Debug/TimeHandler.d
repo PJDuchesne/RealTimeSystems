@@ -74,6 +74,7 @@ TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx
 TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ctype.h
 TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/ctype.h
 TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdcl.h
+TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdef.h
 TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/wctype.h
 TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/wctype.h
 TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_ctype.h
@@ -125,17 +126,19 @@ TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx
 TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
 TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
 TimeHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
-TimeHandler.obj: ../Includes/Monitor.h
-TimeHandler.obj: ../Includes/RingBuffer.h
-TimeHandler.obj: ../Includes/../RingBuffer.tpp
-TimeHandler.obj: ../Includes/ISRMsgHandler.h
-TimeHandler.obj: ../Includes/UART0Driver.h
-TimeHandler.obj: ../Includes/ISRMsgHandler.h
-TimeHandler.obj: ../Includes/CommandCenter.h
-TimeHandler.obj: ../Includes/Monitor.h
-TimeHandler.obj: ../Includes/TimeHandler.h
-TimeHandler.obj: ../Includes/TimeDefinitions.h
-TimeHandler.obj: ../Includes/ZooKeeper.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/UART0Driver.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/ISRMsgHandler.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/RingBuffer.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/../RingBuffer.tpp
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/UART0Driver.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/SysTickDriver.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/ISRMsgHandler.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/Monitor.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/CommandCenter.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/Monitor.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/TimeHandler.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/TimeDefinitions.h
+TimeHandler.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/ZooKeeper.h
 
 ../TimeHandler.cpp: 
 ../Includes/TimeHandler.h: 
@@ -211,6 +214,7 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/cctype:
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/ctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdcl.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdef.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/wctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/wctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_ctype.h: 
@@ -262,14 +266,16 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__bit_reference:
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
-../Includes/Monitor.h: 
-../Includes/RingBuffer.h: 
-../Includes/../RingBuffer.tpp: 
-../Includes/ISRMsgHandler.h: 
-../Includes/UART0Driver.h: 
-../Includes/ISRMsgHandler.h: 
-../Includes/CommandCenter.h: 
-../Includes/Monitor.h: 
-../Includes/TimeHandler.h: 
-../Includes/TimeDefinitions.h: 
-../Includes/ZooKeeper.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/UART0Driver.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/ISRMsgHandler.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/RingBuffer.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/../RingBuffer.tpp: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/UART0Driver.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/SysTickDriver.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/ISRMsgHandler.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/Monitor.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/CommandCenter.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/Monitor.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/TimeHandler.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/TimeDefinitions.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/ZooKeeper.h: 

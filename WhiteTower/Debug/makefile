@@ -18,6 +18,7 @@ ORDERED_OBJS += \
 "./SysTickDriver.obj" \
 "./TimeHandler.obj" \
 "./UART0Driver.obj" \
+"./ZooKeeper.obj" \
 "./main.obj" \
 "./tm4c1294ncpdt_startup_ccs.obj" \
 "../tm4c1294ncpdt.cmd" \
@@ -149,7 +150,7 @@ all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 WhiteTower.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: ARM Linker'
-	"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me --define=ccs="ccs" --define=PART_TM4C1294NCPDT -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi -z -m"WhiteTower.map" --heap_size=65536 --stack_size=65536 -i"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/lib" -i"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="WhiteTower_linkInfo.xml" --rom_model -o "WhiteTower.out" $(ORDERED_OBJS)
+	"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O3 --opt_for_speed=1 --define=ccs="ccs" --define=PART_TM4C1294NCPDT -g --gcc --diag_warning=225 --diag_wrap=off --display_error_number --abi=eabi -z -m"WhiteTower.map" --heap_size=65536 --stack_size=65536 -i"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/lib" -i"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="WhiteTower_linkInfo.xml" --rom_model -o "WhiteTower.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 
@@ -163,9 +164,9 @@ WhiteTower.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "ComandCenter.obj" "GlobalConfig.obj" "Glue.obj" "ISRMsgHandler.obj" "Monitor.obj" "SysTickDriver.obj" "TimeHandler.obj" "UART0Driver.obj" "main.obj" "tm4c1294ncpdt_startup_ccs.obj" 
+	-$(RM) "ComandCenter.obj" "GlobalConfig.obj" "Glue.obj" "ISRMsgHandler.obj" "Monitor.obj" "SysTickDriver.obj" "TimeHandler.obj" "UART0Driver.obj" "ZooKeeper.obj" "main.obj" "tm4c1294ncpdt_startup_ccs.obj" 
 	-$(RM) "tm4c1294ncpdt_startup_ccs.d" 
-	-$(RM) "ComandCenter.d" "GlobalConfig.d" "Glue.d" "ISRMsgHandler.d" "Monitor.d" "SysTickDriver.d" "TimeHandler.d" "UART0Driver.d" "main.d" 
+	-$(RM) "ComandCenter.d" "GlobalConfig.d" "Glue.d" "ISRMsgHandler.d" "Monitor.d" "SysTickDriver.d" "TimeHandler.d" "UART0Driver.d" "ZooKeeper.d" "main.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

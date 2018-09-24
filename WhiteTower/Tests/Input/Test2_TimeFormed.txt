@@ -1,0 +1,56 @@
+// Basic time
+time
+time 10:20:30
+time
+
+// Upper/Lower/Mixed Case
+TIME 10:20:30
+TiMe 1:2:3
+tiME 04:52:28
+
+// Time border checks
+time 00:00:00
+time
+time 23:59:59
+time
+
+// Time Natural range
+time 12:12:12
+time
+time 06:20:48
+time
+time 09:50:45
+time
+time 23:40:22
+time
+
+// Time 0 padding check
+time 1:2:3
+time
+time 04:5:1
+time
+
+time 1:20:30
+time
+time 04:5:10
+time
+time 20:30:4
+time
+
+// Time autofill
+time ::
+time
+
+time 10::
+time
+time :20:
+time
+time ::30
+time
+
+time :40:50
+time
+time 10::20
+time
+time 03:40:
+time

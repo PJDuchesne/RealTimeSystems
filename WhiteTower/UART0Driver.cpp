@@ -17,7 +17,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "Includes/UART0Driver.h"
 
 // Singleton Instance
-UART0Driver *UART0Driver::UART0DriverInstance_ = new UART0Driver;
+UART0Driver *UART0Driver::UART0DriverInstance_ = 0;
 
 void UART0Driver::UART0Init() {
     volatile int wait;
@@ -49,6 +49,10 @@ void UART0Driver::UART0Enable(unsigned long flags) {
     UART0_IM_R |= flags;
 }
 
+void UART0Driver::SingletonGrab() {
+    ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
+}
+
 // Constructor, which initializes UART on startup
 UART0Driver::UART0Driver() {
     UART0Init();
@@ -56,14 +60,11 @@ UART0Driver::UART0Driver() {
 }
 
 void UART0Driver::UART0Handler() {
-
-    // TODO: Check if UART was busy when message was found. See datasheet
-
     // Check if RECV Done
     if (UART0_MIS_R & UART_INT_RX)
     {
         // Queue the msg
-        ISRMsgHandler::GetISRMsgHandler()->QueueMsg(UART, UART0_DR_R);
+        ISRMsgHandlerInstance_->QueueMsg(UART, UART0_DR_R);
 
         /* Clear interrupt */
         UART0_ICR_R |= UART_INT_RX;
@@ -76,11 +77,11 @@ void UART0Driver::UART0Handler() {
         UART0_ICR_R |= UART_INT_TX;
 
         // If there is more data in the buffer, output another char
-        if (ISRMsgHandler::GetISRMsgHandler()->OutputBufferEmpty()) {
-            ISRMsgHandler::GetISRMsgHandler()->uart_output_idle_ = true;
+        if (ISRMsgHandlerInstance_->OutputBufferEmpty()) {
+            ISRMsgHandlerInstance_->uart_output_idle_ = true;
         }
         else {
-            char tmp = ISRMsgHandler::GetISRMsgHandler()->GetOutputChar();
+            char tmp = ISRMsgHandlerInstance_->GetOutputChar();
             UART0_DR_R = tmp;
         }
     }
@@ -91,6 +92,6 @@ void UART0Driver::JumpStartOutput(char first_char) {
 }
 
 UART0Driver* UART0Driver::GetUART0Driver() {
-    // if (!UART0DriverInstance) UART0DriverInstance = new UART0Driver;
+    if (!UART0DriverInstance_) UART0DriverInstance_ = new UART0Driver;
     return UART0DriverInstance_;
 }

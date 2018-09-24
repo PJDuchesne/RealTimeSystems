@@ -20,17 +20,26 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "RingBuffer.h"
 #include "ISRMsgHandler.h"
 #include "CommandCenter.h"
-#include "GlobalConfig.h"
 #include "TimeHandler.h"
 
 #define DATA_BUFFER_SIZE 80
 #define NEW_LINE         "\n\r > "
 #define CLEAR_SCREEN     "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
 
+// Forward Declarations
+class ISRMsgHandler;
+class CommandCenter;
+class TimeHandler;
+
 class Monitor {
     private:
         static Monitor* MonitorInstance_;
         std::unique_ptr<RingBuffer<char>> data_buffer_;
+
+        ISRMsgHandler *ISRMsgHandlerInstance_;
+        CommandCenter *CommandCenterInstance_;
+        TimeHandler *TimeHandlerInstance_;
+
         char* single_char;
 
         // Poll the ISR Msg Queue
@@ -42,6 +51,7 @@ class Monitor {
 
     public:
         Monitor();
+        void SingletonGrab();
         void CentralLoop(); // Called from main() to pass control
 
         void PrintNewLine();

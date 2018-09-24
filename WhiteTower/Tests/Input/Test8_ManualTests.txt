@@ -1,0 +1,8 @@
+// Time drift
+// Let clock go for 30 minutes, observe drift
+
+// Rollover tests (Sec, Min, Hour, Day, Month, Year, plus boundcheck on year 9999 to roll over into 0)
+// Let time/day rollover, observe roll
+
+// Alarm test #1: Set alarm and observe it go off
+// Alarm Test #2: Set alarm a long time away and then set time to close to that

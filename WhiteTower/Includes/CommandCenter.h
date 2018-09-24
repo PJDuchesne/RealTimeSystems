@@ -17,7 +17,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "GlobalConfig.h"
 #include "Monitor.h"
 #include "TimeHandler.h"
 #include "TimeDefinitions.h"
@@ -38,11 +37,18 @@ const std::string valid_commands[NUM_VALID_COMMANDS] = {
   "ZOO"
 };
 
+// Forward Declarations
+class Monitor;
+class TimeHandler;
+
 class CommandCenter {
     private:
         static CommandCenter* CommandCenterInstance_;
         typedef void (CommandCenter::*FunctionPtr)(std::string arg);
         FunctionPtr FunctionTable[NUM_VALID_COMMANDS];
+
+        Monitor *MonitorInstance_;
+        TimeHandler *TimeHandlerInstance_;
 
         // Individual Commands
         void TimeCommand(std::string arg);
@@ -58,6 +64,7 @@ class CommandCenter {
 
     public:
         CommandCenter();
+        void SingletonGrab();
 
         void HandleCommand(std::string command_str);
 

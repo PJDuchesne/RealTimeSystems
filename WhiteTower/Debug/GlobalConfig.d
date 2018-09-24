@@ -73,6 +73,7 @@ GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcx
 GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ctype.h
 GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/ctype.h
 GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdcl.h
+GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdef.h
 GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/wctype.h
 GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/wctype.h
 GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_ctype.h
@@ -124,6 +125,20 @@ GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcx
 GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
 GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
 GlobalConfig.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/UART0Driver.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/ISRMsgHandler.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/RingBuffer.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/../RingBuffer.tpp
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/UART0Driver.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/SysTickDriver.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/ISRMsgHandler.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/Monitor.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/CommandCenter.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/Monitor.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/TimeHandler.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/GlobalConfig.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/TimeDefinitions.h
+GlobalConfig.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/ZooKeeper.h
 
 ../GlobalConfig.cpp: 
 ../Includes/GlobalConfig.h: 
@@ -198,6 +213,7 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/cctype:
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/ctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdcl.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_isfuncdef.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/wctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/wctype.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_ctype.h: 
@@ -249,3 +265,17 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__bit_reference:
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/UART0Driver.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/ISRMsgHandler.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/RingBuffer.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/../RingBuffer.tpp: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/UART0Driver.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/SysTickDriver.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/ISRMsgHandler.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/Monitor.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/CommandCenter.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/Monitor.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/TimeHandler.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/GlobalConfig.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/TimeDefinitions.h: 
+C:/Users/pauld/TarValon/WhiteTower/Includes/ZooKeeper.h: 
