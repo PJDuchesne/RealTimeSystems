@@ -32,7 +32,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define ST_CTRL_ENABLE     0x00000001  // Enable for STCTRL
 
 // Maximum period
-#define MAX_WAIT           0x199999   /* 1/10th of a second */
+// This value was based on a drift text done with an initial 
+// assumed clock speed of 2^24 hz. The clock was found to be ~16.2 MHz
+#define MAX_WAIT           0x18B820   /* 1/10th of a second */
+// #define MAX_WAIT           0x18B7DE   /* 1/10th of a second */
 
 // Forward Declaration
 class ISRMsgHandler;

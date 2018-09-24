@@ -6,12 +6,16 @@ Five Broad Tasks
 	4. Queue Between Monitor and ISRs
 	5. "Command Support Routines"
 
-TODO: 
-	- Do a time test!
+TODO STUFF:
+	TODO: 
+	- Comment everything!
+	- Do a "TODO" search on codebase
+	- Remove magic numbers
+	- Update time test with new format (12, 12:, 12::)
+	- 
 
 	Questionable TODO (Or look into):
-	- Rewrite ISRMsgHandler to be a separate layer. It's pretty open right now
-    - Check if UART was busy when message was found. See datasheet
+	- Rewrite ISRMsgHandler to be a separate layer. (Discuss with T om?)
 
 	Bonus TODO:
 	- Add buffer of previous commands
@@ -27,5 +31,29 @@ Test Plan:
 	6. Alarm: Formed
 	7. Alarm: Malformed
 	8. Manual Writing Test
-	9. VT-100 inputs (Arrow, Function keys, Keypad)
-	10. Delete
+
+Drift math: 
+- Clock triggers at 2^24: 16777216 times per second
+
+- In 30 minutes, thats 30198988800 ticks
+
+- Systick is triggered every 1677721.6 ticks (0x199999), rounding up to 1677722
+
+- Therefore, in 30 minutes, there are (30198988800 / 1677722 = 17999.9957085) systicks
+
+- With each systick representing a tenth of a second, that should be 1799.99957085 seconds
+
+
+Drift math:
+- Clock triggers at 16000000 times per second
+
+- In 30 minutes, thats 28800000000 ticks
+
+- Systick is triggered every 1677721.6 ticks (0x199999), rounding up to 1677722
+
+- Therefore, in 30 minutes, there are (28800000000 / 1677722 = 17166.1336026) systicks
+
+- With each systick representing a tenth of a second, that should be 1716.61336026 seconds (28 minutes, 36 seconds)
+
+FINDING CLOCK SPEED:
+-> 1738 * 1677722 * 10 / 30 /60 ~= 16.2 Mhz

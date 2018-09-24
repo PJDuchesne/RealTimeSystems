@@ -24,8 +24,8 @@ int main(void)
  {
 	// Set up interrupts
 	InterruptEnable(INT_VEC_UART0);  // Allow UART0 interrupts
-	InterruptMasterEnable();		     // Enable global interrupts
-  SingletonSetup();                // Instantiates all singletons
+	InterruptMasterEnable();		 // Enable global interrupts
+    SingletonSetup();                // Instantiates all singletons
 
 	// Pass Control to Monitor
 	Monitor::GetMonitor()->CentralLoop();

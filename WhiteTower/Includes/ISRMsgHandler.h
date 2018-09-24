@@ -17,11 +17,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+#include <string>
+
 #include "RingBuffer.h"
 #include "UART0Driver.h"
 #include "SysTickDriver.h"
-
-#include <memory>
 
 #define ISR_QUEUE_SIZE 100
 #define OUTPUT_DATA_BUFFER_SIZE 1250
@@ -32,10 +32,10 @@ typedef enum MsgType {
   SYSTICK
 } MsgType_t;
 
-struct ISRMsg {
+typedef struct ISRMsg {
   MsgType_t type;
   char data;
-};
+} ISRMsg_t;
 
 // Forward Declaration
 class UART0Driver;
@@ -43,12 +43,13 @@ class UART0Driver;
 class ISRMsgHandler {
     private:
         static ISRMsgHandler* ISRMsgHandlerInstance_;
-        std::unique_ptr<RingBuffer<ISRMsg>> isr_queue_;
-        std::unique_ptr<RingBuffer<char>> output_data_buffer_;
+        RingBuffer<ISRMsg_t> *isr_queue_;
+        RingBuffer<char> *output_data_buffer_;
 
         UART0Driver *UART0DriverInstance_;
     public:
         ISRMsgHandler();
+        ~ISRMsgHandler() ;
         void SingletonGrab();
         void QueueMsg(MsgType_t type, char data);
         void GetFromQueue(MsgType_t &type, char &data);

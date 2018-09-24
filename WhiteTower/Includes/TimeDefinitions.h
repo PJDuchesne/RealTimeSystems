@@ -32,56 +32,57 @@ const int8_t month_numbers[MAX_MONTH + 1] = { 31, -1, 31, 30, 31, 30,
 
 // smh -> second, min, hour
 typedef struct smh {
-  uint8_t sec;  // 0-59
-  uint8_t min;  // 0-59
-  uint8_t hour; // 0-23
-  bool operator==(const smh &r) {
-    return ((this->sec == r.sec) && (this->min == r.min) && (this->hour == r.hour));
-  }
+    uint8_t sec;  // 0-59
+    uint8_t min;  // 0-59
+    uint8_t hour; // 0-23
+    bool operator==(const smh &r) {
+        return ((this->sec == r.sec) && (this->min == r.min) && (this->hour == r.hour));
+    }
 } smh_t;
 
 // dmy -> day, month, year
 typedef struct dmy {
-  uint8_t day;   // 0-59
-  uint8_t month; // 0-59
-  uint16_t year; // 0-23
+    uint8_t day;   // 0-59
+    uint8_t month; // 0-59
+    uint16_t year; // 0-23
 } dmy_t;
 
 // Trailing underscore names because this is only used a member variable
 typedef struct ti_time {
-  union {
-    struct {
-      uint8_t tenth_sec_; // 0-9
-
-      // Anonymous unions to allow direct access to lower levels
-      union {
-        smh_t smh_;
+    union {
         struct {
-           uint8_t sec_;
-           uint8_t min_;
-           uint8_t hour_; 
-        };
-      };
+            uint8_t tenth_sec_; // 0-9
 
-      union {
-        dmy_t dmy_;
-        struct {
-           uint8_t day_;
-           uint8_t month_;
-           uint16_t year_; 
-        };
-      };
+            // Anonymous unions to allow direct access to lower levels
+            union {
+                smh_t smh_;
+                struct {
+                    uint8_t sec_;
+                    uint8_t min_;
+                    uint8_t hour_; 
+                };
+            };
 
+            union {
+                dmy_t dmy_;
+                struct {
+                    uint8_t day_;
+                    uint8_t month_;
+                    uint16_t year_; 
+                };
+            };
+        };
+        uint64_t raw_time_;
     };
-    uint64_t raw_time_;
-  };
 } ti_time_t;
 
 typedef struct alarm {
-  smh_t alarm_time_; // TODO: Change ti_time_t to smh_t
-  bool is_active_;
+    smh_t alarm_time;
+    bool is_active;
 } alarm_t;
 
 const dmy_t default_date { .day = 1, .month = 8, .year = 2018 };
+const smh_t zero_smh { .sec = 0, .min = 0, .hour = 0 };
+const alarm_t zero_alarm { .alarm_time = zero_smh, .is_active = false };
 
 #endif /* TimeDefinitions_H */

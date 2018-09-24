@@ -16,48 +16,45 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 template <class T>
 void RingBuffer<T>::Add(T data) {
-  if (Full()) {
-    // std::cout << "[RingBuffer::Add()] WARNING: BUFFER IS FULL, DATA WILL BE DISCARDED\n";
-  }
-  else {
-    // Add data and increment front_
-    buffer_[front_] = data;
-    front_ = (front_ + 1) % buffer_size_;
-  }
+    if (!Full()) {
+        // Add data and increment front_
+        buffer_[front_] = data;
+        front_ = (front_ + 1) % buffer_size_;
+    }
 }
 
 template <class T>
 T RingBuffer<T>::Get() {
 
-  // If empty, returns an unitialized value of type T (i.e. 0 for int)
-  if (Empty()) return T();
+    // If empty, returns an unitialized value of type T (i.e. 0 for int)
+    if (Empty()) return T();
 
-  T return_val = buffer_[back_];
-  // Decrement 'back_'
-  back_ = (back_ + 1) % buffer_size_;
+    T return_val = buffer_[back_];
+    // Decrement 'back_'
+    back_ = (back_ + 1) % buffer_size_;
 
-  return return_val;
+    return return_val;
 }
 
   // Decrement front to erase latest data
 template <class T>
 void RingBuffer<T>::Pop() {
-  if (Empty()) return;
-  front_ = (front_ + buffer_size_ - 1) % buffer_size_;
+    if (Empty()) return;
+    front_ = (front_ + buffer_size_ - 1) % buffer_size_;
 }
 
 template <class T>
 void RingBuffer<T>::Reset() {
-  front_ = 0;
-  back_ = 0;
+    front_ = 0;
+    back_ = 0;
 }
 
 template <class T>
 bool RingBuffer<T>::Empty() const {
-  return (front_ == back_);
+    return (front_ == back_);
 }
 
 template <class T>
 bool RingBuffer<T>::Full() const {
-  return ((front_ + 1) % buffer_size_ == back_);
+    return ((front_ + 1) % buffer_size_ == back_);
 }

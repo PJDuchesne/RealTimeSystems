@@ -22,6 +22,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "TimeDefinitions.h"
 #include "ZooKeeper.h"
 
+#define ASCII_LOWERCASE_LOWER_BOUND 97
+#define ASCII_LOWERCASE_UPPER_BOUND 122
+#define ASCII_CASE_OFFSET           32
+
 #define NUM_VALID_COMMANDS  4
 #define MAX_NUM_TOKENS      2
 
@@ -54,7 +58,7 @@ class CommandCenter {
         void TimeCommand(std::string arg);
         void DateCommand(std::string arg);
         void AlarmCommand(std::string arg);
-        void ZooCommand(std::string arg);
+        void ZooCommand(std::string arg); // Only takes command because FunctionPtr requires it
 
         // Internal helpers
         void ToUpper(std::string &str);

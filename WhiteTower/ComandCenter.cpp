@@ -48,30 +48,26 @@ void CommandCenter::DateCommand(std::string arg) {
 }
 
 void CommandCenter::AlarmCommand(std::string arg) {
-    static const smh_t default_smh = smh_t();
+    alarm_t new_alarm = zero_alarm;
     smh_t parsed_arg;
 
     if (arg == "") {
-        if (TimeHandlerInstance_->CheckAlarmActive()) {
-            // If alarm is active, clear it
-            TimeHandlerInstance_->ClearAlarm();
-            MonitorInstance_->PrintMsg("\r\nAlarm cleared");
-        }
-        else {
-            // Else print message
-            MonitorInstance_->PrintMsg("\r\nNo alarm to clear");
-        }
+        // If alarm is active, clear it
+        if (TimeHandlerInstance_->CheckAlarmActive()) TimeHandlerInstance_->SetAlarm(new_alarm);
+        else MonitorInstance_->PrintMsg("\r\nNo alarm to clear");
     }
     else {
         if (!ParseTimeArg(arg, parsed_arg)) {
             MonitorInstance_->PrintErrorMsg("Malformed Arguments: " + arg);
             return;
         }
-        if (parsed_arg == default_smh) { // Default meaning 00:00:00
+        if (parsed_arg == zero_smh) { // zero_smh meaning 00:00:00
             MonitorInstance_->PrintErrorMsg("ERROR: Alarm cannot be set 0 seconds from now");
             return;
         }
-        TimeHandlerInstance_->SetAlarm(parsed_arg);
+        new_alarm.alarm_time = parsed_arg;
+        new_alarm.is_active = true;
+        TimeHandlerInstance_->SetAlarm(new_alarm);
     }
 }
 
@@ -109,12 +105,13 @@ void CommandCenter::ZooCommand(std::string arg) {
 
 void CommandCenter::ToUpper(std::string& str) {
     for (int i = 0; i < str.length(); i++) {
-        if (str[i] >= 97 && str[i] <= 122) str[i] -= 32;
+        if (str[i] >= ASCII_LOWERCASE_LOWER_BOUND && str[i] <= ASCII_LOWERCASE_UPPER_BOUND) str[i] -= ASCII_CASE_OFFSET;
     }
 }
 
 // Format SS:MM:HH (Variable width (0+) on all 3)
 bool CommandCenter::ParseTimeArg(std::string &input, smh_t &output) {
+    output = zero_smh;
 
     int8_t length = input.length();
     if (length > 8) return false;
@@ -122,8 +119,12 @@ bool CommandCenter::ParseTimeArg(std::string &input, smh_t &output) {
     int8_t first_colon = input.find_first_of(":");
     int8_t last_colon  = input.find_last_of(":");
 
-    // If 0 or 1 colons (If 3+ then one of the stoi will fail)
-    if (first_colon == last_colon) return false;
+    if (first_colon == last_colon) last_colon = std::string::npos;
+
+    // if ((first_colon == std::string::npos) && (last_colon == std::string::npos))
+
+    // // If 0 or 1 colons (If 3+ then one of the stoi will fail)
+    // if (first_colon == last_colon) return false;
 
     // Flag used to check if SafeStoi returns properly
     int8_t substr_len;
@@ -139,6 +140,10 @@ bool CommandCenter::ParseTimeArg(std::string &input, smh_t &output) {
         else output.hour = stoi_tmp;
     }
 
+    if (first_colon == std::string::npos || length == first_colon + 1) {
+        return TimeHandlerInstance_->CheckValidTime(output);
+    }
+
     // Min (Variable size of 0 to 2)
     substr_len = last_colon - first_colon - 1;; 
     if (substr_len > 2) return false;
@@ -148,6 +153,8 @@ bool CommandCenter::ParseTimeArg(std::string &input, smh_t &output) {
         if (stoi_tmp == -1) return false;
         else output.min = stoi_tmp;
     }
+
+    if (last_colon == std::string::npos) return TimeHandlerInstance_->CheckValidTime(output);
 
     // Sec (Variable size of 0 to 2)
     substr_len = length - last_colon - 1;

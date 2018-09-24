@@ -18,16 +18,14 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 // Singleton Instance
 Monitor *Monitor::MonitorInstance_ = 0;
-// Monitor *Monitor::MonitorInstance_ = new Monitor;
 
 void Monitor::CheckMessageHandler(MsgType_t &type, char &data) {
-    // If the queue is empty, return
-    if (ISRMsgHandlerInstance_->CheckISRQueue()) return;
-
     ISRMsgHandlerInstance_->GetFromQueue(type, data);
-    if (type == NONE) return;
 
     switch (type) {
+        case NONE:
+            // Meaning the queue is empty
+            break;
         case UART:
             HandleUART(data);
             break;
@@ -42,9 +40,9 @@ void Monitor::CheckMessageHandler(MsgType_t &type, char &data) {
 }
 
 void Monitor::HandleUART(char data) {
+    static char* single_char = new char[1];
     char fetched_char;
     std::string command_string = "";
-    single_char[0] = data;
 
     static int8_t escape_mode = -1;
 
@@ -59,10 +57,9 @@ void Monitor::HandleUART(char data) {
     switch (data) {
         case 0x08: // Backspace
         case 0x7F: // Delete
-
             // Do not delete if there is nothing in the buffer
             if (!data_buffer_->Empty()) {
-                single_char[0] = data;
+                single_char[0] = static_cast<char>(0x7F);
                 PrintMsg(single_char);
                 data_buffer_->Pop();
             }
@@ -86,7 +83,7 @@ void Monitor::HandleUART(char data) {
             escape_mode = 0;
             break;
 
-            default:  // All other characters, add to buffer
+        default:  // All other characters, add to buffer
             data_buffer_->Add(data);
             single_char[0] = data;
             PrintMsg(single_char);
@@ -109,16 +106,18 @@ void Monitor::PrintNewLine() {
 }
 
 Monitor::Monitor() {
-    data_buffer_.reset(new RingBuffer<char>(DATA_BUFFER_SIZE));
-    single_char = new char[2];
-    single_char[1] = NULL;
+    data_buffer_ = new RingBuffer<char>(DATA_BUFFER_SIZE);
+}
+
+Monitor::~Monitor() {
+    delete data_buffer_;
 }
 
 void Monitor::CentralLoop() {
     MsgType_t type = NONE;
     char data = char();
 
-    // PrintMsg("\e[4;44m");
+    // Reset all VT-100 settings (background, foreground, etc.)
     PrintMsg("\e[0m");
 
     PrintMsg(CLEAR_SCREEN);
@@ -129,6 +128,19 @@ void Monitor::CentralLoop() {
     {
         CheckMessageHandler(type, data);
     }
+}
+
+void Monitor::RePrintOutputBuffer() {
+    // Fetch contents of buffer
+    std::string buffer_contents = "";
+    while (!data_buffer_->Empty()) buffer_contents += data_buffer_->Get();
+
+    // Print contents of buffer
+    PrintMsg(buffer_contents);
+
+    // Restore contents of buffer
+    for (int i = 0; i < buffer_contents.length(); i++) data_buffer_->Add(buffer_contents[i]);
+
 }
 
 void Monitor::PrintMsg(std::string msg) {

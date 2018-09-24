@@ -45,7 +45,7 @@ class TimeHandler {
         bool CheckLeapYear(uint16_t input_year) const;
         void CheckAlarm();
 
-        smh_t FutureTime(smh_t &offset) const;
+        void FutureTime(smh_t &offset);
 
         std::string CreateSMHStr(smh_t &smh) const;
         std::string CreateDMYStr(dmy_t &dmy) const;
@@ -58,8 +58,7 @@ class TimeHandler {
         // Functions to handle commands
         bool SetTime(smh_t &new_smh);
         bool SetDate(dmy_t &new_dmy);
-        bool SetAlarm(smh_t &alarm_time);
-        void ClearAlarm();
+        void SetAlarm(alarm_t &new_alarm);
         void TickTenthSec();
 
         // Internal Member functions

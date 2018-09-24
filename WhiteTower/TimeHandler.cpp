@@ -58,41 +58,38 @@ bool TimeHandler::CheckLeapYear(uint16_t input_year) const {
 }
 
 void TimeHandler::CheckAlarm() {
-    if (alarm_.is_active_ && (current_time_.smh_ == alarm_.alarm_time_)) {
+    if (alarm_.is_active && (current_time_.smh_ == alarm_.alarm_time)) {
         // '\a' is the BEL (bell) character, which makes a noise if possible
-        MonitorInstance_->PrintMsg("\n\r\a* ALARM * " + CreateSMHStr(alarm_.alarm_time_) + " *");
+        MonitorInstance_->PrintMsg("\n\r\a* ALARM * " + CreateSMHStr(alarm_.alarm_time) + " *");
         MonitorInstance_->PrintNewLine();
-        alarm_.is_active_ = false;
+        MonitorInstance_->RePrintOutputBuffer();
+        alarm_.is_active = false;
     }
 }
 
 // Always used in reference to current time
 // Assumes that offset is a valid
-smh_t TimeHandler::FutureTime(smh_t &offset) const {
-    smh_t new_time = {.sec = 0, .min = 0, .hour = 0};
-
+void TimeHandler::FutureTime(smh_t &offset) {
     // Sec
-    new_time.sec = current_time_.sec_ + offset.sec;
-    if (new_time.sec > MAX_SEC) {
-        new_time.sec -= (MAX_SEC + 1);
-        new_time.min++;
+    offset.sec += current_time_.sec_;
+    if (offset.sec > MAX_SEC) {
+        offset.sec -= (MAX_SEC + 1);
+        offset.min++;
     }
 
     // Min
-    new_time.min += current_time_.min_ + offset.min;
-    if (new_time.min > MAX_MIN) {
-        new_time.min -= (MAX_MIN + 1);
-        new_time.hour++;
+    offset.min += current_time_.min_;
+    if (offset.min > MAX_MIN) {
+        offset.min -= (MAX_MIN + 1);
+        offset.hour++;
     }
 
     // Hour
-    new_time.hour += current_time_.hour_ + offset.hour;
-        if (new_time.hour > MAX_HOUR) {
-        new_time.hour -= (MAX_HOUR + 1);
+    offset.hour += current_time_.hour_;
+        if (offset.hour > MAX_HOUR) {
+        offset.hour -= (MAX_HOUR + 1);
         // Not concerned about day rolling over
     }
-
-    return new_time;
 }
 
 std::string TimeHandler::CreateSMHStr(smh_t &smh) const {
@@ -152,17 +149,11 @@ bool TimeHandler::SetDate(dmy_t &new_dmy) {
     return true;
 }
 
-bool TimeHandler::SetAlarm(smh_t &new_alarm_time) {
-    // Guaranteed by FutureTime() to be valid time, but checking anyway for consistency
-    if (!CheckValidTime(new_alarm_time)) return false;
-    alarm_.is_active_ = true;
-    alarm_.alarm_time_ = FutureTime(new_alarm_time);
-    PrintCurrentAlarm();
-    return true;
-}
-
-void TimeHandler::ClearAlarm() {
-    alarm_.is_active_ = false;
+void TimeHandler::SetAlarm(alarm_t &new_alarm) {
+    FutureTime(new_alarm.alarm_time);
+    alarm_ = new_alarm;
+    if (alarm_.is_active) PrintCurrentAlarm();
+    else MonitorInstance_->PrintMsg("\r\nAlarm cleared");
 }
 
 void TimeHandler::TickTenthSec() {
@@ -192,7 +183,7 @@ bool TimeHandler::CheckValidDate(dmy_t &input_dmy) const {
 }
 
 bool TimeHandler::CheckAlarmActive() const {
-    return alarm_.is_active_;
+    return alarm_.is_active;
 }
 
 void TimeHandler::PrintCurrentTime() {
@@ -204,7 +195,7 @@ void TimeHandler::PrintCurrentDate() {
 }
 
 void TimeHandler::PrintCurrentAlarm() {
-    if (alarm_.is_active_) MonitorInstance_->PrintMsg("\n\r" + CreateSMHStr(alarm_.alarm_time_));
+    if (alarm_.is_active) MonitorInstance_->PrintMsg("\n\r" + CreateSMHStr(alarm_.alarm_time));
     else MonitorInstance_->PrintErrorMsg("No Alarm Currently Set");
 }
 

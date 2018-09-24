@@ -1,8 +1,18 @@
 // Time drift
 // Let clock go for 30 minutes, observe drift
+	RUN #1: Real Time (Android phone) > 30:00 min
+			Monitor Time (SysTick)	  > 28:58 min
+
+	RUN #2: Real Time (Android phone) > 10:00 min
+			Monitor Time (SysTick)	  > 9:39  min
 
 // Rollover tests (Sec, Min, Hour, Day, Month, Year, plus boundcheck on year 9999 to roll over into 0)
 // Let time/day rollover, observe roll
 
 // Alarm test #1: Set alarm and observe it go off
 // Alarm Test #2: Set alarm a long time away and then set time to close to that
+
+// VT-100 test input: Keypad, numpad, function keys. ALL should ignore
+
+// Test output buffer reprinting after alarm goes off
+	// TODO: Test that this doesnt break anything

@@ -25,21 +25,26 @@ void ISRMsgHandler::SingletonGrab() {
 
 
 ISRMsgHandler::ISRMsgHandler() {
-    isr_queue_.reset(new RingBuffer<ISRMsg>(ISR_QUEUE_SIZE));
-    output_data_buffer_.reset(new RingBuffer<char>(OUTPUT_DATA_BUFFER_SIZE));
+    isr_queue_ = new RingBuffer<ISRMsg_t>(ISR_QUEUE_SIZE);
+    output_data_buffer_ = new RingBuffer<char>(OUTPUT_DATA_BUFFER_SIZE);
 
     uart_output_idle_ = true;
 }
 
+ISRMsgHandler::~ISRMsgHandler() {
+    delete isr_queue_;
+    delete output_data_buffer_;
+}
+
 void ISRMsgHandler::QueueMsg(MsgType_t type, char data) {
     // Create msg to pass into ISR queue
-    ISRMsg msg = { .type = type, .data = data };
+    ISRMsg_t msg = { .type = type, .data = data };
     isr_queue_->Add(msg);
 }
 
 void ISRMsgHandler::GetFromQueue(MsgType_t &type, char &data) {
     // Attempt to get message from queue
-    ISRMsg msg = isr_queue_->Get();
+    ISRMsg_t msg = isr_queue_->Get();
     type = msg.type;
     data = msg.data;
 }
