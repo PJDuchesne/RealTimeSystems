@@ -281,7 +281,9 @@ bool TimeHandler::CheckValidDate(dmy_t &input_dmy) const {
          (input_dmy.month > MAX_MONTH) ) return false;
 
     int8_t days_in_month = month_numbers[input_dmy.month];
-    if (days_in_month == -1) days_in_month = (CheckLeapYear(input_dmy.year) ? FEB_LEAP_YEAR_LEN : FEB_NORM_YEAR_LEN);
+    if (days_in_month == -1) {
+        days_in_month = (CheckLeapYear(input_dmy.year) ? FEB_LEAP_YEAR_LEN : FEB_NORM_YEAR_LEN);
+    }
     if ((input_dmy.day == 0) || (input_dmy.day > days_in_month)) return false;
 
     return true;
