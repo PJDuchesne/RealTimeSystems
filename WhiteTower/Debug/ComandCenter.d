@@ -82,6 +82,10 @@ ComandCenter.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcx
 ComandCenter.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
 ComandCenter.obj: ../Includes/UART0Driver.h
 ComandCenter.obj: ../Includes/ISRMsgHandler.h
+ComandCenter.obj: ../Includes/SysTickDriver.h
+ComandCenter.obj: ../Includes/CommandCenter.h
+ComandCenter.obj: ../Includes/TimeHandler.h
+ComandCenter.obj: ../Includes/GlobalConfig.h
 ComandCenter.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/iostream
 ComandCenter.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ios
 ComandCenter.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__locale
@@ -131,10 +135,6 @@ ComandCenter.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcx
 ComandCenter.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
 ComandCenter.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
 ComandCenter.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
-ComandCenter.obj: ../Includes/SysTickDriver.h
-ComandCenter.obj: ../Includes/CommandCenter.h
-ComandCenter.obj: ../Includes/TimeHandler.h
-ComandCenter.obj: ../Includes/GlobalConfig.h
 ComandCenter.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/Monitor.h
 ComandCenter.obj: C:/Users/pauld/TarValon/WhiteTower/Includes/TimeHandler.h
 ComandCenter.obj: ../Includes/TimeDefinitions.h
@@ -222,6 +222,10 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/wchar.h:
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
 ../Includes/UART0Driver.h: 
 ../Includes/ISRMsgHandler.h: 
+../Includes/SysTickDriver.h: 
+../Includes/CommandCenter.h: 
+../Includes/TimeHandler.h: 
+../Includes/GlobalConfig.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/iostream: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ios: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__locale: 
@@ -271,10 +275,6 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__bit_reference:
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
-../Includes/SysTickDriver.h: 
-../Includes/CommandCenter.h: 
-../Includes/TimeHandler.h: 
-../Includes/GlobalConfig.h: 
 C:/Users/pauld/TarValon/WhiteTower/Includes/Monitor.h: 
 C:/Users/pauld/TarValon/WhiteTower/Includes/TimeHandler.h: 
 ../Includes/TimeDefinitions.h: 

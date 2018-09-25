@@ -34,8 +34,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Maximum period
 // This value was based on a drift text done with an initial 
 // assumed clock speed of 2^24 hz. The clock was found to be ~16.2 MHz
-#define MAX_WAIT           0x18B820   /* 1/10th of a second */
-// #define MAX_WAIT           0x18B7DE   /* 1/10th of a second */
+#define MAX_WAIT           0x18B7DD   // 1/10th of a second, after calibration
 
 // Forward Declaration
 class ISRMsgHandler;

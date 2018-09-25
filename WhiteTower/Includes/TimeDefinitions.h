@@ -24,6 +24,9 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define MAX_MONTH       11
 #define MAX_YEAR        9999
 
+#define FEB_LEAP_YEAR_LEN   29
+#define FEB_NORM_YEAR_LEN   28
+
 const std::string months_str[MAX_MONTH + 1] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", 
                                                "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 
@@ -47,13 +50,14 @@ typedef struct dmy {
     uint16_t year; // 0-23
 } dmy_t;
 
-// Trailing underscore names because this is only used a member variable
+// Trailing underscore names because this structure 
+// is primarily used as a member variable
 typedef struct ti_time {
+    // Anonymous unions to allow direct access to lower levels
     union {
         struct {
             uint8_t tenth_sec_; // 0-9
 
-            // Anonymous unions to allow direct access to lower levels
             union {
                 smh_t smh_;
                 struct {

@@ -9,7 +9,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
 -> Name:  main.cpp
--> Date: Sept 13, 2018	(Created)
+-> Date: Sept 13, 2018  (Created)
 -> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
@@ -17,17 +17,17 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // To allow global configurations (i.e. Master ISR setups, Singleton, etc.)
 #include "Includes/GlobalConfig.h"
 
-/**
- * main.cpp
- */
+/*
+    Function: main
+    Brief: Initializes interrupts and passes control to the Monitor
+*/
 int main(void)
  {
-	// Set up interrupts
-	InterruptEnable(INT_VEC_UART0);  // Allow UART0 interrupts
-	InterruptMasterEnable();		 // Enable global interrupts
+    // Set up interrupts
+    InterruptEnable(INT_VEC_UART0);  // Allow UART0 interrupts
+    InterruptMasterEnable();         // Enable global interrupts
     SingletonSetup();                // Instantiates all singletons
 
-	// Pass Control to Monitor
-	Monitor::GetMonitor()->CentralLoop();
-
+    // Pass Control to Monitor
+    Monitor::GetMonitor()->CentralLoop();
 }

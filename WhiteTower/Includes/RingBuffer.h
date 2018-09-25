@@ -22,7 +22,7 @@ class RingBuffer {
   private:
     T *buffer_;
     const int buffer_size_; // Should not be changed after initialization
-    int front_; // Where data is put in (points to next position to place data)
+    int front_; // Where data is put in (points to next free position to put data)
     int back_;  // Where data is removed
 
   public:

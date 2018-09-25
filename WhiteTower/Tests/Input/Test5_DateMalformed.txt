@@ -1,4 +1,4 @@
-// Date Borders Check
+// Borders
 date 00-Jan-0000
 date 0-jan-1000
 date 29-feb-1000
@@ -12,33 +12,24 @@ date 31-sep-1000
 date 32-oct-1000
 date 31-nov-1000
 date 32-DEC-9999
-
-// Basic Date Failure (malformed range)
+// Basic Failure
 date 40-0ct-1582
-date 13-m4r-1983
 date 06-n0v-1996
-date 30-0ct-8765
 date 03-june-0987
-
-// Basic Date Failure (Misspelled command)
+// Misspelled Cmd
 dat
 deta 03-Jan-2018
 date_ 03-Aug-1997
-
-// Basic Date Failure (Too many arguments)
+// Number of Args
 date 03-Jan-1938 12:34:56
 date 03-Jan-1938-38
 date 8-jaN
-
-// Date too wide arguments check
+// Arg Width
 date 001-mar-2018
-date 1-november-218
 date 7-june-009
 date 30-may-98765
 date 100-jan-1
-
-// Date leap year check
+// Leap Year
 date 29-feb-100
 date 29-feb-1000
 date 29-feb-2001
-date 29-feb-2018

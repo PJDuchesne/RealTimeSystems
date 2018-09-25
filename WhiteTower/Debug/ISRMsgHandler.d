@@ -80,55 +80,6 @@ ISRMsgHandler.obj: ../Includes/RingBuffer.h
 ISRMsgHandler.obj: ../Includes/../RingBuffer.tpp
 ISRMsgHandler.obj: ../Includes/UART0Driver.h
 ISRMsgHandler.obj: ../Includes/ISRMsgHandler.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/iostream
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ios
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__locale
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/mutex
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__mutex_base
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/chrono
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ctime
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/time.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/abi_prefix.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_time.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ratio
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/climits
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/limits.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/limits.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/system_error
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/cerrno
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/errno.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/errno.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_tls.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__threading_support
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/functional
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/locale.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/locale.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_locale.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_string.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_stdlib.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_time.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_ctype.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_ctype.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_stdio.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_wchar.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/streambuf
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/istream
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ostream
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/locale
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/cstdarg
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__bsd_locale_defaults.h
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/bitset
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__bit_reference
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
-ISRMsgHandler.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros
 ISRMsgHandler.obj: ../Includes/SysTickDriver.h
 
 ../ISRMsgHandler.cpp: 
@@ -211,53 +162,4 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros:
 ../Includes/../RingBuffer.tpp: 
 ../Includes/UART0Driver.h: 
 ../Includes/ISRMsgHandler.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/iostream: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ios: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__locale: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/mutex: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__mutex_base: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/chrono: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ctime: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/time.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/abi_prefix.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_time.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ratio: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/climits: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/limits.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/limits.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/system_error: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/cerrno: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/errno.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/errno.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_tls.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__threading_support: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/functional: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/locale.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/locale.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_locale.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_string.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_stdlib.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_time.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_ctype.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_ctype.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_stdio.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/xlocale/_wchar.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/streambuf: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/istream: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/ostream: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/locale: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/cstdarg: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__bsd_locale_defaults.h: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/bitset: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__bit_reference: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
-C:/ti/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/libcxx/__undef_macros: 
 ../Includes/SysTickDriver.h: 

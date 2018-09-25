@@ -51,9 +51,9 @@ class ISRMsgHandler {
         ISRMsgHandler();
         ~ISRMsgHandler() ;
         void SingletonGrab();
-        void QueueMsg(MsgType_t type, char data);
-        void GetFromQueue(MsgType_t &type, char &data);
-        bool CheckISRQueue();
+
+        void QueueISRMsg(MsgType_t type, char data);
+        void GetFromISRQueue(MsgType_t &type, char &data);
         void QueueOutputMsg(std::string msg);
         bool OutputBufferEmpty();
         char GetOutputChar();

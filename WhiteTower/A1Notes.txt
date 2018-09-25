@@ -8,17 +8,14 @@ Five Broad Tasks
 
 TODO STUFF:
 	TODO: 
-	- Comment everything!
-	- Do a "TODO" search on codebase
-	- Remove magic numbers
 	- Update time test with new format (12, 12:, 12::)
-	- 
 
 	Questionable TODO (Or look into):
-	- Rewrite ISRMsgHandler to be a separate layer. (Discuss with T om?)
+	- 
 
 	Bonus TODO:
 	- Add buffer of previous commands
+	- Add help page (And individual help arguments for each command)
 	- VT-100 color options
 		- Two commands: Background && Foreground
 
@@ -31,6 +28,8 @@ Test Plan:
 	6. Alarm: Formed
 	7. Alarm: Malformed
 	8. Manual Writing Test
+
+--------------------------------------------------------------------------------------------------------------
 
 Drift math: 
 - Clock triggers at 2^24: 16777216 times per second

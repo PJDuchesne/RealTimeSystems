@@ -1,39 +1,33 @@
-// Time border checks
+// Borders
 time 24:10:20
 time 03:60:40
 time 50:10:60
-
 time 20:60:60
 time 24:30:60
 time 24:60:40
-
 time 24:60:60
-
-// Time General Range Failure
+// Range Failure
 time 60:60:60
 time 12:68:40
 time ::78
-
-// Character Limit test
+// Character Lim
 time 001:20:30
 time 04:050:40
 time 20:17:001
-
-// Negative charcaters
+time 000
+time 00:000
+// Negatives
 time -1:23:14
 time ::-5
 time 01:04:-80
-
-// Random characters within character limits
+// Random characters
 time ay:20:30
 time 40:o8:50
 time 10:20:zi
-
-// General failure without character limits
+// General failure
 time foobar
 time ::::::
 time ab:c:e
 time \a:0c:\e
 time \e\e\e\a
 time \e
-

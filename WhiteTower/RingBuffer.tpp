@@ -14,6 +14,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+/*
+    Function: Add
+    Input:  data: Data to add to the ring buffer
+    Brief: Adds the provided data to the ring buffer at the front position and then increments it
+*/
 template <class T>
 void RingBuffer<T>::Add(T data) {
     if (!Full()) {
@@ -23,6 +28,11 @@ void RingBuffer<T>::Add(T data) {
     }
 }
 
+/*
+    Function: Add
+    Ouytput: return_val: Data that was retrieved from the ring buffer
+    Brief: Retrieves data from the end of the buffer and increments the back position
+*/
 template <class T>
 T RingBuffer<T>::Get() {
 
@@ -36,24 +46,43 @@ T RingBuffer<T>::Get() {
     return return_val;
 }
 
-  // Decrement front to erase latest data
+/*
+    Function: Pop
+    Brief: Increments the front of the buffer to delete the latest value stored
+           (This is used in the Monitor with the delete/backspace input)
+*/
 template <class T>
 void RingBuffer<T>::Pop() {
     if (Empty()) return;
     front_ = (front_ + buffer_size_ - 1) % buffer_size_;
 }
 
+/*
+    Function: Reset
+    Brief: Resets the buffer by zeroing both the front and the back
+           (This is not used in the code but is useful to have inthe template function for future use)
+*/
 template <class T>
 void RingBuffer<T>::Reset() {
     front_ = 0;
     back_ = 0;
 }
 
+/*
+    Function: Empty
+    Output: Boolean: True if the buffer is empty, false if it is not
+    Brief: Checks if the buffer is current empty and returns a boolean accordingly
+*/
 template <class T>
 bool RingBuffer<T>::Empty() const {
     return (front_ == back_);
 }
 
+/*
+    Function: Full
+    Output: Boolean: True if the buffer is full, false if it is not
+    Brief: Checks if the buffer is current full and returns a boolean accordingly
+*/
 template <class T>
 bool RingBuffer<T>::Full() const {
     return ((front_ + 1) % buffer_size_ == back_);

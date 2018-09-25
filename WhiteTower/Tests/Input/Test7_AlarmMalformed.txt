@@ -1,42 +1,35 @@
-// alarm border checks (Note: Same argument parsing as time, therefore same tests)
+// Border
 alarm 24:10:20
 alarm 03:60:40
 alarm 50:10:60
-
 alarm 20:60:60
 alarm 24:30:60
 alarm 24:60:40
-
 alarm 24:60:60
-
-// alarm General Range Failure
+// General Range
 alarm 60:60:60
 alarm 12:68:40
 alarm ::78
-
-// Character Limit test
+// Character Lim
 alarm 001:20:30
 alarm 04:050:40
-alarm 20:17:001
-
-// Negative charcaters
+// Negatives
 alarm -1:23:14
 alarm ::-5
 alarm 01:04:-80
-
-// Random characters within character limits
+// Random Characters
 alarm ay:20:30
 alarm 40:o8:50
 alarm 10:20:zi
-
-// General failure without character limits based on arguments
+// General Failure
+alarm ::
+alarm 00:00:00
 alarm foobar
 alarm ::::::
 alarm ab:c:e
 alarm \a:0c:\e
 alarm \e\e\e\a
 alarm \e
-
 // General misspelling
 alarmx
 alarn ::30

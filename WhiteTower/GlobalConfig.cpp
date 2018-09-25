@@ -16,22 +16,31 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/GlobalConfig.h"
 
+/*
+    Function: InterruptMasterEnable
+    Brief: Makes an assembly call to enable interupts globally
+*/
 void InterruptMasterEnable() {
     __asm("    cpsie   i");
 }
 
+/*
+    Function: InterruptEnable
+    Brief: General purpose function to access and enable specific interrupts
+*/
 void InterruptEnable(unsigned long InterruptIndex) {
     /* Indicate to CPU which device is to interrupt */
-    if(InterruptIndex < 32) {
-        // Enable the interrupt in the EN0 Register
-        NVIC_EN0_R = 1 << InterruptIndex;      
-    }
-    else {
-        // Enable the interrupt in the EN1 Register
-        NVIC_EN1_R = 1 << (InterruptIndex - 32);
-    }
+    if(InterruptIndex < 32) NVIC_EN0_R = 1 << InterruptIndex; // Enable the interrupt in the EN0 Register
+    else NVIC_EN1_R = 1 << (InterruptIndex - 32); // Enable the interrupt in the EN1 Register
 }
 
+/*
+    Function: SingletonSetup
+    Brief: Calls SingletonGrab for each singleton in the project. This both instantiating the Singleton by
+           calling its GetInstance() function for the first time and sets the pointers to other singletons
+           for future use. This also prevents any possibility of a the empty singleton pointers in each singleton
+           to be used before being setup.
+*/
 void SingletonSetup() {
     UART0Driver::GetUART0Driver()->SingletonGrab();
     SysTickDriver::GetSysTickDriver()->SingletonGrab();

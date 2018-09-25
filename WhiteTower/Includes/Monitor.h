@@ -41,7 +41,7 @@ class Monitor {
         TimeHandler *TimeHandlerInstance_;
 
         // Poll the ISR Msg Queue
-        void CheckMessageHandler(MsgType_t &type, char &data);
+        void CheckMessageHandler();
 
         // Handle incoming msgs
         void HandleUART(char data);
@@ -53,7 +53,6 @@ class Monitor {
         void SingletonGrab();
         void CentralLoop();
         void RePrintOutputBuffer();
-        void PrintNewLine();
         void PrintMsg(std::string msg);
         void PrintErrorMsg(std::string msg);
         static Monitor* GetMonitor();

@@ -17,12 +17,18 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "Includes/UART0Driver.h"
 #include "Includes/SysTickDriver.h"
 
-#include <iostream>
-
+/*
+    Function: UART0_ISR_C
+    Brief: Dummy function to be called from C code to access its C++ equivalent for UART0
+*/
 extern "C" void UART0_ISR_C(void) {
 	UART0Driver::GetUART0Driver()->UART0Handler();
 }
 
+/*
+    Function: SysTick_ISR_C
+    Brief: Dummy function to be called from C code to access its C++ equivalent for SysTick
+*/
 extern "C" void SysTick_ISR_C(void) {
 	SysTickDriver::GetSysTickDriver()->SysTickHandler();
 }

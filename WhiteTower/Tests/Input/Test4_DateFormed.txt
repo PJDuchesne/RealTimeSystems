@@ -1,68 +1,34 @@
-// Basic Date
-date
+// Basics
 date 01-JAN-2018
-date
-
-// Date Borders Check
+// Borders
 date 01-JAN-0000
-date
 date 31-jaN-1000
-date
 date 28-fEb-1000
-date
 date 31-Mar-1000
-date
 date 30-aPR-1000
-date
 date 31-MAy-1000
-date
 date 30-JuN-1000
-date
 date 31-JUL-1000
-date
 date 31-aug-1000
-date
 date 30-sep-1000
-date
 date 31-oct-1000
-date
 date 30-nov-1000
-date
 date 31-DEC-9999
-date
-
-// Date Natural Range
+// Natural Range
 date 20-oct-1582
-date
 date 13-mar-1983
-date
 date 06-nov-1996
-date
 date 30-oct-8765
-date
 date 03-jun-0987
-date
-
-// Date 0 padding check
+// 0 Padding
 date 1-mar-2018
-date
 date 1-nov-218
-date
 date 7-jun-009
-date
 date 30-may-98
-date
 date 1-jan-1
-date
 date 1-jan-0
-date
-
-// Date leap year check
+// Leap Year
 date 29-feb-2000
-date
 date 29-feb-1004
-date
 date 29-feb-1876
-date
 date 29-feb-0000
-date

@@ -32,23 +32,17 @@ extern const std::string elephant;
 extern const std::string frog;
 extern const std::string gorilla;
 extern const std::string horse;
-// extern const std::string insect;
-// extern const std::string jester;
 extern const std::string kangaroo;
 extern const std::string lizard;
 extern const std::string moose;
-// extern const std::string ninja;
 extern const std::string octopus;
 extern const std::string parrot;
-// extern const std::string quarter;
 extern const std::string rabbit;
 extern const std::string scorpion;
 extern const std::string turtle;
 extern const std::string unicorn;
 extern const std::string vulture;
 extern const std::string wolf;
-// extern const std::string xwing;
-// extern const std::string yoda;
 extern const std::string zebra;
 
 #define ZOO_SIZE 20
@@ -62,23 +56,17 @@ const std::string zoo[ZOO_SIZE] = {
   frog,
   gorilla,
   horse,
-  // insect,
-  // jester,
   kangaroo,
   lizard,
   moose,
-  // ninja,
   octopus,
   parrot,
-  // quarter,
   rabbit,
   scorpion,
   turtle,
   unicorn,
   vulture,
   wolf,
-  // xwing,
-  // yoda,
   zebra
 };
 

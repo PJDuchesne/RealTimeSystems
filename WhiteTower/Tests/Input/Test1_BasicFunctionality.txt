@@ -16,7 +16,6 @@ date 01-JAN-2018
 date
 alarm
 alarm ::5
-
 // Malformed
 timex ::
 alarm0 12:30:42
@@ -26,4 +25,3 @@ dat
 alorm
 foobar
 time 12:34:56 barfoo
-

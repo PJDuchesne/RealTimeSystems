@@ -19,8 +19,16 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Singleton Instance
 Monitor *Monitor::MonitorInstance_ = 0;
 
-void Monitor::CheckMessageHandler(MsgType_t &type, char &data) {
-    ISRMsgHandlerInstance_->GetFromQueue(type, data);
+/*
+    Function: CheckMessageHandler
+    Brief: Checks the ISR message queue and handles message if one is present,
+           constantly polled from CentralLoop
+*/
+void Monitor::CheckMessageHandler() {
+    static MsgType_t type = NONE;
+    static char data = char();
+
+    ISRMsgHandlerInstance_->GetFromISRQueue(type, data);
 
     switch (type) {
         case NONE:
@@ -39,17 +47,22 @@ void Monitor::CheckMessageHandler(MsgType_t &type, char &data) {
 
 }
 
+/*
+    Function: HandleUART
+    Input: char: Input character from UART message
+    Brief: Handles a UART msg from the ISR queue. This function handles VT-100 codes, backspaces,
+           enter to submit current data buffer, and generally filling the data buffer.
+*/
 void Monitor::HandleUART(char data) {
-    static char* single_char = new char[1];
-    char fetched_char;
-    std::string command_string = "";
-
+    static char* single_char = new char[1]; // Used to output a character
+    static std::string command_string = ""; // Used to build command
     static int8_t escape_mode = -1;
 
-    // If in escape mode, skip next two characters
+    // VT-100 Code handling: If in escape mode, skip next two characters
+    //      Escape mode is denoted by escape_mode equalling 0 or 1
     if (escape_mode != -1) {
         // However, if one of the skipped chacters is a number, skip an extra one
-        if (data >= 48 && data <= 57) return;
+        if (data >= '0' && data <= '9') return;
         if (++escape_mode == 2) escape_mode = -1;
         return;
     }
@@ -66,19 +79,20 @@ void Monitor::HandleUART(char data) {
 
             break;
         case 0x0D: // Enter (Carriage Return)
+            command_string = "";
             while (1) {
-                fetched_char = data_buffer_->Get();
-                if (fetched_char) command_string += fetched_char;
+                single_char[0] = data_buffer_->Get();
+                if (single_char[0]) command_string += single_char[0];
                 else {
                     if (command_string != "") CommandCenterInstance_->HandleCommand(command_string);
                     break;
                 }
             }
-            PrintNewLine();
+            PrintMsg(NEW_LINE);
             data_buffer_->Reset();
             break;
 
-        case 0x1B: // ESCAPE
+        case 0x1B: // Escape
             // Enter backslash mode, ignoring next two characters
             escape_mode = 0;
             break;
@@ -91,45 +105,67 @@ void Monitor::HandleUART(char data) {
     }
 }
 
+/*
+    Function: HandleSYSTICK
+    Brief: Handles a SysTick ISR msg by simply incrementing the decisecond value in the TimeHandler
+*/
 void Monitor::HandleSYSTICK() {
     TimeHandlerInstance_->TickTenthSec();
 }
 
+/*
+    Function: Monitor
+    Brief: Constructor for the Monitor class, which initializes the data_buffer_ on startup
+*/
+Monitor::Monitor() {
+    data_buffer_ = new RingBuffer<char>(DATA_BUFFER_SIZE);
+}
+
+/*
+    Function: ~Monitor
+    Brief: Destructor for the Monitor class, which deletes the data_buffer_ on shutdown
+*/
+Monitor::~Monitor() {
+    delete data_buffer_;
+}
+
+/*
+    Function: SingletonGrab
+    Brief: Setup function for the Monitor to grab its required singleton pointers.
+           Called from main.cpp at startup.
+*/
 void Monitor::SingletonGrab() {
     ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
     CommandCenterInstance_ = CommandCenter::GetCommandCenter();
     TimeHandlerInstance_ = TimeHandler::GetTimeHandler();
 }
 
-void Monitor::PrintNewLine() {
-    PrintMsg(NEW_LINE);
-}
-
-Monitor::Monitor() {
-    data_buffer_ = new RingBuffer<char>(DATA_BUFFER_SIZE);
-}
-
-Monitor::~Monitor() {
-    delete data_buffer_;
-}
-
+/*
+    Function: CentralLoop
+    Brief: The central loop of the project. This function is handed control after main.cpp performs
+           some setup functions. This clears the screen and then loops forever, polling the ISR message
+           queue for more inputs to handle.
+*/
 void Monitor::CentralLoop() {
-    MsgType_t type = NONE;
-    char data = char();
-
     // Reset all VT-100 settings (background, foreground, etc.)
     PrintMsg("\e[0m");
 
+    // Clear the screen from previous sessions
     PrintMsg(CLEAR_SCREEN);
-    PrintNewLine();
+    PrintMsg(NEW_LINE);
 
     // Loop Forever
     while(1)
     {
-        CheckMessageHandler(type, data);
+        CheckMessageHandler();
     }
 }
 
+/*
+    Function: RePrintOutputBuffer
+    Brief: This function is used to reprint the current command buffer to screen after the user has been
+           interrupted while typing by an alarm going off.
+*/
 void Monitor::RePrintOutputBuffer() {
     // Fetch contents of buffer
     std::string buffer_contents = "";
@@ -143,14 +179,29 @@ void Monitor::RePrintOutputBuffer() {
 
 }
 
+/*
+    Function: PrintMsg
+    Input:  msg: Message to print out through the UART transmit buffer
+    Brief: Queues the message into the UART transmit buffer
+*/
 void Monitor::PrintMsg(std::string msg) {
     ISRMsgHandlerInstance_->QueueOutputMsg(msg);
 }
 
+/*
+    Function: PrintErrorMsg
+    Input:  msg: Error Message to print out
+    Brief: Prints out an error message in a standarized format for code readability elsewhere.
+*/
 void Monitor::PrintErrorMsg(std::string msg) {
     PrintMsg("\r\n\r ? >>" + msg + "<<");
 }
 
+/*
+    Function: GetMonitor
+    Output: MonitorInstance_: Pointer to the Monitor Singleton
+    Brief: Get function for the Monitor singleton
+*/
 Monitor* Monitor::GetMonitor() {
     if (!MonitorInstance_) MonitorInstance_ = new Monitor;
     return MonitorInstance_;
