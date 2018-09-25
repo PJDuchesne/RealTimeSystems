@@ -24,7 +24,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "SysTickDriver.h"
 
 #define ISR_QUEUE_SIZE 100
-#define OUTPUT_DATA_BUFFER_SIZE 1250
+#define OUTPUT_DATA_BUFFER_SIZE 1250 // This is increased to handle the Zoo command
 
 typedef enum MsgType {
   NONE,

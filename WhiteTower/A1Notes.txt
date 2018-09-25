@@ -8,10 +8,8 @@ Five Broad Tasks
 
 TODO STUFF:
 	TODO: 
-	- Update time test with new format (12, 12:, 12::)
 
 	Questionable TODO (Or look into):
-	- 
 
 	Bonus TODO:
 	- Add buffer of previous commands
