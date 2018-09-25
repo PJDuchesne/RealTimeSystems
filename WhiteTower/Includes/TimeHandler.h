@@ -30,7 +30,6 @@ class TimeHandler {
         ti_time_t current_time_;
         alarm_t alarm_;
         bool leap_year_;
-
         Monitor *MonitorInstance_;
 
         // Tick functions to increment time
@@ -65,11 +64,9 @@ class TimeHandler {
         bool CheckValidTime(smh_t &input_smh) const;
         bool CheckValidDate(dmy_t &input_dmy) const;
         bool CheckAlarmActive() const;
-
         void PrintCurrentTime();
         void PrintCurrentDate();
         void PrintCurrentAlarm();
-
         ti_time_t GetCurrentTime();
 
         static TimeHandler* GetTimeHandler();

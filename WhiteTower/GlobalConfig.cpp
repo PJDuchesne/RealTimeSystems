@@ -38,8 +38,8 @@ void InterruptEnable(unsigned long InterruptIndex) {
     Function: SingletonSetup
     Brief: Calls SingletonGrab for each singleton in the project. This both instantiating the Singleton by
            calling its GetInstance() function for the first time and sets the pointers to other singletons
-           for future use. This also prevents any possibility of a the empty singleton pointers in each singleton
-           to be used before being setup.
+           for future use. This also prevents any possibility of a the empty singleton pointers in each
+           singleton to be used before being setup.
 */
 void SingletonSetup() {
     UART0Driver::GetUART0Driver()->SingletonGrab();

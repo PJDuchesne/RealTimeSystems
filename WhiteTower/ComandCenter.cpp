@@ -80,9 +80,9 @@ void CommandCenter::AlarmCommand(std::string arg) {
             MonitorInstance_->PrintErrorMsg("ERROR: Alarm cannot be set 0 seconds from now");
             return;
         }
-        new_alarm.alarm_time = parsed_arg; // This is not the relative time, that is calculated within SetAlarm()
+        new_alarm.alarm_time = parsed_arg; // This is the relative time, not actual alarm time
         new_alarm.is_active = true;
-        TimeHandlerInstance_->SetAlarm(new_alarm);
+        TimeHandlerInstance_->SetAlarm(new_alarm); // Actual alarm time calculated in SetAlarm()
     }
 }
 
@@ -140,8 +140,9 @@ void CommandCenter::ToUpper(std::string& str) {
     Function: ParseTimeArg
     Input:  input: Input string to parse into a time structure
     Output: output: Output time structure containing the parsed string values
-    Brief: Parses the input string from the format SS:MM::HH into an output structure for elsewhere in the code.
-           Accepts variable width input from 0 to 2 characters on each field, autofilling blank fields to 0.
+    Brief: Parses the input string from the format SS:MM::HH into an output structure for
+           elsewhere in the code. Accepts variable width input from 0 to 2 characters on
+           each field, autofilling blank fields to 0.
 */
 bool CommandCenter::ParseTimeArg(std::string &input, smh_t &output) {
     output = zero_smh;
@@ -201,9 +202,9 @@ bool CommandCenter::ParseTimeArg(std::string &input, smh_t &output) {
     Function: ParseDateArg
     Input:  input: Input string to parse into a date structure
     Output: output: Output date structure containing the parsed string values
-    Brief: Parses the input string from the format DD-MMM-YYYY into an output structure for elsewhere in the code.
-           Accepts variable width input from 1 to 4 characters depending on the field. Takes into account the variable
-           number of days per month (including leap years).
+    Brief: Parses the input string from the format DD-MMM-YYYY into an output structure for
+           elsewhere in the code. Accepts variable width input from 1 to 4 characters depending
+           on the field. Takes into account the variable number of days per month (inc. leap years).
 */
 bool CommandCenter::ParseDateArg(std::string &input, dmy_t &output) {
     int8_t length = input.length();
