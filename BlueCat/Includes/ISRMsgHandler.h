@@ -19,9 +19,9 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include <string>
 
-#include "../Includes/RingBuffer.h"
-#include "../Includes/SysTickDriver.h"
-#include "../Includes/UART0Driver.h"
+#include "RingBuffer.h"
+#include "UART0Driver.h"
+#include "SysTickDriver.h"
 
 #define ISR_QUEUE_SIZE 100
 #define OUTPUT_DATA_BUFFER_SIZE 1250 // This is increased to handle the Zoo command

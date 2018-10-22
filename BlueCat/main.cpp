@@ -28,8 +28,6 @@ int main(void)
     InterruptMasterEnable();         // Enable global interrupts
     SingletonSetup();                // Instantiates all singletons
 
-    // Pass Control to Kernel
-    while(1) {
-        // Kernel::GetKernalInstance()->CentralLoop()
-    }
+    // Pass Control to Monitor
+    Monitor::GetMonitor()->CentralLoop();
 }

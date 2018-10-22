@@ -82,8 +82,8 @@ void (* const g_pfnVectors[])(void) =
     0,                                      // Reserved
     0,                                      // Reserved
     0,                                      // Reserved
-    IntDefaultHandler,                      // SVCall handler
-    IntDefaultHandler,                      // Debug monitor handler
+    IntDefaultHandler,                      // SVCall handler TODO: UPDATE
+    IntDefaultHandler,                      // Debug monitor ha ndler
     0,                                      // Reserved
     IntDefaultHandler,                      // The PendSV handler
     SysTick_ISR_C,                          // The SysTick handler

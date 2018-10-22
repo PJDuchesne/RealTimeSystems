@@ -45,4 +45,7 @@ void SingletonSetup() {
     UART0Driver::GetUART0Driver()->SingletonGrab();
     SysTickDriver::GetSysTickDriver()->SingletonGrab();
     ISRMsgHandler::GetISRMsgHandler()->SingletonGrab();
+    Monitor::GetMonitor()->SingletonGrab();
+    CommandCenter::GetCommandCenter()->SingletonGrab();
+    TimeHandler::GetTimeHandler()->SingletonGrab();
 }
