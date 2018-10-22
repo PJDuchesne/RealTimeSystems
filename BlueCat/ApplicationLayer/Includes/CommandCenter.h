@@ -20,7 +20,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "Monitor.h"
 #include "TimeHandler.h"
 #include "TimeDefinitions.h"
-#include "ZooKeeper.h"
 
 #define ASCII_CASE_OFFSET   32
 #define NUM_VALID_COMMANDS  4
@@ -37,7 +36,6 @@ const std::string valid_commands[NUM_VALID_COMMANDS] = {
   "TIME",
   "DATE",
   "ALARM",
-  "ZOO"
 };
 
 // Forward Declarations
@@ -57,7 +55,6 @@ class CommandCenter {
         void TimeCommand(std::string arg);
         void DateCommand(std::string arg);
         void AlarmCommand(std::string arg);
-        void ZooCommand(std::string arg);
 
         // Internal helpers
         void ToUpper(std::string &str);

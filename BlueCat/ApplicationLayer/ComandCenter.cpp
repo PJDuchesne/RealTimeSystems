@@ -87,44 +87,6 @@ void CommandCenter::AlarmCommand(std::string arg) {
 }
 
 /*
-    Function: ZooCommand
-    Input:  arg: UNUSED, only present because the current structure of command pointers uses it
-    Brief: Handles the zoo command by randomly selecting and then printing an ASCII zoo animal
-*/
-void CommandCenter::ZooCommand(std::string arg) {
-    std::string animal;
-
-    // Choose an animal at "random" (By using modulus and the current time)
-    if (arg == "") animal = zoo[TimeHandlerInstance_->GetCurrentTime().raw_time_ % (ZOO_SIZE)];
-    else {
-        MonitorInstance_->PrintErrorMsg("ERROR: Unnecessary Argument for Zoo: >>" + arg);
-        return;
-    }
-
-    // Breaks the animal into line by line chunks to output so the output buffer isnt overwhelmed
-    bool end_flag = false;
-    int16_t next_endline;
-    std::string substr;
-    while (1) {
-        next_endline = animal.find_first_of("\n");
-        if (next_endline == std::string::npos) {
-            // On last line
-            end_flag = true;
-            substr = animal;
-        }
-        else {
-            // Get substring
-            substr = animal.substr(0, next_endline + 1); // +1 to include '\n'
-
-            // Slice off that line
-            animal = animal.substr(next_endline + 1); // +1 to exclude '\n'
-        }
-        MonitorInstance_->PrintMsg(substr + "\r");
-        if (end_flag) break;
-    }
-}
-
-/*
     Function: ToUpper
     Input:  str: String to make upper case 
     Output: str: String with capitalized alphabetical characters
@@ -276,7 +238,6 @@ CommandCenter::CommandCenter() {
     FunctionTable[0] = &CommandCenter::TimeCommand;
     FunctionTable[1] = &CommandCenter::DateCommand;
     FunctionTable[2] = &CommandCenter::AlarmCommand;
-    FunctionTable[3] = &CommandCenter::ZooCommand;
 }
 
 /*
