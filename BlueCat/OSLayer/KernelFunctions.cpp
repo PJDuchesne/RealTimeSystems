@@ -10,13 +10,13 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
         _\///____________\/////////_______\////////////_____
 -> Name:  KernelFunctions.cpp
 -> Date: Oct 21, 2018  (Created)
--> Author: Dr Larry Hughes, Modified as needed
+-> Author: Dr. Larry Hughes, Modified by Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
 
 #include "Includes/KernelFunctions.h"
 
-void SVCall(void)
+void SVCall()
 {
     /* Supervisor call (trap) entry point
        Using MSP - trapping process either MSP or PSP (specified in LR)
@@ -91,8 +91,9 @@ void SVCHandler(struct stack_frame *argptr)
         should be increased by 8 * sizeof(unsigned int).
         * sp is increased because the stack runs from low to high memory.
         */
+
         // TODO: Make current process, not this running->sp idea
-        // set_PSP(>>HERE<< + 8 * sizeof(unsigned int));
+        set_PSP(OperatingSystem::GetOperatingSystem()->GetNextPCB()->stack_ptr + 8 * sizeof(uint32_t));
 
         firstSVCcall = FALSE;
 

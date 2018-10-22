@@ -1,6 +1,3 @@
-#ifndef TaskScheduler_H
-#define TaskScheduler_H
-
 /*
 __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____        
  _\/\\\/////////\\\__\/////\\\///__\/\\\////////\\\__       
@@ -11,31 +8,31 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
       _\/\\\___________/\\\___\/\\\_____\/\\\_______/\\\__  
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
--> Name:  TaskScheduler.h
+-> Name:  ProcessesGlue.cpp
 -> Date: Oct 21, 2018  (Created)
 -> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
 
-#include "OSLibrary.h"
-#include "PCBList.h"
+#include "ApplicationLayer/Includes/GlobalConfig.h"
 
-class TaskScheduler {
-    private:
-    	// PCBList* Priority_One_;
-    	// PCBList* Priority_Two_;
-    	// PCBList* Priority_Three_;
-    	// PCBList* Priority_Four_;
-    	// PCBList* Priority_Five_;
+void MonitorProcess() {
+    // TODO: Enter monitor here
+    /* 
+    // Set up interrupts
+    InterruptEnable(INT_VEC_UART0);  // Allow UART0 interrupts
+    InterruptEnabletMasterEnable();         // Enable global interrupts
+    SingletonSetup();                // Instantiates all singletons
 
-    	// TODO: Make an array
-    	PCBList* PCBLists_[NUM_PRIORITIES];
+    // Pass Control to Monitor
+    Monitor::GetMonitor()->CentralLoop();
+    */
+}
 
-    public:
-        TaskScheduler();
-        void AddProcess(pcb_t* new_pcb, priority_t priority);
-        pcb_t* GetNextPCB();
-};
+void DummpyProcess2() {
+    // TODO
+}
 
-
-#endif /* TaskScheduler_H */
+void DummpyProcess3() {
+    // TODO
+}

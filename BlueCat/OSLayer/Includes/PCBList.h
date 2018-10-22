@@ -17,15 +17,17 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "KernelFunctions.h"
+#include "OSLibrary.h"
 
-class PCBClass {
+class PCBList {
     private:
-    	uint32_t front;
+        pcb_t* front_;
 
     public:
-        PCBClass();
-
+        PCBList();
+        void AddPCB(pcb_t* input_pcb);
+        bool IsEmpty();
+        pcb_t* NextPCB();
 };
 
 

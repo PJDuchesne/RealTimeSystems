@@ -17,8 +17,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "ISRMsgHandler.h"
-#include "RingBuffer.h"
+#include <ApplicationLayer/Includes/ISRMsgHandler.h>
+#include <ApplicationLayer/Includes/RingBuffer.h>
 
 // UART0 & PORTA Registers
 #define GPIO_PORTA_AFSEL_R (*((volatile unsigned long *)0x40058420)) // GPIOA Alternate Function Select Reg

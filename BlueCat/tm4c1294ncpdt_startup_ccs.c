@@ -52,6 +52,7 @@ extern uint32_t __STACK_TOP;
 // Extern C++ Functions
 extern void UART0_ISR_C();
 extern void SysTick_ISR_C();
+extern void SVC_ISR_C();
 
 //*****************************************************************************
 //
@@ -82,8 +83,8 @@ void (* const g_pfnVectors[])(void) =
     0,                                      // Reserved
     0,                                      // Reserved
     0,                                      // Reserved
-    IntDefaultHandler,                      // SVCall handler TODO: UPDATE
-    IntDefaultHandler,                      // Debug monitor ha ndler
+    SVC_ISR_C,                              // SVCall handler
+    IntDefaultHandler,                      // Debug monitor handler
     0,                                      // Reserved
     IntDefaultHandler,                      // The PendSV handler
     SysTick_ISR_C,                          // The SysTick handler

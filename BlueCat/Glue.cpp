@@ -14,8 +14,9 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "Includes/UART0Driver.h"
-#include "Includes/SysTickDriver.h"
+#include <ISRLayer/Includes/SysTickDriver.h>
+#include <ISRLayer/Includes/UART0Driver.h>
+#include "OSLayer/Includes/KernelFunctions.h"
 
 /*
     Function: UART0_ISR_C
@@ -31,4 +32,8 @@ extern "C" void UART0_ISR_C(void) {
 */
 extern "C" void SysTick_ISR_C(void) {
 	SysTickDriver::GetSysTickDriver()->SysTickHandler();
+}
+
+extern "C" void SVC_ISR_C(void) {
+    SVCall();
 }

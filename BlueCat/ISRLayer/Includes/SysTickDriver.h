@@ -17,7 +17,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "ISRMsgHandler.h"
+#include <ApplicationLayer/Includes/ISRMsgHandler.h>
+#include <OSLayer/Includes/OperatingSystem.h>
 
 // SysTick Registers
 // SysTick Control and Status Register (STCTRL)
@@ -34,15 +35,18 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Maximum period
 // This value was based on a drift text done with an initial 
 // assumed clock speed of 2^24 hz. The clock was found to be ~16.2 MHz
-#define MAX_WAIT           0x18B7DD   // 1/10th of a second, after calibration
+//#define MAX_WAIT           0x18B7DD   // 1/10th of a second, after calibration
+#define MAX_WAIT           0x278C9    // 1/100th of a second for assignment 2
 
-// Forward Declaration
+// Forward Declarations
 class ISRMsgHandler;
+class OperatingSystem;
 
 class SysTickDriver {
     private:
         static SysTickDriver* SysTickDriverInstance_;
         ISRMsgHandler *ISRMsgHandlerInstance_;
+        OperatingSystem *OperatingSystemInstance_;
 
         void SysTickStart();
         void SysTickStop();

@@ -16,6 +16,22 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/TaskScheduler.h"
 
-// TODO: TaskScheduler
+TaskScheduler::TaskScheduler() {
+	for (int i = 0; i < NUM_PRIORITIES; i++) {
+		PCBLists_[i] = new PCBList;
+	}
+}
 
+void TaskScheduler::AddProcess(pcb_t* new_pcb, priority_t priority) {
+	PCBLists_[priority - 1]->AddPCB(new_pcb);
+}
 
+pcb_t* TaskScheduler::GetNextPCB() {
+	// Iterate through each PCBList and return the first that is not full
+	for (int i = NUM_PRIORITIES - 1; i >= 0; i--) {
+		if (!PCBLists_[i]->IsEmpty()) return PCBLists_[i]->NextPCB();
+	}
+
+	// If all queues are empty, this will return an uncaught 0 (NULL), which should crash pretty fast
+	return 0;
+}

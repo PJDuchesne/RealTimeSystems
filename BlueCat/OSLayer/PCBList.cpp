@@ -16,10 +16,39 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/PCBList.h"
 
-// TODO: Get Hughes functions
+PCBList::PCBList() {
+	front_ = 0;
+}
 
-PCBClass::PCBClass() {
-	// TODO: Any initialization code
+void PCBList::AddPCB(pcb_t* input_pcb) {
+	// If list is empty
+	if (front_ == 0) {
+		// Initialize front_ to first PCB added
+		front_ = input_pcb;
+		// Add new PCB
+		input_pcb->next = front_;
+		input_pcb->prev = front_;
+	}
+	// If list is not empty
+	else {
+		// Attach new PCB
+		input_pcb->next = front_->next;
+		input_pcb->prev = front_;
+
+		// Attach old PCB(s) to the new PCB
+		front_->next->prev = input_pcb;
+		front_->next = input_pcb;
+	}
+}
+
+bool PCBList::IsEmpty() {
+	return (front_ == 0);
+}
+
+pcb_t* PCBList::NextPCB() {
+	// Move front to next and return it
+	front_ = front_->next;
+	return front_;
 }
 
 

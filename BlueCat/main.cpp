@@ -17,6 +17,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // To allow global configurations (i.e. Master ISR setups, Singleton, etc.)
 #include "ApplicationLayer/Includes/GlobalConfig.h"
 
+#include "OSLayer/Includes/OperatingSystem.h"
+
 /*
     Function: main
     Brief: Initializes interrupts and passes control to the Monitor
@@ -35,5 +37,6 @@ int main(void)
     */
 
     // Pass control to OS
+    // OperatingSystem::GetOperatingSystem()->Inialize();
 
 }

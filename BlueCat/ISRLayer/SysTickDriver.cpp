@@ -14,7 +14,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "Includes/SysTickDriver.h"
+#include <ISRLayer/Includes/SysTickDriver.h>
 #include <iostream>
 
 // Singleton Instance
@@ -56,6 +56,9 @@ void SysTickDriver::SysTickEnable(bool enable) {
 */
 void SysTickDriver::SingletonGrab() {
     ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
+
+    // TODO: Ensure that this works at runtime due to startup order
+    OperatingSystemInstance_ = OperatingSystem::GetOperatingSystem();
 }
 
 /*
@@ -73,7 +76,11 @@ SysTickDriver::SysTickDriver() {
     Brief: SysTick ISR, which queues the interrupt into the ISR message queue with the MsgHandler
 */
 void SysTickDriver::SysTickHandler() {
+    // Queue message for time application
     ISRMsgHandlerInstance_->QueueISRMsg(SYSTICK, char());
+
+    // Pass to OS to change process
+    OperatingSystemInstance_->QuantumTick();
 }
 
 /*

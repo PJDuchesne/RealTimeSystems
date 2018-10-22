@@ -17,13 +17,31 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+#include "OSLibrary.h"
+#include "TaskScheduler.h"
+#include "KernelFunctions.h"
+
+extern void MonitorProcess();
+extern void DummpyProcess2();
+extern void DummpyProcess3();
+
+// Function pointer typedef
+typedef void (*process_t)();
+
 class OperatingSystem {
     private:
         static OperatingSystem* OperatingSystemInstance_;
+        TaskScheduler* TaskScheduler_;
+        pcb_t* CurrentPCB_;
 
+        void Inialize();
+        void RegProc(process_t entry_point, uint32_t pid, priority_t priority);
+        void InitStackFrame(stack_frame_t* new_sf);
+        void KickStart();
     public:
         OperatingSystem();
-        void SingletonGrab();
+        void QuantumTick();
+        pcb_t* GetNextPCB();
 
         static OperatingSystem* GetOperatingSystem();
 };
