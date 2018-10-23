@@ -26,6 +26,7 @@ class PCBList {
     public:
         PCBList();
         void AddPCB(pcb_t* input_pcb);
+        void DoALap();
         bool IsEmpty();
         pcb_t* NextPCB();
 };

@@ -22,13 +22,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 class TaskScheduler {
     private:
-    	// PCBList* Priority_One_;
-    	// PCBList* Priority_Two_;
-    	// PCBList* Priority_Three_;
-    	// PCBList* Priority_Four_;
-    	// PCBList* Priority_Five_;
-
-    	// TODO: Make an array
     	PCBList* PCBLists_[NUM_PRIORITIES];
 
     public:

@@ -14,25 +14,25 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "ApplicationLayer/Includes/GlobalConfig.h"
+#include <ISRLayer/Includes/GlobalConfig.h>
 
 void MonitorProcess() {
-    // TODO: Enter monitor here
-    /* 
-    // Set up interrupts
-    InterruptEnable(INT_VEC_UART0);  // Allow UART0 interrupts
-    InterruptEnabletMasterEnable();         // Enable global interrupts
-    SingletonSetup();                // Instantiates all singletons
-
+    std::cout << "[ProcessesGlue] Entering Monitor!\n";
     // Pass Control to Monitor
     Monitor::GetMonitor()->CentralLoop();
-    */
 }
 
 void DummpyProcess2() {
-    // TODO
+    std::cout << "[ProcessesGlue] Entering DummpyProcess2!\n";
+    int i = 0;
+    while (1) {
+      i++;
+    }
 }
 
 void DummpyProcess3() {
-    // TODO
+    std::cout << "[ProcessesGlue] Entering DummpyProcess3!\n";
+    while (1) {
+      
+    }
 }

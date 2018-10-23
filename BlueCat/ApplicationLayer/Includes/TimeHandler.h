@@ -17,7 +17,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "GlobalConfig.h"
+#include "../../ISRLayer/Includes/GlobalConfig.h"
 #include "Monitor.h"
 #include "TimeDefinitions.h"
 

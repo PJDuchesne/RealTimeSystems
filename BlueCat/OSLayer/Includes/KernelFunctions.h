@@ -21,7 +21,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "OperatingSystem.h"
 
 void SVCall();
-void SVCHandler(struct stack_frame *argptr);
+extern "C" void SVCHandler(struct stack_frame *argptr);
 
 void set_LR(volatile uint32_t);
 void set_PSP(volatile uint32_t);

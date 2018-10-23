@@ -34,14 +34,15 @@ class OperatingSystem {
         TaskScheduler* TaskScheduler_;
         pcb_t* CurrentPCB_;
 
-        void Inialize();
-        void RegProc(process_t entry_point, uint32_t pid, priority_t priority);
+        void RegProc(process_t entry_point, uint32_t pid, priority_t priority, std::string name);
         void InitStackFrame(stack_frame_t* new_sf);
         void KickStart();
     public:
         OperatingSystem();
         void QuantumTick();
         pcb_t* GetNextPCB();
+        pcb_t* GetCurrentPCB();
+        void Inialize();
 
         static OperatingSystem* GetOperatingSystem();
 };

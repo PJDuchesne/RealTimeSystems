@@ -35,5 +35,6 @@ extern "C" void SysTick_ISR_C(void) {
 }
 
 extern "C" void SVC_ISR_C(void) {
+    std::cout << "[Glue] SVC_ISR_C\n";
     SVCall();
 }

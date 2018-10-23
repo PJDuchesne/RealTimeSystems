@@ -15,8 +15,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 */
 
 // To allow global configurations (i.e. Master ISR setups, Singleton, etc.)
-#include "ApplicationLayer/Includes/GlobalConfig.h"
-
+#include <ISRLayer/Includes/GlobalConfig.h>
 #include "OSLayer/Includes/OperatingSystem.h"
 
 /*
@@ -24,19 +23,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
     Brief: Initializes interrupts and passes control to the Monitor
 */
 int main(void)
- {
-    // OLD SETUP FOR MONITOR ALONE
-    /*
-    // Set up interrupts
-    InterruptEnable(INT_VEC_UART0);  // Allow UART0 interrupts
-    InterruptMasterEnable();         // Enable global interrupts
-    SingletonSetup();                // Instantiates all singletons
-
-    // Pass Control to Monitor
-    Monitor::GetMonitor()->CentralLoop();
-    */
-
+{
     // Pass control to OS
-    // OperatingSystem::GetOperatingSystem()->Inialize();
-
+     OperatingSystem::GetOperatingSystem()->Inialize();
 }

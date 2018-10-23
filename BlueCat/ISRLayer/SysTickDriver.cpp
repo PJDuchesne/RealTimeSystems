@@ -66,7 +66,7 @@ void SysTickDriver::SingletonGrab() {
     Brief: Constructor for SysTickDriver, which sets up the SysTick interrupt on startup
 */
 SysTickDriver::SysTickDriver() {
-    ST_RELOAD_R = MAX_WAIT; // Set period to 10 sec
+    ST_RELOAD_R = MAX_WAIT; // Set period to 10th sec
     SysTickEnable(true);
     SysTickStart();
 }
@@ -76,8 +76,13 @@ SysTickDriver::SysTickDriver() {
     Brief: SysTick ISR, which queues the interrupt into the ISR message queue with the MsgHandler
 */
 void SysTickDriver::SysTickHandler() {
-    // Queue message for time application
-    ISRMsgHandlerInstance_->QueueISRMsg(SYSTICK, char());
+    static uint8_t CentiSecondCounter = 0;
+
+    // // Queue message for time application
+    if (CentiSecondCounter++ >= CENTI_TO_DECI_SECONDS) {
+        ISRMsgHandlerInstance_->QueueISRMsg(SYSTICK, char());
+        CentiSecondCounter = 0;
+    }
 
     // Pass to OS to change process
     OperatingSystemInstance_->QuantumTick();

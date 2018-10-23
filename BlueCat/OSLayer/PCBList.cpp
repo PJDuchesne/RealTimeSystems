@@ -45,6 +45,23 @@ bool PCBList::IsEmpty() {
 	return (front_ == 0);
 }
 
+// For debugging
+void PCBList::DoALap() {
+	if (IsEmpty()) {
+		return;
+	}
+
+	pcb_t* runner = front_;
+
+	do {
+		std::cout << "[PCBList] DoALap Now: >>" << runner->name << "<<\n";
+		runner = runner->next;
+		std::cout << "[PCBList] DoALap Nxt: >>" << runner->name << "<<\n";
+	} while (front_ != runner);
+
+}
+
+// Assumings 'IsEmpty' has been called first
 pcb_t* PCBList::NextPCB() {
 	// Move front to next and return it
 	front_ = front_->next;

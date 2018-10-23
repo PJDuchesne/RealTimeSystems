@@ -14,7 +14,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "Includes/GlobalConfig.h"
+#include <ISRLayer/Includes/GlobalConfig.h>
 
 /*
     Function: InterruptMasterEnable

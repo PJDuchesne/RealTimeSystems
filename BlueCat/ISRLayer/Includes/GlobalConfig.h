@@ -22,12 +22,12 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <string>
 #include <cstdint>
 
-#include "../../ISRLayer/Includes/SysTickDriver.h"
-#include "../../ISRLayer/Includes/UART0Driver.h"
-#include "ISRMsgHandler.h"
-#include "Monitor.h"
-#include "CommandCenter.h"
-#include "TimeHandler.h"
+#include <ISRLayer/Includes/SysTickDriver.h>
+#include <ISRLayer/Includes/UART0Driver.h>
+#include <ApplicationLayer/Includes/ISRMsgHandler.h>
+#include <ApplicationLayer/Includes/Monitor.h>
+#include <ApplicationLayer/Includes/CommandCenter.h>
+#include <ApplicationLayer/Includes/TimeHandler.h>
 
 #define NVIC_EN0_R (*((volatile unsigned long *)0xE000E100)) // Interrupt  0-31 Set Enable Register
 #define NVIC_EN1_R (*((volatile unsigned long *)0xE000E104)) // Interrupt 32-54 Set Enable Register

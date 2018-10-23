@@ -38,6 +38,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 //#define MAX_WAIT           0x18B7DD   // 1/10th of a second, after calibration
 #define MAX_WAIT           0x278C9    // 1/100th of a second for assignment 2
 
+#define CENTI_TO_DECI_SECONDS 10
+
 // Forward Declarations
 class ISRMsgHandler;
 class OperatingSystem;

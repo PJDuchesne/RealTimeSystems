@@ -18,6 +18,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 */
 
 #include <cstdint>
+#include <iostream>
+#include <string>
 
 #define NUM_PRIORITIES 5 // TODO: MAGIC NUMBER
 
@@ -31,6 +33,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #define MSP_RETURN 0xFFFFFFF9    //LR value: exception return using MSP as SP
 #define PSP_RETURN 0xFFFFFFFD    //LR value: exception return using PSP as SP
+#define THUMB_MODE 0x01000000
 
 #define STACKSIZE   1024
 
@@ -89,6 +92,7 @@ typedef struct pcb
     uint32_t stack_ptr; // r13
     uint32_t pid;
     uint32_t q_count;
+    std::string name;
 
     /* Links to adjacent PCBs */
     pcb *next;

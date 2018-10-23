@@ -15,6 +15,9 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 */
 
 #include "Includes/KernelFunctions.h"
+#include <ISRLayer/Includes/GlobalConfig.h>
+
+#include <iostream>
 
 void SVCall()
 {
@@ -55,10 +58,8 @@ void SVCall()
 
 }
 
-void SVCHandler(struct stack_frame *argptr)
+extern "C" void SVCHandler(struct stack_frame *argptr)
 {
-    // To allow "BL SVCHandler" to call from above
-    __asm("SVCHandler:");
     /*
       Supervisor call handler
       Handle startup of initial process
@@ -79,6 +80,7 @@ void SVCHandler(struct stack_frame *argptr)
 
     if (firstSVCcall)
     {
+        std::cout << "[KernelFunctions] SVCHandler: First Call\n";
         /*
         * Force a return using PSP 
         * This will be the first process to run, so the eight "soft pulled" registers 
@@ -92,13 +94,14 @@ void SVCHandler(struct stack_frame *argptr)
         * sp is increased because the stack runs from low to high memory.
         */
 
-        // TODO: Make current process, not this running->sp idea
-        set_PSP(OperatingSystem::GetOperatingSystem()->GetNextPCB()->stack_ptr + 8 * sizeof(uint32_t));
+        set_PSP(OperatingSystem::GetOperatingSystem()->GetCurrentPCB()->stack_ptr + 8*sizeof(uint32_t));
 
         firstSVCcall = FALSE;
 
-        /* Start SysTick -> DONE IN MONITOR */
-        // systick_init();
+        // Start SysTick
+        InterruptEnable(INT_VEC_UART0);  // Allow UART0 interrupts
+        InterruptMasterEnable();         // Enable global interrupts
+        SingletonSetup();                // Instantiates all singletons
 
         /*
         - Change the current LR to indicate return to Thread mode using the PSP
@@ -107,7 +110,7 @@ void SVCHandler(struct stack_frame *argptr)
         */
         __asm(" movw  LR,#0xFFFD");  /* Lower 16 [and clear top 16] */
         __asm(" movt  LR,#0xFFFF");  /* Upper 16 only */
-        __asm(" bx  LR");          /* Force return to PSP */
+        __asm(" bx  LR");            /* Force return to PSP */
     }
     else /* Subsequent SVCs */
     {
