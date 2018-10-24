@@ -25,18 +25,46 @@ void MonitorProcess() {
 
 void DummpyProcess2() {
     std::cout << "[ProcessesGlue] Entering DummpyProcess2!\n";
+
+    static int Iteration = 1;
+
     std::string DiagDisplay = "";
+    bool TermFlag = false;
     int i = 0;
     int fetched_pid = -1;
     while (1) {
         i++;
-
-        /* Test Terminate */
-        if (i >= 2500000) {
+        if (i >= 1000000) {
             i = 0;
-            std::cout << "Attempting to Terminate() DummpyProcess2\n";
-            break;
+            std::cout << "[DummpyProcess2] PRE STATE\n";
+            OperatingSystem::GetOperatingSystem()->DiagnosticsDisplay(DiagDisplay);
+            std::cout << DiagDisplay;
+            switch (Iteration) {
+                case 1:
+                    std::cout << "\nAttempting to NICE DummpyProcess2 (5 to 4)\n";
+                    PNice(P_FOUR);
+                    Iteration++;
+                    break;
+                case 2:
+                    std::cout << "\nAttempting to NICE DummpyProcess2 (4 to 3)\n";
+                    PNice(P_THREE);
+                    Iteration++;
+                    break;
+                case 3:
+                    std::cout << "\nAttempting to terminate DummpyProcess2\n";
+                    TermFlag = true;
+                    break;
+                default:
+                    // Redtext immediately
+                    assert (1 == 0);
+                    break;
+            }
+            if (TermFlag) break;
+            std::cout << "[DummpyProcess2] Post STATE\n";
+            OperatingSystem::GetOperatingSystem()->DiagnosticsDisplay(DiagDisplay);
+            std::cout << DiagDisplay;
         }
+        /* Test Terminate */
         /* Test Nice */
         // if (i >= 2500000) {
         //     i = 0;

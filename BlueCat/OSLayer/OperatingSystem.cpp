@@ -31,7 +31,7 @@ OperatingSystem::OperatingSystem() {
 void OperatingSystem::Inialize() {
     // Register all initial processes
     RegProc(&MonitorProcess, 123, P_THREE, "Monitor");
-    RegProc(&DummpyProcess2, 456, P_THREE, "DummpyProcess2");
+    RegProc(&DummpyProcess2, 456, P_FIVE, "DummpyProcess2");
     // RegProc(&DummpyProcess3, 789, P_THREE, "DummpyProcess3");
 
     // Pass control to first process

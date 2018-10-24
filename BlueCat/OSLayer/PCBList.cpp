@@ -75,7 +75,7 @@ void PCBList::DeleteCurrentPCB() {
 void PCBList::DiagnosticsDisplay(std::string &display_output) {
 	if (IsEmpty()) {
 		// std::cout << "\tThis list is empty\n\n";
-		display_output += "\tThis list is empty\n\n";
+		display_output += "This list is empty";
 		return;
 	}
 
@@ -84,11 +84,9 @@ void PCBList::DiagnosticsDisplay(std::string &display_output) {
 	std::stringstream tmp_ss;
 
 	do {
-		tmp_ss << "\tProcess: >>" << runner->name << "<< (q_count: >>" << runner->q_count << "<<)\n";
+		tmp_ss << ">>" << runner->name << " (" << runner->q_count << ")<<, ";
 		runner = runner->next;
 	} while (front_ != runner);
-
-	tmp_ss << "\n";
 
 	display_output += tmp_ss.str();
 }

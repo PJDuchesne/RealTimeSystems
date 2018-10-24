@@ -23,6 +23,49 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Forward declaration
 class OperatingSystem;
 
+// Hughes version
+// void SVCall()
+// {
+
+//     /* Supervisor call (trap) entry point
+//        Using MSP - trapping process either MSP or PSP (specified in LR)
+//        Source is specified in LR: F9 (MSP) or FD (PSP)
+//        Save r4-r11 on trapping process stack (MSP or PSP)
+//        Restore r4-r11 from trapping process stack to CPU
+//        SVCHandler is called with r0 equal to MSP or PSP to access any arguments
+//     */
+
+//     /* Save LR for return via MSP or PSP */
+//     __asm("   PUSH  {LR}");
+
+//     /* Trapping source: MSP or PSP? */
+//     __asm("   TST   LR,#4");   // Bit #4 indicates MSP (0) or PSP (1) 
+//     __asm("   BNE   RtnViaPSP");
+
+//     /* Trapping source is MSP - save r4-r11 on stack (default, so just push) */
+//     __asm("   PUSH  {r4-r11}");
+//     __asm("   MRS r0,msp");
+//     __asm("   BL  SVCHandler"); /* r0 is MSP */
+//     __asm("   POP {r4-r11}");
+//     __asm("   POP   {PC}");
+
+//     /* Trapping source is PSP - save r4-r11 on psp stack (MSP is active stack) */
+//     __asm("RtnViaPSP:");
+//     __asm("   mrs   r0,psp");
+//     __asm("   stmdb   r0!,{r4-r11}"); /* Store multiple, decrement before */
+//     __asm("   msr psp,r0");
+//     __asm("   BL  SVCHandler"); /* r0 Is PSP */
+
+//     /* Restore r4..r11 from trapping process stack  */
+//     __asm("   mrs   r0,psp");
+//     __asm("   ldmia   r0!,{r4-r11}"); /* Load multiple, increment after */
+//     __asm("   msr psp,r0");
+
+//     __asm("   POP   {PC}");
+
+// }
+
+// Edited Version (In case that is ever relevant?)
 void SVCall()
 {
 
@@ -54,7 +97,7 @@ void SVCall()
         __asm("   POP   {PC}");
     }
     else {
-                /* Trapping source is PSP - save r4-r11 on psp stack (MSP is active stack) */
+        /* Trapping source is PSP - save r4-r11 on psp stack (MSP is active stack) */
         __asm("RtnViaPSP:");
         __asm("   mrs   r0,psp");
         __asm("   stmdb   r0!,{r4-r11}"); /* Store multiple, decrement before */
@@ -65,6 +108,13 @@ void SVCall()
         __asm("   mrs   r0,psp");
         __asm("   ldmia   r0!,{r4-r11}"); /* Load multiple, increment after */
         __asm("   msr psp,r0");
+
+        // Force a PSP return??
+        // __asm("   POP {r7}"); /* R7 is already clobbered */
+        // __asm(" movw  LR,#0xFFFD"); //  Lower 16 [and clear top 16] 
+        // __asm(" movt  LR,#0xFFFF");  /* Upper 16 only */
+        // __asm(" bx  LR");            /* Force return to PSP */
+
         __asm("   POP   {PC}");
     }
 
@@ -90,6 +140,7 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
     static int firstSVCcall = TRUE;
     static OperatingSystem* OSInstance = OperatingSystem::GetOperatingSystem();
     pcb_t* CurrentPCB;
+    pcb_t* TmpPCB; // Debugging
 
     kcallargs_t *kcaptr;
     std::string DiagOut = "";
@@ -148,6 +199,10 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
                 kcaptr->rtnvalue = OSInstance->GetCurrentPCB()->pid;
                 break;
             case NICE:
+
+                // OSInstance->DiagnosticsDisplay(DiagOut);
+                // std::cout << DiagOut;
+
                 CurrentPCB = OSInstance->GetCurrentPCB();
 
                 // Deattach PCB
@@ -157,8 +212,14 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
                 assert(kcaptr->arg1 <= P_FIVE); // For debugging
                 CurrentPCB->priority = (priority_t)kcaptr->arg1;
 
+                // Store current PSP
+                CurrentPCB->stack_ptr = get_PSP();
+
                 // Move PCB
                 OSInstance->QueuePCB(CurrentPCB);
+
+                // OSInstance->DiagnosticsDisplay(DiagOut);
+                // std::cout << DiagOut;
 
                 // Set PCB to next process
                 set_PSP(OSInstance->GetNextPCB()->stack_ptr);
@@ -169,6 +230,10 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
 
                 break;
             case TERMINATE:
+
+                // OSInstance->DiagnosticsDisplay(DiagOut);
+                // std::cout << DiagOut;
+
                 CurrentPCB = OSInstance->GetCurrentPCB();
 
                 // Deattach PCB
@@ -178,6 +243,10 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
                 // Deallocate PCB
                 delete[] CurrentPCB->stack_start;
                 delete CurrentPCB;
+
+                std::cout << "Post State\n";
+                OSInstance->DiagnosticsDisplay(DiagOut);
+                std::cout << DiagOut;
 
                 // Set PCB to next process
                 set_PSP(OSInstance->GetNextPCB()->stack_ptr);

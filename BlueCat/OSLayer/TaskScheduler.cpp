@@ -48,19 +48,23 @@ pcb_t* TaskScheduler::GetCurrentPCB() {
 
 void TaskScheduler::DeleteCurrentPCB() {
     for (int i = MAX_PRIORITY; i >= 0; i--) {
-        if (!PCBLists_[i]->IsEmpty()) PCBLists_[i]->DeleteCurrentPCB();
+        if (!PCBLists_[i]->IsEmpty()) {
+            PCBLists_[i]->DeleteCurrentPCB();
+            break;
+        }
     }
 }
 
 void TaskScheduler::DiagnosticsDisplay(std::string &display_output) {
     std::stringstream tmp_ss;
 
-    display_output += "\n[DiagnosticsDisplay] Printing PCBLists and their Contents\n\n";
-    for (int i = 0; i <= MAX_PRIORITY; i++) {
+    display_output += "\n\n[DiagnosticsDisplay] Printing PCBLists and their Contents";
+    for (int i = MAX_PRIORITY; i >= 0; i--) {
         tmp_ss.str(std::string());
         tmp_ss.clear();
-        tmp_ss << "Priority >>" << i << "<<\n";
+        tmp_ss << "\nPriority >>" << i+1 << "<<: ";
         display_output += tmp_ss.str();
         PCBLists_[i]->DiagnosticsDisplay(display_output);
     }
+    display_output += "\n";
 }

@@ -54,7 +54,7 @@ void Monitor::CheckMessageHandler() {
            enter to submit current data buffer, and generally filling the data buffer.
 */
 void Monitor::HandleUART(char data) {
-    static char* single_char = new char[1]; // Used to output a character
+    static char single_char[1]; // Used to output a character
     static std::string command_string = ""; // Used to build command
     static int8_t escape_mode = -1;
 
