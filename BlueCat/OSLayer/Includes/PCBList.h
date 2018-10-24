@@ -26,10 +26,13 @@ class PCBList {
     public:
         PCBList();
         void AddPCB(pcb_t* input_pcb);
-        void DoALap();
         bool IsEmpty();
         pcb_t* NextPCB();
-};
+        pcb_t* CurrentPCB();
+        void DeleteCurrentPCB();
 
+        // Diagnostics
+        void DiagnosticsDisplay(std::string &display_output);
+};
 
 #endif /* PCBList_H */

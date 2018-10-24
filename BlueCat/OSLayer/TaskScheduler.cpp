@@ -17,21 +17,50 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "Includes/TaskScheduler.h"
 
 TaskScheduler::TaskScheduler() {
-    for (int i = 0; i < NUM_PRIORITIES; i++) {
+    for (int i = 0; i <= MAX_PRIORITY; i++) {
         PCBLists_[i] = new PCBList;
     }
 }
 
-void TaskScheduler::AddProcess(pcb_t* new_pcb, priority_t priority) {
-    PCBLists_[priority]->AddPCB(new_pcb);
+void TaskScheduler::AddProcess(pcb_t* new_pcb) {
+    PCBLists_[new_pcb->priority]->AddPCB(new_pcb);
 }
 
 pcb_t* TaskScheduler::GetNextPCB() {
     // Iterate through each PCBList and return the first that is not full
-    for (int i = NUM_PRIORITIES - 1; i >= 0; i--) {
+    for (int i = MAX_PRIORITY; i >= 0; i--) {
         if (!PCBLists_[i]->IsEmpty()) return PCBLists_[i]->NextPCB();
     }
 
     // If all queues are empty, this will return an uncaught 0 (NULL), which should crash pretty fast
     return 0;
+}
+
+pcb_t* TaskScheduler::GetCurrentPCB() {
+    // Iterate through each PCBList and return the first that is not full
+    for (int i = MAX_PRIORITY; i >= 0; i--) {
+        if (!PCBLists_[i]->IsEmpty()) return PCBLists_[i]->CurrentPCB();
+    }
+
+    // If all queues are empty, this will return an uncaught 0 (NULL), which should crash pretty fast
+    return 0;
+}
+
+void TaskScheduler::DeleteCurrentPCB() {
+    for (int i = MAX_PRIORITY; i >= 0; i--) {
+        if (!PCBLists_[i]->IsEmpty()) PCBLists_[i]->DeleteCurrentPCB();
+    }
+}
+
+void TaskScheduler::DiagnosticsDisplay(std::string &display_output) {
+    std::stringstream tmp_ss;
+
+    display_output += "\n[DiagnosticsDisplay] Printing PCBLists and their Contents\n\n";
+    for (int i = 0; i <= MAX_PRIORITY; i++) {
+        tmp_ss.str(std::string());
+        tmp_ss.clear();
+        tmp_ss << "Priority >>" << i << "<<\n";
+        display_output += tmp_ss.str();
+        PCBLists_[i]->DiagnosticsDisplay(display_output);
+    }
 }

@@ -32,7 +32,6 @@ class OperatingSystem {
     private:
         static OperatingSystem* OperatingSystemInstance_;
         TaskScheduler* TaskScheduler_;
-        pcb_t* CurrentPCB_;
 
         void RegProc(process_t entry_point, uint32_t pid, priority_t priority, std::string name);
         void InitStackFrame(stack_frame_t* new_sf);
@@ -40,9 +39,13 @@ class OperatingSystem {
     public:
         OperatingSystem();
         void QuantumTick();
-        pcb_t* GetNextPCB();
+        void QueuePCB(pcb_t* new_pcb);
         pcb_t* GetCurrentPCB();
+        pcb_t* GetNextPCB();
+        void DeleteCurrentPCB();
         void Inialize();
+
+        void DiagnosticsDisplay(std::string &display_output);
 
         static OperatingSystem* GetOperatingSystem();
 };

@@ -45,29 +45,52 @@ bool PCBList::IsEmpty() {
 	return (front_ == 0);
 }
 
-// For debugging
-void PCBList::DoALap() {
-	if (IsEmpty()) {
-		return;
-	}
-
-	pcb_t* runner = front_;
-
-	do {
-		std::cout << "[PCBList] DoALap Now: >>" << runner->name << "<<\n";
-		runner = runner->next;
-		std::cout << "[PCBList] DoALap Nxt: >>" << runner->name << "<<\n";
-	} while (front_ != runner);
-
-}
-
-// Assumings 'IsEmpty' has been called first
+// Assumes 'IsEmpty' has been called first
 pcb_t* PCBList::NextPCB() {
 	// Move front to next and return it
 	front_ = front_->next;
 	return front_;
 }
 
+// Assumes 'IsEmpty' has been called first
+pcb_t* PCBList::CurrentPCB() {
+	return front_;
+}
 
+// Assumes 'IsEmpty' has been called first
+void PCBList::DeleteCurrentPCB() {
+	// If last PCB in group: Special case
+	if (front_->next == front_) front_ = 0;
+	else {
+		// Attach prev PCB's next to the current next PCB
+		front_->prev->next = front_->next;
+		// Attach next PCB's prev to the current prev PCB
+		front_->next->prev = front_->prev;
+		// Set front to prev (So on next "GetNextPCB" call it doesnt skip anyone) 
+		front_ = front_->prev;
+	}
+}
+
+// For debugging
+void PCBList::DiagnosticsDisplay(std::string &display_output) {
+	if (IsEmpty()) {
+		// std::cout << "\tThis list is empty\n\n";
+		display_output += "\tThis list is empty\n\n";
+		return;
+	}
+
+	// Do a lap around
+	pcb_t* runner = front_;
+	std::stringstream tmp_ss;
+
+	do {
+		tmp_ss << "\tProcess: >>" << runner->name << "<< (q_count: >>" << runner->q_count << "<<)\n";
+		runner = runner->next;
+	} while (front_ != runner);
+
+	tmp_ss << "\n";
+
+	display_output += tmp_ss.str();
+}
 
 

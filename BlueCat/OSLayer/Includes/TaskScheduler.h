@@ -22,12 +22,16 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 class TaskScheduler {
     private:
-    	PCBList* PCBLists_[NUM_PRIORITIES];
+    	PCBList* PCBLists_[MAX_PRIORITY + 1];
 
     public:
         TaskScheduler();
-        void AddProcess(pcb_t* new_pcb, priority_t priority);
+        void AddProcess(pcb_t* new_pcb);
         pcb_t* GetNextPCB();
+        pcb_t* GetCurrentPCB();
+        void DeleteCurrentPCB();
+
+        void DiagnosticsDisplay(std::string &display_output);
 };
 
 

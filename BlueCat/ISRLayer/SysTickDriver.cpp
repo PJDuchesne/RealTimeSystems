@@ -57,7 +57,6 @@ void SysTickDriver::SysTickEnable(bool enable) {
 void SysTickDriver::SingletonGrab() {
     ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
 
-    // TODO: Ensure that this works at runtime due to startup order
     OperatingSystemInstance_ = OperatingSystem::GetOperatingSystem();
 }
 

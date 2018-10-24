@@ -36,4 +36,9 @@ void volatile restore_registers();
 
 void assignR7(volatile uint32_t data);
 
+// PSpace calls used to pass to control kernel via SVC()
+uint32_t PGetID();
+void PNice(priority_t priority);
+void PTerminateProcess();
+
 #endif /* KernelFunctions_H */

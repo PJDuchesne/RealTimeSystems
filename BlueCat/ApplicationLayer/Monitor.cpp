@@ -97,10 +97,12 @@ void Monitor::HandleUART(char data) {
             escape_mode = 0;
             break;
 
-        default:  // All other characters, add to buffer
-            data_buffer_->Add(data);
-            single_char[0] = data;
-            PrintMsg(single_char);
+        default:  // All other characters, add to buffer if not already full
+            if (!data_buffer_->Full()) {
+                data_buffer_->Add(data);
+                single_char[0] = data;
+                PrintMsg(single_char);
+            }
             break;
     }
 }
@@ -185,7 +187,33 @@ void Monitor::RePrintOutputBuffer() {
     Brief: Queues the message into the UART transmit buffer
 */
 void Monitor::PrintMsg(std::string msg) {
-    ISRMsgHandlerInstance_->QueueOutputMsg(msg);
+    // ISRMsgHandlerInstance_->QueueOutputMsg(msg);
+
+    if (msg.length() <= OUTPUT_DATA_BUFFER_SIZE / 2) {
+        ISRMsgHandlerInstance_->QueueOutputMsg(msg);
+        return;
+    }
+
+    bool end_flag = false;
+    int16_t next_endline;
+    std::string substr;
+    while (1) {
+        next_endline = msg.find_first_of("\n");
+        if (next_endline == std::string::npos) {
+            // On last line
+            end_flag = true;
+            substr = msg;
+        }
+        else {
+            // Get substring
+            substr = msg.substr(0, next_endline + 1); // +1 to include '\n'
+
+            // Slice off that line
+            msg = msg.substr(next_endline + 1); // +1 to exclude '\n'
+        }
+        ISRMsgHandlerInstance_->QueueOutputMsg(substr + "\r");
+        if (end_flag) break;
+    }
 }
 
 /*

@@ -15,7 +15,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 */
 
 #include "Includes/OperatingSystem.h"
-// #include <ISRLayer/Includes/GlobalConfig.h>
 
 // Singleton Instance
 OperatingSystem *OperatingSystem::OperatingSystemInstance_ = 0;
@@ -26,7 +25,6 @@ OperatingSystem *OperatingSystem::OperatingSystemInstance_ = 0;
 */
 OperatingSystem::OperatingSystem() {
     TaskScheduler_ = new TaskScheduler;
-    CurrentPCB_ = 0;
 }
 
 
@@ -34,7 +32,7 @@ void OperatingSystem::Inialize() {
     // Register all initial processes
     RegProc(&MonitorProcess, 123, P_THREE, "Monitor");
     RegProc(&DummpyProcess2, 456, P_THREE, "DummpyProcess2");
-    RegProc(DummpyProcess3, 789, P_THREE, "DummpyProcess3");
+    // RegProc(&DummpyProcess3, 789, P_THREE, "DummpyProcess3");
 
     // Pass control to first process
     KickStart();
@@ -44,8 +42,8 @@ void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t pr
     // Make new pcb
     pcb_t* new_pcb = new pcb();
 
-    // Allocate stack
-    new_pcb->stack_start = (uint32_t)(new uint32_t[STACKSIZE]);
+    // Allocate stack and store its pointer (For eventual termination)
+    new_pcb->stack_start = new uint32_t[STACKSIZE]; 
 
     // Add stack pointer
     new_pcb->stack_ptr = (uint32_t)(new_pcb->stack_start + STACKSIZE*sizeof(uint32_t) - sizeof(stack_frame_t));
@@ -53,6 +51,7 @@ void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t pr
     // Add pid and name
     new_pcb->pid = pid;
     new_pcb->name = name;
+    new_pcb->priority = priority;
 
     // Initialize the stackframe within this block of memory, registers and entry point
     stack_frame_t* new_sf = (stack_frame_t*)new_pcb->stack_ptr;
@@ -61,7 +60,9 @@ void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t pr
 
     // Set PSR to thumb mode
     new_sf->psr = THUMB_MODE;
-    new_sf->lr = 0;
+
+    // Set LR to the TerminateProcess entry point
+    new_sf->lr = (uint32_t) PTerminateProcess;
 
     // Initialize quantum number to 0 for diagnostics
     new_pcb->q_count = 0;
@@ -71,7 +72,7 @@ void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t pr
     new_pcb->prev = 0;
 
     // Add to PCBList queue
-    TaskScheduler_->AddProcess(new_pcb, priority);
+    QueuePCB(new_pcb);
 }
 
 void OperatingSystem::InitStackFrame(stack_frame_t* sf) {
@@ -92,37 +93,46 @@ void OperatingSystem::InitStackFrame(stack_frame_t* sf) {
 
 void OperatingSystem::KickStart() {
     // Force start new process
-    CurrentPCB_ = GetNextPCB();
-    set_PSP(CurrentPCB_->stack_ptr);
-    // restore_registers();
+    set_PSP(GetNextPCB()->stack_ptr);
     SVC();
+}
+
+pcb_t* OperatingSystem::GetCurrentPCB() {
+    return TaskScheduler_->GetCurrentPCB();
 }
 
 pcb_t* OperatingSystem::GetNextPCB() {
     return TaskScheduler_->GetNextPCB();
 }
 
-pcb_t* OperatingSystem::GetCurrentPCB() {
-    return CurrentPCB_;
+void OperatingSystem::DeleteCurrentPCB() {
+    TaskScheduler_->DeleteCurrentPCB();
 }
 
 void OperatingSystem::QuantumTick() {
+    // Fetch CurrentPCB for function
+    pcb_t* CurrentPCB = TaskScheduler_->GetCurrentPCB();
 
-    // pcb_t* old_pcb = CurrentPCB_;
-    // while (1) {
-    //     std::cout << "[WTF] >>" << GetNextPCB()->name << "<<\n";
-    // }
-    CurrentPCB_->q_count++;
+    CurrentPCB->q_count++;
 
     // 1: Save registers
     save_registers();
     // 2: Set Stack Pointer on current PCB
-    CurrentPCB_->stack_ptr = get_PSP();
+    CurrentPCB->stack_ptr = get_PSP();
     // 3: Get new process PCB and set stack pointer from it
-    CurrentPCB_ = GetNextPCB();
-    set_PSP(CurrentPCB_->stack_ptr);
+    CurrentPCB = GetNextPCB();
+    set_PSP(CurrentPCB->stack_ptr);
     // 4: Restore_Registers
     restore_registers();
+}
+
+void OperatingSystem::QueuePCB(pcb_t* new_pcb) {
+    TaskScheduler_->AddProcess(new_pcb);
+}
+
+void OperatingSystem::DiagnosticsDisplay(std::string &display_output) {
+    display_output = "";
+    TaskScheduler_->DiagnosticsDisplay(display_output);
 }
 
 /*

@@ -18,9 +18,16 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <ISRLayer/Includes/GlobalConfig.h>
 
 #include <iostream>
+#include <string>
+
+// Forward declaration
+class OperatingSystem;
 
 void SVCall()
 {
+
+    static bool firstSVCcall = true;
+
     /* Supervisor call (trap) entry point
        Using MSP - trapping process either MSP or PSP (specified in LR)
        Source is specified in LR: F9 (MSP) or FD (PSP)
@@ -32,29 +39,34 @@ void SVCall()
     /* Save LR for return via MSP or PSP */
     __asm("   PUSH  {LR}");
 
+    // Not letting SVCall decide where it came from, I know where it came from
     /* Trapping source: MSP or PSP? */
-    __asm("   TST   LR,#4");  /* Bit #4 indicates MSP (0) or PSP (1) */
-    __asm("   BNE   RtnViaPSP");
+    // __asm("   TST   LR,#4");   // Bit #4 indicates MSP (0) or PSP (1) 
+    // __asm("   BNE   RtnViaPSP");
 
-    /* Trapping source is MSP - save r4-r11 on stack (default, so just push) */
-    __asm("   PUSH  {r4-r11}");
-    __asm("   MRS r0,msp");
-    __asm("   BL  SVCHandler"); /* r0 is MSP */
-    __asm("   POP {r4-r11}");
-    __asm("   POP   {PC}");
+    if (firstSVCcall) {
+        firstSVCcall = false;
+        /* Trapping source is MSP - save r4-r11 on stack (default, so just push) */
+        __asm("   PUSH  {r4-r11}");
+        __asm("   MRS r0,msp");
+        __asm("   BL  SVCHandler"); /* r0 is MSP */
+        __asm("   POP {r4-r11}");
+        __asm("   POP   {PC}");
+    }
+    else {
+                /* Trapping source is PSP - save r4-r11 on psp stack (MSP is active stack) */
+        __asm("RtnViaPSP:");
+        __asm("   mrs   r0,psp");
+        __asm("   stmdb   r0!,{r4-r11}"); /* Store multiple, decrement before */
+        __asm("   msr psp,r0");
+        __asm("   BL  SVCHandler"); /* r0 Is PSP */
 
-    /* Trapping source is PSP - save r4-r11 on psp stack (MSP is active stack) */
-    __asm("RtnViaPSP:");
-    __asm("   mrs   r0,psp");
-    __asm("   stmdb   r0!,{r4-r11}"); /* Store multiple, decrement before */
-    __asm("   msr psp,r0");
-    __asm("   BL  SVCHandler"); /* r0 Is PSP */
-
-    /* Restore r4..r11 from trapping process stack  */
-    __asm("   mrs   r0,psp");
-    __asm("   ldmia   r0!,{r4-r11}"); /* Load multiple, increment after */
-    __asm("   msr psp,r0");
-    __asm("   POP   {PC}");
+        /* Restore r4..r11 from trapping process stack  */
+        __asm("   mrs   r0,psp");
+        __asm("   ldmia   r0!,{r4-r11}"); /* Load multiple, increment after */
+        __asm("   msr psp,r0");
+        __asm("   POP   {PC}");
+    }
 
 }
 
@@ -76,7 +88,11 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
      Handler mode and uses the MSP
     */
     static int firstSVCcall = TRUE;
-    struct kcallargs *kcaptr;
+    static OperatingSystem* OSInstance = OperatingSystem::GetOperatingSystem();
+    pcb_t* CurrentPCB;
+
+    kcallargs_t *kcaptr;
+    std::string DiagOut = "";
 
     if (firstSVCcall)
     {
@@ -94,7 +110,7 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
         * sp is increased because the stack runs from low to high memory.
         */
 
-        set_PSP(OperatingSystem::GetOperatingSystem()->GetCurrentPCB()->stack_ptr + 8*sizeof(uint32_t));
+        set_PSP(OSInstance->GetCurrentPCB()->stack_ptr + 8*sizeof(uint32_t));
 
         firstSVCcall = FALSE;
 
@@ -125,25 +141,50 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
         assigning the value of R7 (arptr -> r7) to kcaptr
         */
 
-        #ifdef FOR_KERNEL_ARGS // TODO: Define this
-
         kcaptr = (struct kcallargs *) argptr -> r7;
-        switch(kcaptr -> code)
+        switch(kcaptr -> kcode)
         {
             case GETID:
-                // TODO: GETID
+                kcaptr->rtnvalue = OSInstance->GetCurrentPCB()->pid;
                 break;
             case NICE:
-                // TODO: NICE
+                CurrentPCB = OSInstance->GetCurrentPCB();
+
+                // Deattach PCB
+                OSInstance->DeleteCurrentPCB();
+
+                // Update priority
+                assert(kcaptr->arg1 <= P_FIVE); // For debugging
+                CurrentPCB->priority = (priority_t)kcaptr->arg1;
+
+                // Move PCB
+                OSInstance->QueuePCB(CurrentPCB);
+
+                // Set PCB to next process
+                set_PSP(OSInstance->GetNextPCB()->stack_ptr);
+
+                // Print diag info
+                // OSInstance->DiagnosticsDisplay(DiagOut);
+                // std::cout << DiagOut;
+
                 break;
             case TERMINATE:
-                // TODO: TERMINATE
+                CurrentPCB = OSInstance->GetCurrentPCB();
+
+                // Deattach PCB
+                OSInstance->DeleteCurrentPCB();
+
+                // Deallocate Process Stack
+                // Deallocate PCB
+                delete[] CurrentPCB->stack_start;
+                delete CurrentPCB;
+
+                // Set PCB to next process
+                set_PSP(OSInstance->GetNextPCB()->stack_ptr);
                 break;
             default:
                 kcaptr -> rtnvalue = -1;
         }
-
-        #endif
 
     }
 
@@ -210,4 +251,30 @@ void assignR7(volatile uint32_t data)
     * simply a MOV from R0 to R7
     */
     __asm(" mov r7,r0");
+}
+
+// The following are performed within PSP Space and are not actually kernel calls,
+// they pass into the kernel by directly making an SVC call
+
+uint32_t PGetID() {
+    volatile kcallargs_t KernelArgs;
+    KernelArgs.kcode = GETID;
+    assignR7((uint32_t) &KernelArgs);
+    SVC();
+    return KernelArgs.rtnvalue;
+}
+
+void PNice(priority_t priority) {
+    volatile kcallargs_t KernelArgs;
+    KernelArgs.kcode = NICE;
+    KernelArgs.arg1 = (uint32_t) priority;
+    assignR7((uint32_t) &KernelArgs);
+    SVC();
+}
+
+void PTerminateProcess() {
+    volatile kcallargs_t KernelArgs;
+    KernelArgs.kcode = TERMINATE;
+    assignR7((uint32_t) &KernelArgs);
+    SVC();
 }

@@ -20,8 +20,9 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <sstream>
 
-#define NUM_PRIORITIES 5 // TODO: MAGIC NUMBER
+#define MAX_PRIORITY (uint32_t) P_FIVE // TODO: MAGIC NUMBER
 
 #define TRUE    1
 #define FALSE   0
@@ -45,19 +46,19 @@ typedef enum Priorities {
     P_FIVE,
 } priority_t;
 
-enum kernelcallcodes {
+typedef enum kernelcallcodes {
     GETID,
     NICE,
     TERMINATE
-};
+} k_call_code_t;
 
-struct kcallargs
+typedef struct kcallargs
 {
-    uint32_t code;
+    k_call_code_t kcode;
     uint32_t rtnvalue;
     uint32_t arg1;
     uint32_t arg2;
-};
+} kcallargs_t;
 
 /* Cortex default stack frame */
 typedef struct stack_frame
@@ -88,10 +89,11 @@ typedef struct stack_frame
 /* Process control block */
 typedef struct pcb
 {
-    uint32_t stack_start;
+    uint32_t *stack_start;
     uint32_t stack_ptr; // r13
     uint32_t pid;
     uint32_t q_count;
+    priority_t priority;
     std::string name;
 
     /* Links to adjacent PCBs */

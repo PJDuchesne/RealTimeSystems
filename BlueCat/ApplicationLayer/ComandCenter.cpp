@@ -86,6 +86,16 @@ void CommandCenter::AlarmCommand(std::string arg) {
     }
 }
 
+void CommandCenter::DiagCommand(std::string arg) {
+    if (arg != "") {
+        MonitorInstance_->PrintErrorMsg("ERROR: Diag does not take arguments");
+        return;
+    }
+    std::string DisplayString;
+    OSInstance_->DiagnosticsDisplay(DisplayString);
+    MonitorInstance_->PrintMsg(DisplayString);
+}
+
 /*
     Function: ToUpper
     Input:  str: String to make upper case 
@@ -238,6 +248,7 @@ CommandCenter::CommandCenter() {
     FunctionTable[0] = &CommandCenter::TimeCommand;
     FunctionTable[1] = &CommandCenter::DateCommand;
     FunctionTable[2] = &CommandCenter::AlarmCommand;
+    FunctionTable[3] = &CommandCenter::DiagCommand;
 }
 
 /*
@@ -248,6 +259,7 @@ CommandCenter::CommandCenter() {
 void CommandCenter::SingletonGrab() {
     MonitorInstance_ = Monitor::GetMonitor();
     TimeHandlerInstance_ = TimeHandler::GetTimeHandler();
+    OSInstance_ = OperatingSystem::GetOperatingSystem();
 }
 
 /*
