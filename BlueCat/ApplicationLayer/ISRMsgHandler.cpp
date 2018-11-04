@@ -58,7 +58,7 @@ ISRMsgHandler::~ISRMsgHandler() {
 void ISRMsgHandler::QueueISRMsg(MsgType_t type, char data) {
     // Create msg to pass into ISR queue
     ISRMsg_t msg = { .type = type, .data = data };
-    isr_queue_->Add(msg);
+    isr_queue_->Add((ISRMsg_t *) &msg);
 }
 
 /*
@@ -79,8 +79,11 @@ void ISRMsgHandler::GetFromISRQueue(MsgType_t &type, char &data) {
     Brief: API to queue a message into the output UART character queue
 */
 void ISRMsgHandler::QueueOutputMsg(std::string msg) {
+    char tmpChar;
     for (int i = 0; i < msg.length(); i++) {
-        output_data_buffer_->Add(char(msg[i]));
+        tmpChar = msg[i];
+        output_data_buffer_->Add((char *) &tmpChar);
+        // output_data_buffer_->Add((char *) &char(msg[i]));
     }
 
     // Jumpstart output if necessary

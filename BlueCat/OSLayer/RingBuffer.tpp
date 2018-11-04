@@ -14,6 +14,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+// TODO: Remove?
 /*
     Function: Add
     Input:  data: Data to add to the ring buffer
@@ -30,6 +31,35 @@ void RingBuffer<T>::Add(T data) {
 
 /*
     Function: Add
+    Input:  data: Data to add to the ring buffer
+    Brief: Adds the provided data to the ring buffer at the front position and then increments it
+*/
+template <class T>
+void RingBuffer<T>::Add(T* data) {
+    if (!Full()) {
+        // Add data and increment front_
+        buffer_[front_] = *(data);
+        front_ = (front_ + 1) % buffer_size_;
+    }
+}
+
+
+/*
+    Function: Add
+    Input:  data: Data to add to the ring buffer
+    Brief: Adds the provided data to the ring buffer at the front position and then increments it
+*/
+template <class T>
+void RingBuffer<T>::Add(void* data) {
+    if (!Full()) {
+        // Add data and increment front_
+        buffer_[front_] = *((T*)data);
+        front_ = (front_ + 1) % buffer_size_;
+    }
+}
+
+/*
+    Function: Get
     Ouytput: return_val: Data that was retrieved from the ring buffer
     Brief: Retrieves data from the end of the buffer and increments the back position
 */

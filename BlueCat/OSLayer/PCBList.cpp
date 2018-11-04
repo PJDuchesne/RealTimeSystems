@@ -20,7 +20,7 @@ PCBList::PCBList() {
 	front_ = 0;
 }
 
-void PCBList::AddPCB(pcb_t* input_pcb) {
+void PCBList:: AddPCB(pcb_t* input_pcb) {
 	// If list is empty
 	if (front_ == 0) {
 		// Initialize front_ to first PCB added
@@ -90,5 +90,4 @@ void PCBList::DiagnosticsDisplay(std::string &display_output) {
 
 	display_output += tmp_ss.str();
 }
-
 

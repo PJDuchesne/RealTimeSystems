@@ -99,7 +99,7 @@ void Monitor::HandleUART(char data) {
 
         default:  // All other characters, add to buffer if not already full
             if (!data_buffer_->Full()) {
-                data_buffer_->Add(data);
+                data_buffer_->Add((char *) &data);
                 single_char[0] = data;
                 PrintMsg(single_char);
             }
@@ -177,7 +177,7 @@ void Monitor::RePrintOutputBuffer() {
     PrintMsg(buffer_contents);
 
     // Restore contents of buffer
-    for (int i = 0; i < buffer_contents.length(); i++) data_buffer_->Add(buffer_contents[i]);
+    for (int i = 0; i < buffer_contents.length(); i++) data_buffer_->Add((char *) &buffer_contents[i]);
 
 }
 

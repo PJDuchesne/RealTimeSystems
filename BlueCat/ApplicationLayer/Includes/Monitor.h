@@ -17,7 +17,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "RingBuffer.h"
+#include "../../OSLayer/Includes/RingBuffer.h"
 #include "ISRMsgHandler.h"
 #include "CommandCenter.h"
 #include "TimeHandler.h"

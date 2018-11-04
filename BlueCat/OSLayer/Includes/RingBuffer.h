@@ -17,6 +17,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+#include "OSLibrary.h"
+
 template <class T>
 class RingBuffer {
   private:
@@ -24,17 +26,22 @@ class RingBuffer {
     const int buffer_size_; // Should not be changed after initialization
     int front_; // Where data is put in (points to next free position to put data)
     int back_;  // Where data is removed
+    bool blocked_; // Whether or not the underlying process is blocked
+    pcb_t* owner_pcb_;
 
   public:
 
     RingBuffer(int size) : buffer_(new T[size]),
                            buffer_size_(size),
                            front_(0),
-                           back_(0) {}
+                           back_(0),
+                           blocked_(false) {}
 
     ~RingBuffer() { delete[] buffer_; }                    
 
-    void Add(T data);
+    void Add(T data); // TODO: Remove?
+    void Add(T* data);
+    void Add(void* data);
     T Get();
     void Pop();
     void Reset();
@@ -45,6 +52,6 @@ class RingBuffer {
 
 // Templates are typically implemented in the header file,
 // or separated into a ".tpp" file for readability.
-#include "../RingBuffer.tpp"
+#include "../../OSLayer/RingBuffer.tpp"
 
 #endif /* RingBuffer_H */

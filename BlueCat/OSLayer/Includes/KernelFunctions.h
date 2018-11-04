@@ -19,6 +19,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "OSLibrary.h"
 #include "OperatingSystem.h"
+#include "PostOffice.h"
+
+class OperatingSystem;
+class PostOffice;
 
 void SVCall();
 extern "C" void SVCHandler(struct stack_frame *argptr);
@@ -36,9 +40,25 @@ void volatile restore_registers();
 
 void assignR7(volatile uint32_t data);
 
+// KSpace Handler functions to handle process kernel calls
+
+static OperatingSystem* OSInstance;
+static PostOffice* PostOfficeInstance;
+
+void KNice(priority_t new_priority);
+void KTerminateProcess();
+
+bool KSend(kcallargs_t *kcaptr);
+bool KRecv(kcallargs_t *kcaptr);
+bool KBind(kcallargs_t *kcaptr);
+
 // PSpace calls used to pass to control kernel via SVC()
 uint32_t PGetID();
 void PNice(priority_t priority);
 void PTerminateProcess();
+
+bool PSend(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len);
+bool PRecv(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len);
+bool PBind(uint8_t req_q, letter_size_t size);
 
 #endif /* KernelFunctions_H */

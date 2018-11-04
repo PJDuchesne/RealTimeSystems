@@ -20,6 +20,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "OSLibrary.h"
 #include "TaskScheduler.h"
 #include "KernelFunctions.h"
+#include "PostOffice.h"
 
 extern void MonitorProcess();
 extern void DummpyProcess2();
@@ -28,10 +29,14 @@ extern void DummpyProcess3();
 // Function pointer typedef
 typedef void (*process_t)();
 
+// Forward Declaration
+class PostOffice;
+
 class OperatingSystem {
     private:
         static OperatingSystem* OperatingSystemInstance_;
         TaskScheduler* TaskScheduler_;
+        PostOffice* PostOfficeInstance_;
 
         void RegProc(process_t entry_point, uint32_t pid, priority_t priority, std::string name);
         void InitStackFrame(stack_frame_t* new_sf);

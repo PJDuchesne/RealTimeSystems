@@ -19,9 +19,9 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include <string>
 
-#include "../../ISRLayer/Includes/SysTickDriver.h"
-#include "../../ISRLayer/Includes/UART0Driver.h"
-#include "RingBuffer.h"
+#include <ISRLayer/Includes/SysTickDriver.h>
+#include <ISRLayer/Includes/UART0Driver.h>
+#include <OSLayer/Includes/RingBuffer.h>
 
 #define ISR_QUEUE_SIZE 100
 #define OUTPUT_DATA_BUFFER_SIZE 250

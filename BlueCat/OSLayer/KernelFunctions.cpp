@@ -22,6 +22,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 // Forward declaration
 class OperatingSystem;
+class PostOffice;
 
 // Hughes version
 // void SVCall()
@@ -42,7 +43,7 @@ class OperatingSystem;
 //     __asm("   TST   LR,#4");   // Bit #4 indicates MSP (0) or PSP (1) 
 //     __asm("   BNE   RtnViaPSP");
 
-//     /* Trapping source is MSP - save r4-r11 on stack (default, so just push) */
+//      /* Trapping source is MSP - save r4-r11 on stack (default, so just push)  */
 //     __asm("   PUSH  {r4-r11}");
 //     __asm("   MRS r0,msp");
 //     __asm("   BL  SVCHandler"); /* r0 is MSP */
@@ -138,16 +139,17 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
      Handler mode and uses the MSP
     */
     static int firstSVCcall = TRUE;
-    static OperatingSystem* OSInstance = OperatingSystem::GetOperatingSystem();
-    pcb_t* CurrentPCB;
-    pcb_t* TmpPCB; // Debugging
 
     kcallargs_t *kcaptr;
-    std::string DiagOut = "";
 
     if (firstSVCcall)
     {
         std::cout << "[KernelFunctions] SVCHandler: First Call\n";
+
+        // Set reference to OSInstance for subsequent calls, stored as a global within Kernel Space
+        OSInstance = OperatingSystem::GetOperatingSystem();
+        PostOfficeInstance = PostOffice::GetPostOffice();
+
         /*
         * Force a return using PSP 
         * This will be the first process to run, so the eight "soft pulled" registers 
@@ -199,60 +201,23 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
                 kcaptr->rtnvalue = OSInstance->GetCurrentPCB()->pid;
                 break;
             case NICE:
-
-                // OSInstance->DiagnosticsDisplay(DiagOut);
-                // std::cout << DiagOut;
-
-                CurrentPCB = OSInstance->GetCurrentPCB();
-
-                // Deattach PCB
-                OSInstance->DeleteCurrentPCB();
-
-                // Update priority
-                assert(kcaptr->arg1 <= P_FIVE); // For debugging
-                CurrentPCB->priority = (priority_t)kcaptr->arg1;
-
-                // Store current PSP
-                CurrentPCB->stack_ptr = get_PSP();
-
-                // Move PCB
-                OSInstance->QueuePCB(CurrentPCB);
-
-                // OSInstance->DiagnosticsDisplay(DiagOut);
-                // std::cout << DiagOut;
-
-                // Set PCB to next process
-                set_PSP(OSInstance->GetNextPCB()->stack_ptr);
-
-                // Print diag info
-                // OSInstance->DiagnosticsDisplay(DiagOut);
-                // std::cout << DiagOut;
-
+                KNice(kcaptr->priority);
                 break;
             case TERMINATE:
-
-                // OSInstance->DiagnosticsDisplay(DiagOut);
-                // std::cout << DiagOut;
-
-                CurrentPCB = OSInstance->GetCurrentPCB();
-
-                // Deattach PCB
-                OSInstance->DeleteCurrentPCB();
-
-                // Deallocate Process Stack
-                // Deallocate PCB
-                delete[] CurrentPCB->stack_start;
-                delete CurrentPCB;
-
-                std::cout << "Post State\n";
-                OSInstance->DiagnosticsDisplay(DiagOut);
-                std::cout << DiagOut;
-
-                // Set PCB to next process
-                set_PSP(OSInstance->GetNextPCB()->stack_ptr);
+                KTerminateProcess();
+                break;
+            case SEND:
+                kcaptr->rtnvalue = KSend(kcaptr);
+                break;
+            case RECV:
+                kcaptr->rtnvalue = KRecv(kcaptr);
+                break;
+            case BIND:
+                kcaptr->rtnvalue = KBind(kcaptr);
                 break;
             default:
-                kcaptr -> rtnvalue = -1;
+                // TODO: Some sort of real error handling here
+                kcaptr -> rtnvalue = 0;
         }
 
     }
@@ -322,6 +287,130 @@ void assignR7(volatile uint32_t data)
     __asm(" mov r7,r0");
 }
 
+
+void KNice(priority_t new_priority) {
+    pcb_t* CurrentPCB = OSInstance->GetCurrentPCB();
+
+    // Deattach PCB
+    OSInstance->DeleteCurrentPCB();
+
+    // Update priority
+    assert(new_priority <= P_FIVE); // For debugging
+    CurrentPCB->priority = new_priority;
+
+    // Store current PSP
+    CurrentPCB->stack_ptr = get_PSP();
+
+    // Move PCB
+    OSInstance->QueuePCB(CurrentPCB);
+
+    // Set PCB to next process
+    set_PSP(OSInstance->GetNextPCB()->stack_ptr);
+}
+
+void KTerminateProcess() {
+    pcb_t* CurrentPCB = OSInstance->GetCurrentPCB();
+
+    // Deattach PCB
+    OSInstance->DeleteCurrentPCB();
+
+    // Deallocate Process Stack
+    // Deallocate PCB
+    delete[] CurrentPCB->stack_start;
+    delete CurrentPCB;
+
+    // Set PCB to next process
+    set_PSP(OSInstance->GetNextPCB()->stack_ptr);
+}
+
+bool KSend(kcallargs_t *kcaptr) {
+    // Get requested mailbox
+    mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q);
+
+    // Check if it is in use
+    if (requested_mailbox->currently_owned == false) return false;
+
+    // Check if the current PCB owns owns the "SRC_Q" mailbox (For replies)
+    // TODO: Let this be optional! So processes can send anonymous messages
+    if (OSInstance->GetCurrentPCB() != requested_mailbox->owner_pcb) return false;
+
+    // Add message to mailbox!
+    uint16_t actual_msg_len = MIN(kcaptr->msg_len, (uint16_t)(requested_mailbox->letter_size));
+
+    // Define a structure of the largest size and use it as God intended.
+    big_letter_msg_t input_msg;
+    input_msg.msg_size = actual_msg_len;
+
+    // TODO: Check isFull() first!
+
+    switch (requested_mailbox->letter_size) {
+        case ZERO_CHAR:
+            ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
+            break;
+        case ONE_CHAR:
+            (input_msg.msg)[0] = ((char*)(kcaptr->msg_ptr))[0];
+            ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
+            break;
+        case BIG_LETTER:
+            memcpy(kcaptr->msg_ptr, &input_msg.msg, actual_msg_len);
+            ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
+            break;
+        default:
+            // TODO: Some sort of error msg here
+            break;
+    }
+    return true;
+}
+
+bool KRecv(kcallargs_t *kcaptr) {
+    // Get requested mailbox
+    mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q);
+
+    // Check if it is in use
+    if (requested_mailbox->currently_owned == false) return false;
+
+    // Check if this is your mailbox!
+    if (OSInstance->GetCurrentPCB() != requested_mailbox->owner_pcb) return false;
+
+    // Fetch mail! (Using the largest structure)
+    generic_letter_msg_t* recv_msg_ptr;
+
+    // TODO: Check isEmpty() first
+
+    switch (requested_mailbox->letter_size) {
+    case ZERO_CHAR:
+        // Doing anything with the value is actually unncessary
+        recv_msg_ptr = (generic_letter_msg_t *) &(((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Get());
+        break;
+    case ONE_CHAR:
+        recv_msg_ptr = (generic_letter_msg_t *) &(((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Get());
+        ((char *)kcaptr->msg_ptr)[0] = recv_msg_ptr->msg[0];
+        (recv_msg_ptr->msg)[0] = ((char*)(kcaptr->msg_ptr))[0];
+        break;
+    case BIG_LETTER:
+        recv_msg_ptr = (generic_letter_msg_t *) &(((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Get());
+        memcpy(recv_msg_ptr->msg, kcaptr->msg_ptr, recv_msg_ptr->msg_size);
+        break;
+    default:
+        // TODO: Some sort of error msg here
+        break;
+    }
+
+    return true;
+}
+
+bool KBind(kcallargs_t *kcaptr) {
+    // Get requested mailbox
+    mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q);
+
+    // Check if it is in use
+    if (requested_mailbox->currently_owned == false) return false;
+
+    // See if the mailbox is in use
+
+    return true;
+}
+
 // The following are performed within PSP Space and are not actually kernel calls,
 // they pass into the kernel by directly making an SVC call
 
@@ -336,7 +425,7 @@ uint32_t PGetID() {
 void PNice(priority_t priority) {
     volatile kcallargs_t KernelArgs;
     KernelArgs.kcode = NICE;
-    KernelArgs.arg1 = (uint32_t) priority;
+    KernelArgs.priority = priority;
     assignR7((uint32_t) &KernelArgs);
     SVC();
 }
@@ -347,3 +436,41 @@ void PTerminateProcess() {
     assignR7((uint32_t) &KernelArgs);
     SVC();
 }
+
+bool PSend(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len) {
+    volatile kcallargs_t KernelArgs;
+    KernelArgs.kcode = SEND;
+    KernelArgs.src_q = src_q;
+    KernelArgs.dst_q = dst_q;
+    KernelArgs.msg_ptr = msg_ptr;
+    KernelArgs.msg_len = msg_len;
+    assignR7((uint32_t) &KernelArgs);
+    SVC();
+
+    return KernelArgs.rtnvalue;
+}
+
+bool PRecv(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len) {
+    volatile kcallargs_t KernelArgs;
+    KernelArgs.kcode = RECV;
+    KernelArgs.kcode = SEND;
+    KernelArgs.src_q = src_q;
+    KernelArgs.dst_q = dst_q;
+    KernelArgs.msg_ptr = msg_ptr;
+    KernelArgs.msg_len = msg_len;
+    assignR7((uint32_t) &KernelArgs);
+    SVC();
+
+    return KernelArgs.rtnvalue;
+}
+
+bool PBind(uint8_t req_q, letter_size_t size) {
+    volatile kcallargs_t KernelArgs;
+    KernelArgs.kcode = BIND;
+    assignR7((uint32_t) &KernelArgs);
+    SVC();
+
+    return KernelArgs.rtnvalue;
+}
+
+

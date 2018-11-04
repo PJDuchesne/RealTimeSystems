@@ -22,7 +22,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 class TaskScheduler {
     private:
-    	PCBList* PCBLists_[MAX_PRIORITY + 1];
+        PCBList* PCBLists_[MAX_PRIORITY + 1];
 
     public:
         TaskScheduler();
