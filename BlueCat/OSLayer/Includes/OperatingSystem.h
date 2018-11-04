@@ -25,6 +25,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 extern void MonitorProcess();
 extern void DummpyProcess2();
 extern void DummpyProcess3();
+extern void DummpyProcess4();
 
 // Function pointer typedef
 typedef void (*process_t)();

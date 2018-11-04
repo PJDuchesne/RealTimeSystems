@@ -207,13 +207,13 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
                 KTerminateProcess();
                 break;
             case SEND:
-                kcaptr->rtnvalue = KSend(kcaptr);
+                kcaptr->rtnvalue = (uint32_t) KSend(kcaptr);
                 break;
             case RECV:
-                kcaptr->rtnvalue = KRecv(kcaptr);
+                kcaptr->rtnvalue = (uint32_t) KRecv(kcaptr);
                 break;
             case BIND:
-                kcaptr->rtnvalue = KBind(kcaptr);
+                kcaptr->rtnvalue = (uint32_t) KBind(kcaptr);
                 break;
             default:
                 // TODO: Some sort of real error handling here
@@ -330,29 +330,37 @@ bool KSend(kcallargs_t *kcaptr) {
     // Check if it is in use
     if (requested_mailbox->currently_owned == false) return false;
 
-    // Check if the current PCB owns owns the "SRC_Q" mailbox (For replies)
+    // Check if the current PCB owns owns the "SRC_Q" mailbox (For replies) and is in use
     // TODO: Let this be optional! So processes can send anonymous messages
-    if (OSInstance->GetCurrentPCB() != requested_mailbox->owner_pcb) return false;
+    mailbox_t* owners_mailbox = PostOfficeInstance->GetMailBox(kcaptr->src_q);
+    if (owners_mailbox->currently_owned == false) return false;
+    if (OSInstance->GetCurrentPCB() != owners_mailbox->owner_pcb) return false;
 
     // Add message to mailbox!
     uint16_t actual_msg_len = MIN(kcaptr->msg_len, (uint16_t)(requested_mailbox->letter_size));
 
-    // Define a structure of the largest size and use it as God intended.
-    static big_letter_msg_t input_msg;
+    // Define a structure of the largest size and use it
+    big_letter_msg_t input_msg;
     input_msg.msg_size = actual_msg_len;
+    input_msg.msg_src = kcaptr->src_q;
 
     // TODO: Check isFull() first!
 
     switch (requested_mailbox->letter_size) {
         case ZERO_CHAR:
+            if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
             ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
             break;
         case ONE_CHAR:
+            if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
             (input_msg.msg)[0] = ((char*)(kcaptr->msg_ptr))[0];
             ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
             break;
         case BIG_LETTER:
-            memcpy(kcaptr->msg_ptr, &input_msg.msg, actual_msg_len);
+            if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
+            // TODO: Fix the fact that this is copying twice by adding a new "Add" function that directly copies it into the
+            std::memcpy(input_msg.msg, kcaptr->msg_ptr, actual_msg_len);
+            // std::memcpy(kcaptr->msg_ptr, tmp, actual_msg_len);
             ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
             break;
         default:
@@ -373,27 +381,31 @@ bool KRecv(kcallargs_t *kcaptr) {
     if (OSInstance->GetCurrentPCB() != requested_mailbox->owner_pcb) return false;
 
     // Fetch mail! (Using different structures)
+    static empty_msg_t recv_msg0;
     static one_char_msg_t recv_msg1;
     static big_letter_msg_t recv_msg256;
-
-    // TODO: Check isEmpty() first
 
     switch (requested_mailbox->letter_size) {
     case ZERO_CHAR:
         // Get for the sake of getting, but ignore result
-        ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
-        kcaptr->msg_len = (uint16_t) ZERO_CHAR;
+        if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) return false;
+        recv_msg0 = ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
+        kcaptr->msg_len = recv_msg0.msg_size;
+        kcaptr->src_q = recv_msg0.msg_src;
         break;
     case ONE_CHAR:
+        if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) return false;
         recv_msg1 = ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
-        kcaptr->msg_len = (uint16_t) ONE_CHAR;
-        assert(recv_msg1.msg_size == 1);
+        kcaptr->msg_len = recv_msg1.msg_size;
+        kcaptr->src_q = recv_msg1.msg_src;
         ((char *)kcaptr->msg_ptr)[0] = recv_msg1.msg[0];
         break;
     case BIG_LETTER:
+        if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) return false;
         recv_msg256 = ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
-        kcaptr->msg_len = (uint16_t) recv_msg256.msg_size;
-        memcpy(&recv_msg256.msg, kcaptr->msg_ptr, recv_msg256.msg_size);
+        kcaptr->msg_len = recv_msg256.msg_size;
+        kcaptr->src_q = recv_msg256.msg_src;
+        memcpy(kcaptr->msg_ptr, recv_msg256.msg, recv_msg256.msg_size);
         break;
     default:
         // TODO: Some sort of error msg here
@@ -453,16 +465,18 @@ bool PSend(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len) {
     return KernelArgs.rtnvalue;
 }
 
-bool PRecv(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len) {
+bool PRecv(uint8_t& src_q, uint8_t dst_q, void* msg_ptr, uint32_t& msg_len) {
     volatile kcallargs_t KernelArgs;
     KernelArgs.kcode = RECV;
-    KernelArgs.kcode = SEND;
-    KernelArgs.src_q = src_q;
     KernelArgs.dst_q = dst_q;
     KernelArgs.msg_ptr = msg_ptr;
-    KernelArgs.msg_len = msg_len;
     assignR7((uint32_t) &KernelArgs);
     SVC();
+
+    if (KernelArgs.rtnvalue != 0) {
+        src_q = KernelArgs.src_q;
+        msg_len = KernelArgs.msg_len;
+    }
 
     return KernelArgs.rtnvalue;
 }
@@ -475,5 +489,4 @@ bool PBind(uint8_t req_q, letter_size_t size) {
 
     return KernelArgs.rtnvalue;
 }
-
 

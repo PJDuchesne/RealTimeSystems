@@ -77,7 +77,37 @@ void DummpyProcess2() {
 void DummpyProcess3() {
     std::cout << "[ProcessesGlue] Entering DummpyProcess3!\n";
 
+    char tmpArray[] = { 'h','e','l','l','o','w','o','r','l','d' };
 
+    PSend(3, 4, &tmpArray, 10);      // helloworld
+    PSend(3, 4, &tmpArray, 5);       // hello
+    PSend(3, 4, &(tmpArray[5]), 5);  // world
+
+    while (1) {
+
+    }
+}
+
+void DummpyProcess4() {
+    std::cout << "[ProcessesGlue] Entering DummpyProcess4!\n";
+
+    char* tmpArray = new char[256];
+    uint8_t srq_q = 0;
+    uint32_t msg_len = 0;
+    uint32_t return_value = 0;
+
+    while (return_value == 0) {
+        return_value = PRecv(srq_q, (uint8_t) 4, tmpArray, msg_len);
+    }
+
+    std::cout << "[DummpyProcess4] >>" << msg_len << "<<\n";
+    PRecv(srq_q, (uint8_t) 4, tmpArray, msg_len);
+    std::cout << "[DummpyProcess4] >>" << msg_len << "<<\n";
+    PRecv(srq_q, (uint8_t) 4, tmpArray, msg_len);
+    std::cout << "[DummpyProcess4] >>" << msg_len << "<<\n";
+
+
+    // Handle msg here
 
 
     while (1) {

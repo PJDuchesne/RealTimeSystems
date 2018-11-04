@@ -20,6 +20,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <sstream>
 
 #define MAX_PRIORITY (uint32_t) P_FIVE // TODO: MAGIC NUMBER
@@ -103,25 +104,22 @@ typedef enum letter_size {
 typedef struct empty_msg { // ZERO_CHAR
     empty_msg() : msg_size(ZERO_CHAR) {}
     uint8_t msg_size = 0;
+    uint8_t msg_src;
 } empty_msg_t;
 
 typedef struct one_char_msg { // ONE_CHAR
     one_char_msg() : msg_size(ONE_CHAR), msg(new char[ONE_CHAR]) {}
     uint8_t msg_size;
+    uint8_t msg_src;
     char* msg;
 } one_char_msg_t;
 
 typedef struct big_letter_msg { // BIG_LETTER
     big_letter_msg() : msg(new char[BIG_LETTER]) {}
     uint8_t msg_size; // TODO: This is actually 255 max?
+    uint8_t msg_src;
     char* msg;
 } big_letter_msg_t;
-
-// Only used as a pointer to access the above structures
-typedef struct generic_letter_msg {
-    uint8_t msg_size;
-    char* msg;
-} generic_letter_msg_t;
 
 typedef struct mailbox {
     mailbox() : currently_owned(false), mailbox_ptr(0) {}

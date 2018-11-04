@@ -36,6 +36,7 @@ void OperatingSystem::Inialize() {
     RegProc(&MonitorProcess, 123, P_THREE, "Monitor");
     RegProc(&DummpyProcess2, 456, P_THREE, "DummpyProcess2");
     RegProc(&DummpyProcess3, 789, P_THREE, "DummpyProcess3");
+    RegProc(&DummpyProcess4, 890, P_THREE, "DummpyProcess4");
 
     // Pass control to first process
     KickStart();
@@ -78,8 +79,8 @@ void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t pr
     QueuePCB(new_pcb);
 
     // FOR TESTING MESSAGING: Manually bind messages here
-    static uint8_t QID_Counter = 0;
-    PostOfficeInstance_->BuyMailbox(QID_Counter, BIG_LETTER, new_pcb);
+    static uint8_t QID_Counter = 1;
+    PostOfficeInstance_->BuyMailbox(QID_Counter++, BIG_LETTER, new_pcb);
 }
 
 void OperatingSystem::InitStackFrame(stack_frame_t* sf) {
