@@ -344,28 +344,55 @@ bool KSend(kcallargs_t *kcaptr) {
     input_msg.msg_size = actual_msg_len;
     input_msg.msg_src = kcaptr->src_q;
 
-    // TODO: Check isFull() first!
+    // If the receiver is currently blocked, then wake it up and directly pass messages
+    if (requested_mailbox->currently_blocked) {
+        // Wake up PCB by adding to correct queue
+        OSInstance->QueuePCB(requested_mailbox->owner_pcb);
 
-    switch (requested_mailbox->letter_size) {
-        case ZERO_CHAR:
-            if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
-            ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
-            break;
-        case ONE_CHAR:
-            if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
-            (input_msg.msg)[0] = ((char*)(kcaptr->msg_ptr))[0];
-            ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
-            break;
-        case BIG_LETTER:
-            if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
-            // TODO: Fix the fact that this is copying twice by adding a new "Add" function that directly copies it into the
-            std::memcpy(input_msg.msg, kcaptr->msg_ptr, actual_msg_len);
-            // std::memcpy(kcaptr->msg_ptr, tmp, actual_msg_len);
-            ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
-            break;
-        default:
-            // TODO: Some sort of error msg here
-            break;
+        // Update mailbox flag
+        requested_mailbox->currently_blocked = false;
+
+        // Manually copy message to destination!
+        requested_mailbox->kcaptr->msg_len = actual_msg_len;
+        requested_mailbox->kcaptr->src_q = kcaptr->src_q;
+
+        switch(requested_mailbox->letter_size) {
+            case ZERO_CHAR: // Not forgotten, just empty. This will be optimized away
+                break;
+            case ONE_CHAR:
+                ((char *)(requested_mailbox->kcaptr->msg_ptr))[0] = ((char *)(kcaptr->msg_ptr))[0];
+                break;
+            case BIG_LETTER:
+                memcpy(requested_mailbox->kcaptr->msg_ptr, kcaptr->msg_ptr, actual_msg_len);
+                break;
+            default:
+                // TODO: Some sort of error msg here
+                break;
+        }
+    }
+    // Else, pass message into the correct buffer
+    else {
+        switch (requested_mailbox->letter_size) {
+            case ZERO_CHAR:
+                if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
+                ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
+                break;
+            case ONE_CHAR:
+                if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
+                (input_msg.msg)[0] = ((char*)(kcaptr->msg_ptr))[0];
+                ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
+                break;
+            case BIG_LETTER:
+                if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
+                // TODO: Fix the fact that this is copying twice by adding a new "Add" function that directly copies it into the
+                memcpy(input_msg.msg, kcaptr->msg_ptr, actual_msg_len);
+                // std::memcpy(kcaptr->msg_ptr, tmp, actual_msg_len);
+                ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
+                break;
+            default:
+                // TODO: Some sort of error msg here
+                break;
+        }
     }
     return true;
 }
@@ -385,31 +412,53 @@ bool KRecv(kcallargs_t *kcaptr) {
     static one_char_msg_t recv_msg1;
     static big_letter_msg_t recv_msg256;
 
+    bool put_to_sleep = false;
     switch (requested_mailbox->letter_size) {
     case ZERO_CHAR:
         // Get for the sake of getting, but ignore result
-        if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) return false;
-        recv_msg0 = ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
-        kcaptr->msg_len = recv_msg0.msg_size;
-        kcaptr->src_q = recv_msg0.msg_src;
+        if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) put_to_sleep = true;
+        else {
+            recv_msg0 = ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
+            kcaptr->msg_len = recv_msg0.msg_size;
+            kcaptr->src_q = recv_msg0.msg_src;
+        }
         break;
     case ONE_CHAR:
-        if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) return false;
-        recv_msg1 = ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
-        kcaptr->msg_len = recv_msg1.msg_size;
-        kcaptr->src_q = recv_msg1.msg_src;
-        ((char *)kcaptr->msg_ptr)[0] = recv_msg1.msg[0];
+        if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) put_to_sleep = true;
+        else {
+            recv_msg1 = ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
+            kcaptr->msg_len = recv_msg1.msg_size;
+            kcaptr->src_q = recv_msg1.msg_src;
+            ((char *)kcaptr->msg_ptr)[0] = recv_msg1.msg[0];
+        }
         break;
     case BIG_LETTER:
-        if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) return false;
-        recv_msg256 = ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
-        kcaptr->msg_len = recv_msg256.msg_size;
-        kcaptr->src_q = recv_msg256.msg_src;
-        memcpy(kcaptr->msg_ptr, recv_msg256.msg, recv_msg256.msg_size);
+        if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) put_to_sleep = true;
+        else {
+            recv_msg256 = ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
+            kcaptr->msg_len = recv_msg256.msg_size;
+            kcaptr->src_q = recv_msg256.msg_src;
+            memcpy(kcaptr->msg_ptr, recv_msg256.msg, recv_msg256.msg_size);
+        }
         break;
     default:
         // TODO: Some sort of error msg here
         break;
+    }
+
+    if (put_to_sleep) {
+        // Update mailbox state
+        requested_mailbox->currently_blocked = true;
+        requested_mailbox->kcaptr = kcaptr;
+
+        // Deattach PCB
+        OSInstance->DeleteCurrentPCB();
+
+        // Store current PSP
+        requested_mailbox->owner_pcb->stack_ptr = get_PSP();
+
+        // Set PCB to next process
+        set_PSP(OSInstance->GetNextPCB()->stack_ptr);
     }
 
     return true;

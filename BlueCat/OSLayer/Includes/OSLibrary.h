@@ -20,7 +20,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <cstdint>
 #include <iostream>
 #include <string>
-#include <cstring>
 #include <sstream>
 
 #define MAX_PRIORITY (uint32_t) P_FIVE // TODO: MAGIC NUMBER
@@ -121,14 +120,6 @@ typedef struct big_letter_msg { // BIG_LETTER
     char* msg;
 } big_letter_msg_t;
 
-typedef struct mailbox {
-    mailbox() : currently_owned(false), mailbox_ptr(0) {}
-    bool currently_owned;
-    pcb_t* owner_pcb;
-    letter_size_t letter_size;
-    void* mailbox_ptr;
-} mailbox_t;
-
 typedef enum kernelcallcodes {
     GETID,
     NICE,
@@ -163,5 +154,15 @@ typedef struct kcallargs
         };
     };
 } kcallargs_t;
+
+typedef struct mailbox {
+    mailbox() : currently_owned(false), currently_blocked(false), mailbox_ptr(0) {}
+    bool currently_owned;
+    bool currently_blocked;
+    pcb_t* owner_pcb;
+    letter_size_t letter_size;
+    void* mailbox_ptr;
+    kcallargs_t* kcaptr;
+} mailbox_t;
 
 #endif /* OSLibrary_H */
