@@ -338,7 +338,7 @@ bool KSend(kcallargs_t *kcaptr) {
     uint16_t actual_msg_len = MIN(kcaptr->msg_len, (uint16_t)(requested_mailbox->letter_size));
 
     // Define a structure of the largest size and use it as God intended.
-    big_letter_msg_t input_msg;
+    static big_letter_msg_t input_msg;
     input_msg.msg_size = actual_msg_len;
 
     // TODO: Check isFull() first!
@@ -372,24 +372,28 @@ bool KRecv(kcallargs_t *kcaptr) {
     // Check if this is your mailbox!
     if (OSInstance->GetCurrentPCB() != requested_mailbox->owner_pcb) return false;
 
-    // Fetch mail! (Using the largest structure)
-    generic_letter_msg_t* recv_msg_ptr;
+    // Fetch mail! (Using different structures)
+    static one_char_msg_t recv_msg1;
+    static big_letter_msg_t recv_msg256;
 
     // TODO: Check isEmpty() first
 
     switch (requested_mailbox->letter_size) {
     case ZERO_CHAR:
-        // Doing anything with the value is actually unncessary
-        recv_msg_ptr = (generic_letter_msg_t *) &(((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Get());
+        // Get for the sake of getting, but ignore result
+        ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
+        kcaptr->msg_len = (uint16_t) ZERO_CHAR;
         break;
     case ONE_CHAR:
-        recv_msg_ptr = (generic_letter_msg_t *) &(((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Get());
-        ((char *)kcaptr->msg_ptr)[0] = recv_msg_ptr->msg[0];
-        (recv_msg_ptr->msg)[0] = ((char*)(kcaptr->msg_ptr))[0];
+        recv_msg1 = ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
+        kcaptr->msg_len = (uint16_t) ONE_CHAR;
+        assert(recv_msg1.msg_size == 1);
+        ((char *)kcaptr->msg_ptr)[0] = recv_msg1.msg[0];
         break;
     case BIG_LETTER:
-        recv_msg_ptr = (generic_letter_msg_t *) &(((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Get());
-        memcpy(recv_msg_ptr->msg, kcaptr->msg_ptr, recv_msg_ptr->msg_size);
+        recv_msg256 = ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
+        kcaptr->msg_len = (uint16_t) recv_msg256.msg_size;
+        memcpy(&recv_msg256.msg, kcaptr->msg_ptr, recv_msg256.msg_size);
         break;
     default:
         // TODO: Some sort of error msg here
@@ -406,9 +410,8 @@ bool KBind(kcallargs_t *kcaptr) {
     // Check if it is in use
     if (requested_mailbox->currently_owned == false) return false;
 
-    // See if the mailbox is in use
-
-    return true;
+    // Buy a mailbox!
+    return PostOfficeInstance->BuyMailbox(kcaptr->req_q, kcaptr->q_size, OSInstance->GetCurrentPCB());
 }
 
 // The following are performed within PSP Space and are not actually kernel calls,

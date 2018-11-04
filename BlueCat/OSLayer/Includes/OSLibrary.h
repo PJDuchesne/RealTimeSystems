@@ -113,7 +113,7 @@ typedef struct one_char_msg { // ONE_CHAR
 
 typedef struct big_letter_msg { // BIG_LETTER
     big_letter_msg() : msg(new char[BIG_LETTER]) {}
-    uint8_t msg_size;
+    uint8_t msg_size; // TODO: This is actually 255 max?
     char* msg;
 } big_letter_msg_t;
 
