@@ -24,7 +24,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <OSLayer/Includes/OperatingSystem.h>
 
 #define ASCII_CASE_OFFSET   32
-#define NUM_VALID_COMMANDS  4
+#define NUM_VALID_COMMANDS  5
 #define MAX_NUM_TOKENS      2
 #define MAX_TIME_STR_LEN    8
 #define MAX_DATE_STR_LEN    11
@@ -38,7 +38,8 @@ const std::string valid_commands[NUM_VALID_COMMANDS] = {
   "TIME",
   "DATE",
   "ALARM",
-  "DIAG"
+  "DIAG",
+  "REVERSE"
 };
 
 // Forward Declarations
@@ -61,6 +62,7 @@ class CommandCenter {
         void DateCommand(std::string arg);
         void AlarmCommand(std::string arg);
         void DiagCommand(std::string arg);
+        void ReverseCommand(std::string arg);
 
         // Internal helpers
         void ToUpper(std::string &str);

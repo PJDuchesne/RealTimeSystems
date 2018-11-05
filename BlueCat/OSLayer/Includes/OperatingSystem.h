@@ -24,11 +24,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "KernelFunctions.h"
 #include "KernelCalls.h"
 #include "ProcessCalls.h"
-
-extern void MonitorProcess();
-extern void DummpyProcess2();
-extern void DummpyProcess3();
-extern void DummpyProcess4();
+#include "Processes.h"
 
 // Function pointer typedef
 typedef void (*process_t)();

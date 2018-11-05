@@ -35,11 +35,55 @@ OperatingSystem::OperatingSystem() {
     Brief: Initializes the OS by registering processes and then kickstarting the first in queue.
 */
 void OperatingSystem::Inialize() {
-    // Register all initial processes
-    RegProc(&MonitorProcess, 123, P_THREE, "Monitor");
-    RegProc(&DummpyProcess2, 456, P_THREE, "DummpyProcess2");
-    RegProc(&DummpyProcess3, 789, P_THREE, "DummpyProcess3");
-    RegProc(&DummpyProcess4, 890, P_THREE, "DummpyProcess4");
+    uint8_t test_case = 1;
+
+    // Always add idle process to lowest priority
+    RegProc(&IdleProcess, 001, P_ONE, "IdleProcess");
+
+    switch (test_case) {
+        case 1: // Default running with monitor and several empty processes
+            RegProc(&EndlessProcess, 200, P_TWO,   "Endless_2");
+            RegProc(&EndlessProcess, 300, P_THREE, "Endless_3");
+            RegProc(&EndlessProcess, 400, P_FOUR,  "Endless_4");
+            RegProc(&EndlessProcess, 500, P_FIVE,  "Endless_5");
+            RegProc(&EndlessProcess, 600, P_FIVE,  "Endless_6");
+            RegProc(&MonitorProcessEntry, 700, P_FIVE, "Monitor");
+            break;
+        case 2: // Testing Termination
+            RegProc(&ShortProcess, 300, P_THREE, "Endless_3");
+            RegProc(&ShortProcess, 400, P_FOUR,  "Endless_4");
+            RegProc(&LongProcess, 500, P_FIVE,   "Endless_5");
+            RegProc(&LongProcess, 600, P_FIVE,   "Endless_6");           
+
+            // TODO: Make 5 and then drop to 2 after binding
+            // Add monitor to catch diagnostics messages
+            RegProc(&MonitorProcessEntry, 700, P_TWO, "Monitor");
+
+            break;
+        case 3: // Testing NICE
+            RegProc(&NiceTestProcess, 100, P_FIVE, "NiceTestProcess");
+
+            // Add monitor to catch diagnostics messages
+            RegProc(&MonitorProcessEntry, 700, P_TWO, "Monitor");
+            break;
+        case 4: // Test non-blocking message passing (i.e. monitor?)
+
+        
+            break;
+        case 5: // Test blocking message passing
+            RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
+            RegProc(&DummpyProcess3, 789, P_THREE, "DummpyProcess3");
+            RegProc(&DummpyProcess4, 890, P_THREE, "DummpyProcess4");
+            break;
+        case 6: // Test UART passing message to monitor and then replying
+            RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
+            RegProc(&ReverseString, 124, P_THREE, "ReverseString");
+        
+            break;
+        default:
+
+            break;
+    }
 
     // Pass control to first process
     KickStart();

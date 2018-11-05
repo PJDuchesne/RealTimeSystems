@@ -38,9 +38,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define OUTPUT_DATA_BUFFER_SIZE 250
 
 enum public_mailboxes {
-	KERNEL_MB, 			// 0 -> Special case, ignores all incoming messages and allows outgoing messages
-	MONITOR_MB, 		// 1
-	ISR_MSG_HANDLER_MB  // 2
+	KERNEL_MB, 			     // 0
+	MONITOR_MB, 		     // 1
+	ISR_MSG_HANDLER_MB,  // 2
+  REVERSE_MSG_MB,      // 3
 };
 
 void InterruptMasterEnable();

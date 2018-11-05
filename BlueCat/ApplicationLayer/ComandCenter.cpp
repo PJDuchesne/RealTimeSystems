@@ -86,6 +86,7 @@ void CommandCenter::AlarmCommand(std::string arg) {
     }
 }
 
+// TODO: Commend
 void CommandCenter::DiagCommand(std::string arg) {
     if (arg != "") {
         MonitorInstance_->PrintErrorMsg("ERROR: Diag does not take arguments");
@@ -94,6 +95,24 @@ void CommandCenter::DiagCommand(std::string arg) {
     std::string DisplayString;
     OSInstance_->DiagnosticsDisplay(DisplayString);
     MonitorInstance_->PrintMsg(DisplayString);
+}
+
+/*
+    Function: ReverseCommand
+    Input: arg: Argument to have reversed
+    Brief: Sends the given argument to be 
+*/
+void CommandCenter::ReverseCommand(std::string arg) {
+    // Send message to ReverseCommand process
+
+    // Convert message to CString
+    uint32_t msg_len = MIN(arg.length(), 256); // TODO: magic number
+    char* char_array = new char[msg_len + 1];
+    std::strcpy(char_array, arg.c_str());
+
+    PSend(MONITOR_MB, REVERSE_MSG_MB, char_array, msg_len);
+
+    delete[] char_array;
 }
 
 /*
@@ -249,6 +268,7 @@ CommandCenter::CommandCenter() {
     FunctionTable[1] = &CommandCenter::DateCommand;
     FunctionTable[2] = &CommandCenter::AlarmCommand;
     FunctionTable[3] = &CommandCenter::DiagCommand;
+    FunctionTable[4] = &CommandCenter::ReverseCommand;
 }
 
 /*

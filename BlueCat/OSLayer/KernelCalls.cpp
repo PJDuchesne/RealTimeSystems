@@ -172,7 +172,7 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
         // Wake up PCB by adding to correct queue
         OSInstance->QueuePCB(requested_mailbox->owner_pcb);
 
-        // Update mailbox flag
+        // Update mailbox flag on this mailbox and any other mailbox owned by the PCB
         requested_mailbox->currently_blocked = false;
 
         // Manually copy message to destination!
