@@ -29,11 +29,14 @@ static OperatingSystem* OSInstance;
 static PostOffice* PostOfficeInstance;
 
 void KSingletonGrab();
+void KSendSysTickFromKernel();
+void KSendUARTFromKernel(char msg);
 
 void KNice(priority_t new_priority);
 void KTerminateProcess();
 kernel_responses_t KSend(kcallargs_t *kcaptr);
 kernel_responses_t KRecv(kcallargs_t *kcaptr);
 kernel_responses_t KBind(kcallargs_t *kcaptr);
+
 
 #endif /* KernelCalls_H */

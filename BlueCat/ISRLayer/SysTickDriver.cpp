@@ -78,7 +78,7 @@ void SysTickDriver::SysTickHandler() {
 
     // Queue message for time application
     if (CentiSecondCounter++ >= CENTI_TO_DECI_SECONDS) {
-        ISRMsgHandlerInstance_->QueueISRMsg(SYSTICK, char());
+        KSendSysTickFromKernel();
         CentiSecondCounter = 0;
     }
 

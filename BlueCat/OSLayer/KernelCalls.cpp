@@ -35,6 +35,59 @@ void KSingletonGrab() {
 }
 
 /*
+    Function: KSysTickFromKernel
+    Brief: Streamlined send function designed to be sent from the kernel by SYSTick.
+        Note: Assumes the ISR_MSG_Queue is accessed via non-blocking mode.
+*/
+void KSendSysTickFromKernel() {
+    // Static to store this location once
+    static mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(ISR_MSG_HANDLER_MB);
+
+    // If the mailbox has not been allocated yet, return
+    if (requested_mailbox->currently_owned == false) return;
+
+    // Make structure to pass message
+    static one_char_msg_t input_msg;
+    static bool first_time = true;
+    if (first_time) {
+        input_msg.msg_size = 0;
+        input_msg.msg_src = KERNEL_MB;
+        first_time = false;
+    }
+
+    // Add message to buffer
+    ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
+}
+
+/*
+    Function: KSysTickFromKernel
+    Brief: Streamlined send function designed to be sent from the kernel by the UART.
+        Note: Assumes the ISR_MSG_Queue is accessed via non-blocking mode.
+*/
+void KSendUARTFromKernel(char msg) {
+    // Static to store this location once
+    static mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(ISR_MSG_HANDLER_MB);
+
+    // If the mailbox has not been allocated yet, return
+    if (requested_mailbox->currently_owned == false) return;
+
+    // Make structure to pass message
+    static one_char_msg_t input_msg;
+
+    static bool first_time = true;
+    if (first_time) {
+        input_msg.msg_size = 1;
+        input_msg.msg_src = KERNEL_MB;
+        first_time = false;
+    }
+
+    (input_msg.msg)[0] = msg;
+
+    // Add message to buffer
+    ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
+}
+
+/*
     Function: KNice
     Input: new_priority: Priority to update the current PCB to
     Brief: Kernel side call to allow processes to change their own priority and update their
@@ -102,7 +155,6 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
     if (requested_mailbox->currently_owned == false) return FAILURE_KR;
 
     // Check if the current PCB owns owns the "SRC_Q" mailbox (For replies) and is in use
-    // TODO: Let this be optional! So processes (or the kernel itself) can send anonymous messages
     mailbox_t* owners_mailbox = PostOfficeInstance->GetMailBox(kcaptr->src_q);
     if (owners_mailbox->currently_owned == false) return FAILURE_KR;
     if (OSInstance->GetCurrentPCB() != owners_mailbox->owner_pcb) return FAILURE_KR;
@@ -196,7 +248,7 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
     case ZERO_CHAR:
         if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
             if (kcaptr->enable_sleep) put_to_sleep = true;
-            else kcaptr->rtnvalue = NO_MSG_KR;
+            else return NO_MSG_KR;
         } 
         else {
             recv_msg0 = ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
@@ -207,7 +259,7 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
     case ONE_CHAR:
         if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
             if (kcaptr->enable_sleep) put_to_sleep = true;
-            else kcaptr->rtnvalue = NO_MSG_KR;
+            else return NO_MSG_KR;
         } 
         else {
             recv_msg1 = ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
@@ -219,7 +271,7 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
     case BIG_LETTER:
         if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
             if (kcaptr->enable_sleep) put_to_sleep = true;
-            else kcaptr->rtnvalue = NO_MSG_KR;
+            else return NO_MSG_KR;
         } 
         else {
             recv_msg256 = ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();

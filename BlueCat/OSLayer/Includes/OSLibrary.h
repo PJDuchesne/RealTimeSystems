@@ -94,7 +94,7 @@ typedef struct pcb
     uint32_t q_count;
     priority_t priority;
     std::string name;
-    uint8_t mailbox_numbers[MAX_MAILBOXES_PER_PROCESS] = { 0 }; // [3]
+    uint8_t mailbox_numbers[MAX_MAILBOXES_PER_PROCESS] = { 0, 0, 0 }; // [3]
 
     /* Links to adjacent PCBs */
     pcb *next;
@@ -116,8 +116,8 @@ typedef struct empty_msg { // ZERO_CHAR
 } empty_msg_t;
 
 typedef struct one_char_msg { // ONE_CHAR
-    uint8_t msg_size;
-    uint8_t msg_src;
+    uint8_t msg_size = 1;
+    uint8_t msg_src = 0;
     char msg[ONE_CHAR];
 } one_char_msg_t;
 

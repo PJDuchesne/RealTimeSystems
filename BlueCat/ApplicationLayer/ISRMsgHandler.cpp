@@ -34,7 +34,6 @@ void ISRMsgHandler::SingletonGrab() {
            This function also initializes the uart_output_idle_ to false.
 */
 ISRMsgHandler::ISRMsgHandler() {
-    isr_queue_ = new RingBuffer<ISRMsg_t>(ISR_QUEUE_SIZE);
     output_data_buffer_ = new RingBuffer<char>(OUTPUT_DATA_BUFFER_SIZE);
 
     uart_output_idle_ = true;
@@ -45,32 +44,23 @@ ISRMsgHandler::ISRMsgHandler() {
     Brief: Destructor for ISRMsgHandler. This deletes the two queues when the program ends.
 */
 ISRMsgHandler::~ISRMsgHandler() {
-    delete isr_queue_;
     delete output_data_buffer_;
 }
 
 /*
-    Function: QueueISRMsg
-    Input:  type: Enumeration of message type to queue (UART or SYSTICK)
-            data: Character data for UART message (or empty for SYSTick)
-    Brief: Function to queue a message into the isr_queue_ from the ISR layer
-*/
-void ISRMsgHandler::QueueISRMsg(MsgType_t type, char data) {
-    // Create msg to pass into ISR queue
-    ISRMsg_t msg = { .type = type, .data = data };
-    isr_queue_->Add((ISRMsg_t *) &msg);
-}
-
-/*
     Function: GetFromISRQueue
-    Output:  type: Enumeration of message type from queue (UART or SYSTICK)
+    Output: type: Enumeration of message type from queue (UART or SYSTICK)
             data: Character data for UART message (or empty for SYSTick)
-    Brief: Getter to get a message from the isr_queue_ from the Monitor
+    Brief: Getter to get a message from the ISR_MSG_HANDLER mailbox
 */
 void ISRMsgHandler::GetFromISRQueue(MsgType_t &type, char &data) {
-    ISRMsg_t msg = isr_queue_->Get();
-    type = msg.type;
-    data = msg.data;
+    uint8_t src_q;
+    uint32_t msg_len;
+    if (PRecv(src_q, ISR_MSG_HANDLER_MB, &data, msg_len, false)) {
+        assert(msg_len <= 1);
+        type = ((msg_len == 1) ? UART : SYSTICK);
+    }
+    else type = NONE;
 }
 
 /*

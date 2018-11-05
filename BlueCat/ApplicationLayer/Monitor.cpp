@@ -28,8 +28,9 @@ void Monitor::CheckMessageHandler() {
     static MsgType_t type = NONE;
     static char data = char();
 
+    // Heavily prioritize the ISRQueue to supply UART and SYSTick msgs
+    do {
     ISRMsgHandlerInstance_->GetFromISRQueue(type, data);
-
     switch (type) {
         case NONE:
             // Meaning the queue is empty
@@ -44,7 +45,22 @@ void Monitor::CheckMessageHandler() {
             std::cout << "[CheckMessageHandler()] SWITCH TABLE ERROR: >>" << type << "<<\n";
             break;
     }
+    } while(type != NONE);
 
+    // Check mailbox from other processes for printing
+    uint8_t src_q;
+    uint32_t msg_len;
+    static char msg_body[256];
+
+    // If there is a message, print it
+    if (PRecv(src_q, MONITOR_MB, &msg_body, msg_len, false)) {
+        assert(msg_len <= 255);
+        msg_body[msg_len] = '\0';
+        PrintMsg(("\n[MSG FROM: " + std::to_string(src_q) + "] >>" + std::string(msg_body) + "<<" + NEW_LINE));
+
+        // Then reprint output buffer!
+        RePrintOutputBuffer();
+    }
 }
 
 /*

@@ -90,7 +90,7 @@ void UART0Driver::UART0Handler() {
     if (UART0_MIS_R & UART_INT_RX)
     {
         // Queue the msg
-        ISRMsgHandlerInstance_->QueueISRMsg(UART, UART0_DR_R);
+        KSendUARTFromKernel(UART0_DR_R);
 
         /* Clear interrupt */
         UART0_ICR_R |= UART_INT_RX;

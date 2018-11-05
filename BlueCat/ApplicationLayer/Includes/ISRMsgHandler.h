@@ -51,7 +51,6 @@ class ISRMsgHandler {
         ~ISRMsgHandler() ;
         void SingletonGrab();
 
-        void QueueISRMsg(MsgType_t type, char data);
         void GetFromISRQueue(MsgType_t &type, char &data);
         void QueueOutputMsg(std::string msg);
         bool OutputBufferEmpty();

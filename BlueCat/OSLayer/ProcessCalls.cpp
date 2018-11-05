@@ -62,7 +62,6 @@ void PTerminateProcess() {
             msg_len: The length of bytes that the message contains
     Output: <Return Value>: True/False depending on success or failure
     Brief: Process side call to send a message to a specific mailbox
-    // TODO: ^^ Make this true
 */
 bool PSend(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len) {
     volatile kcallargs_t KernelArgs;
@@ -74,7 +73,7 @@ bool PSend(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len) {
     assignR7((uint32_t) &KernelArgs);
     SVC();
 
-    return KernelArgs.rtnvalue;
+    return (KernelArgs.rtnvalue >= SUCCESS_KR);
 }
 
 /*
@@ -86,7 +85,6 @@ bool PSend(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len) {
             msg_len: The length of bytes that the message contains
      <Return Value>: True/False depending on success or failure
     Brief: Process side call to check a mailbox for a message
-    // TODO: ^^ Make this true
 */
 bool PRecv(uint8_t& src_q, uint8_t dst_q, void* msg_ptr, uint32_t& msg_len, bool enable_sleep) {
     volatile kcallargs_t KernelArgs;
@@ -102,7 +100,7 @@ bool PRecv(uint8_t& src_q, uint8_t dst_q, void* msg_ptr, uint32_t& msg_len, bool
         msg_len = KernelArgs.msg_len;
     }
 
-    return KernelArgs.rtnvalue;
+    return (KernelArgs.rtnvalue >= SUCCESS_KR);
 }
 
 /*
@@ -121,6 +119,5 @@ bool PBind(uint8_t req_q, letter_size_t size, uint8_t mailbox_size) {
     assignR7((uint32_t) &KernelArgs);
     SVC();
 
-    return KernelArgs.rtnvalue;
-    // TODO: ^^ Make this true
+    return (KernelArgs.rtnvalue >= SUCCESS_KR);
 }

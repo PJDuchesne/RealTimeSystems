@@ -100,6 +100,10 @@ void DummpyProcess3() {
     PSend(3, 4, &tmpArray, 5);       // hello
     PSend(3, 4, &(tmpArray[5]), 5);  // world
 
+    PSend(3, MONITOR_MB, &tmpArray, 10);      // helloworld
+    PSend(3, MONITOR_MB, &tmpArray, 5);       // hello
+    PSend(3, MONITOR_MB, &(tmpArray[5]), 5);  // world
+
     while (1) {
 
     }
@@ -137,3 +141,34 @@ void DummpyProcess4() {
 
     }
 }
+
+// TESTPLAN RUNDOWN:
+/*
+
+1) Solo Monitor with full functionality
+2) Duo: Monitor + Empty Function to demonstrate switching of same priority
+3) Duo: Monitor + ~10 second function at higher priority to demonstrate 
+                    termination and activation of monitor
+4) Hop/Jump: 3 processes at higher priorities than monitor jumping to lower levels 
+5) Message Blocking:
+6) 
+7)
+8)
+9)
+10)
+
+*/
+
+/*
+
+Major Components of A2
+1) Process Switching
+2) Process Priority
+3) GETID
+4) NICE
+5) Process Termination
+6) Message passing
+    - Blocking/Waking
+    - 
+
+*/

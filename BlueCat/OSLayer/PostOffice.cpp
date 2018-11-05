@@ -39,6 +39,7 @@ bool PostOffice::BuyMailbox(uint8_t mailbox_no, letter_size_t letter_size, pcb_t
         if (current_pcb->mailbox_numbers[i] == 0) {
             current_pcb->mailbox_numbers[i] = mailbox_no;
             full_flag = false;
+            break;
         }
     }
     if (full_flag) return false;
