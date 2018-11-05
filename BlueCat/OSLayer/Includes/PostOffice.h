@@ -12,7 +12,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
 -> Name:  PostOffice.h
--> Date: Sept 17, 2018  (Created)
+-> Date: Oct 31, 2018  (Created)
 -> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
@@ -45,4 +45,4 @@ class PostOffice {
         static PostOffice* GetPostOffice();
 };
 
-#endif /* Mailbox_H */
+#endif /* PostOffice_H */

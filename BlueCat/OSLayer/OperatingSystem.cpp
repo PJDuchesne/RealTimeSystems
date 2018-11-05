@@ -77,11 +77,6 @@ void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t pr
 
     // Add to PCBList queue
     QueuePCB(new_pcb);
-
-    // TODO: FOR TESTING MESSAGING: Manually bind messages here
-    // static uint8_t QID_Counter = 1;
-    // if (QID_Counter > 2) PostOfficeInstance_->BuyMailbox(QID_Counter, BIG_LETTER, new_pcb);
-    // QID_Counter++;
 }
 
 void OperatingSystem::InitStackFrame(stack_frame_t* sf) {

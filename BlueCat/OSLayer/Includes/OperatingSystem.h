@@ -18,9 +18,12 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 */
 
 #include "OSLibrary.h"
+#include "PostOffice.h"
+
 #include "TaskScheduler.h"
 #include "KernelFunctions.h"
-#include "PostOffice.h"
+#include "KernelCalls.h"
+#include "ProcessCalls.h"
 
 extern void MonitorProcess();
 extern void DummpyProcess2();

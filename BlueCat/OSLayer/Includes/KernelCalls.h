@@ -1,5 +1,5 @@
-#ifndef KernelFunctions_H
-#define KernelFunctions_H
+#ifndef KernelCalls_H
+#define KernelCalls_H
 
 /*
 __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____        
@@ -11,9 +11,9 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
       _\/\\\___________/\\\___\/\\\_____\/\\\_______/\\\__  
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
--> Name:  KernelFunctions.h
--> Date: Oct 21, 2018  (Created)
--> Author: Dr. Larry Hughes, Modified by Paul Duchesne (B00332119)
+-> Name:  KernelCalls.h
+-> Date: Nov 4, 2018  (Created)
+-> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
 
@@ -21,23 +21,19 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "OperatingSystem.h"
 #include "PostOffice.h"
 
+// Forward declarations
 class OperatingSystem;
 class PostOffice;
 
-void SVCall();
-extern "C" void SVCHandler(struct stack_frame *argptr);
+static OperatingSystem* OSInstance;
+static PostOffice* PostOfficeInstance;
 
-void set_LR(volatile uint32_t);
-void set_PSP(volatile uint32_t);
-void set_MSP(volatile uint32_t);
+void KSingletonGrab();
 
-uint32_t get_PSP();
-uint32_t get_MSP();
-uint32_t get_SP();
+void KNice(priority_t new_priority);
+void KTerminateProcess();
+kernel_responses_t KSend(kcallargs_t *kcaptr);
+kernel_responses_t KRecv(kcallargs_t *kcaptr);
+kernel_responses_t KBind(kcallargs_t *kcaptr);
 
-void volatile save_registers();
-void volatile restore_registers();
-
-void assignR7(volatile uint32_t data);
-
-#endif /* KernelFunctions_H */
+#endif /* KernelCalls_H */
