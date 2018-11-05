@@ -24,7 +24,7 @@ class PCBList {
         pcb_t* front_;
 
     public:
-        PCBList();
+        PCBList() { front_ = 0; };
         void AddPCB(pcb_t* input_pcb);
         bool IsEmpty();
         pcb_t* NextPCB();

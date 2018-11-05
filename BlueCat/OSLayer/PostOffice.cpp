@@ -19,8 +19,14 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Singleton Instance
 PostOffice *PostOffice::PostOfficeInstance_ = 0;
 
-// TODO: PCB should not be an input value, that should simply 
-//   be a "GET Current PCB from 'running' value
+/*
+    Function: BuyMailbox
+    Input:  mailbox_no: Mailbox number to buy
+           letter_size: Letter size (Structure) to create the RingBuffer with
+           current_pcb: The PCB to attach to the mailbox
+    Output: <Return Value>: Boolean value to indicate success or failure
+    Brief: Used to instantiate a mailbox within the Mailboxes pointer list
+*/
 bool PostOffice::BuyMailbox(uint8_t mailbox_no, letter_size_t letter_size, pcb_t* current_pcb) {
     // Return false if the mailbox is already in use
     mailbox_t* relevant_mailbox = &Mailboxes_[mailbox_no];
@@ -61,6 +67,13 @@ bool PostOffice::BuyMailbox(uint8_t mailbox_no, letter_size_t letter_size, pcb_t
     return true;
 }
 
+/*
+    Function: SellMailbox
+    Input:  mailbox_no: Mailbox number to sell
+           current_pcb: The that should be attached to the mailbox
+    Output: <Return Value>: Boolean value to indicate success or failure
+    Brief: Used to de-allocate a mailbox after a process is finished using it
+*/
 bool PostOffice::SellMailbox(uint8_t mailbox_no, pcb_t* current_pcb) {
     // Return false if the mailbox is not currently in use
     mailbox_t* relevant_mailbox = &Mailboxes_[mailbox_no];
@@ -85,6 +98,12 @@ bool PostOffice::SellMailbox(uint8_t mailbox_no, pcb_t* current_pcb) {
     return true;
 }
 
+/*
+    Function: GetMailBox
+    Input:  mailbox_no: Mailbox number to get
+    Output: <Return Value>: Pointer to the desired mailbox slot
+    Brief: Used to fetch the mailbox structure from the table
+*/
 mailbox_t* PostOffice::GetMailBox(uint8_t mailbox_no) {
     return &Mailboxes_[mailbox_no];
 }

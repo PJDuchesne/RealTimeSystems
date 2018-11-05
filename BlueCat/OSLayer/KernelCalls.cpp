@@ -24,11 +24,22 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 class OperatingSystem;
 class PostOffice;
 
+/*
+    Function: KSingletonGrab
+    Brief: Fetches and stores the singletons used within KSpace calls to prevent duplicate
+           calls to access them later.
+*/
 void KSingletonGrab() {
     OSInstance = OperatingSystem::GetOperatingSystem();
     PostOfficeInstance = PostOffice::GetPostOffice();
 }
 
+/*
+    Function: KNice
+    Input: new_priority: Priority to update the current PCB to
+    Brief: Kernel side call to allow processes to change their own priority and update their
+           position in the queue. Also iterates to the next process.
+*/
 void KNice(priority_t new_priority) {
     pcb_t* CurrentPCB = OSInstance->GetCurrentPCB();
 
@@ -49,6 +60,11 @@ void KNice(priority_t new_priority) {
     set_PSP(OSInstance->GetNextPCB()->stack_ptr);
 }
 
+/*
+    Function: KTerminateProcess
+    Brief: Kernel side call to terminate processes by deleting all relevent data structures
+           and setting the next process running.
+*/
 void KTerminateProcess() {
     pcb_t* CurrentPCB = OSInstance->GetCurrentPCB();
 
@@ -70,6 +86,14 @@ void KTerminateProcess() {
     set_PSP(OSInstance->GetNextPCB()->stack_ptr);
 }
 
+/*
+    Function: KSend
+    Input: kcaptr: Structure passed through the stack that allows for inputs and outputs
+    Output: <Return Value>: Code to indicate failure/success
+    Brief: Kernel side call to send a message to a specific mailbox. This takes into account
+           the possible RingBuffer sizes and casts appropriately. This also handles blocked
+           processes by waking them up and directly transfering the message to the process.
+*/
 kernel_responses_t KSend(kcallargs_t *kcaptr) {
     // Get requested mailbox
     mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q);
@@ -143,6 +167,15 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
     return SUCCESS_KR;
 }
 
+/*
+    Function: KRecv
+    Input: kcaptr: Structure passed through the stack that allows for inputs and outputs
+    Output: <Return Value>: Code to indicate failure/success
+    Brief: Kernel side call to check a specific mailbox for a message. If no message is found,
+           the process will be put to sleep if that option is enabled (Which it is by default).
+           This function also takes into account the possible RingBuffer sizes and casts
+           appropriately.
+*/
 kernel_responses_t KRecv(kcallargs_t *kcaptr) {
     // Get requested mailbox
     mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q);
@@ -219,6 +252,12 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
     return SUCCESS_KR;
 }
 
+/*
+    Function: KBind
+    Input: kcaptr: Structure passed through the stack that allows for inputs and outputs
+    Output: <Return Value>: Code to indicate failure/success
+    Brief: Kernel side call to bind a specific mailbox.
+*/
 kernel_responses_t KBind(kcallargs_t *kcaptr) {
     // Get requested mailbox
     mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q);

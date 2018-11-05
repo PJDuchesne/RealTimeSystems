@@ -14,7 +14,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-// TODO: Remove?
 /*
     Function: Add
     Input:  data: Data to add to the ring buffer

@@ -39,7 +39,7 @@ class RingBuffer {
 
     ~RingBuffer() { delete[] buffer_; }                    
 
-    void Add(T data); // TODO: Remove?
+    void Add(T data);
     void Add(T* data);
     void Add(void* data);
     T Get();

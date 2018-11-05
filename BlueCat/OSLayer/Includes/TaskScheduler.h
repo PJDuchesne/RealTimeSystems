@@ -26,6 +26,7 @@ class TaskScheduler {
 
     public:
         TaskScheduler();
+        ~TaskScheduler();
         void AddProcess(pcb_t* new_pcb);
         pcb_t* GetNextPCB();
         pcb_t* GetCurrentPCB();

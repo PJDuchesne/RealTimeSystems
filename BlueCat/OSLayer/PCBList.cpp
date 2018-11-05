@@ -16,10 +16,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/PCBList.h"
 
-PCBList::PCBList() {
-	front_ = 0;
-}
-
+/*
+    Function: AddPCB
+    Input: input_pcb: PCB to add to the list
+    Brief: Adds the given PCB to the list
+*/
 void PCBList:: AddPCB(pcb_t* input_pcb) {
 	// If list is empty
 	if (front_ == 0) {
@@ -41,23 +42,42 @@ void PCBList:: AddPCB(pcb_t* input_pcb) {
 	}
 }
 
+/*
+    Function: IsEmpty
+    Output: <Return Value>: Boolean result
+    Brief: Checks whether the list is empty or not
+*/
 bool PCBList::IsEmpty() {
 	return (front_ == 0);
 }
 
-// Assumes 'IsEmpty' has been called first
+/*
+    Function: NextPCB
+    Output: <Return Value>: Pointer to the next PCB
+    Brief: Fetches the next PCB and iterates the front
+        Note: This assumes 'IsEmpty()' has been called first
+*/
 pcb_t* PCBList::NextPCB() {
 	// Move front to next and return it
 	front_ = front_->next;
 	return front_;
 }
 
-// Assumes 'IsEmpty' has been called first
+/*
+    Function: CurrentPCB
+    Output: <Return Value>: Pointer to the current PCB
+    Brief: Fetches the current PCB
+        Note: This assumes 'IsEmpty()' has been called first
+*/
 pcb_t* PCBList::CurrentPCB() {
 	return front_;
 }
 
-// Assumes 'IsEmpty' has been called first
+/*
+    Function: DeleteCurrentPCB
+    Brief: Deletes the current PCB
+        Note: This assumes 'IsEmpty()' has been called first
+*/
 void PCBList::DeleteCurrentPCB() {
 	// If last PCB in group: Special case
 	if (front_->next == front_) front_ = 0;
@@ -66,12 +86,16 @@ void PCBList::DeleteCurrentPCB() {
 		front_->prev->next = front_->next;
 		// Attach next PCB's prev to the current prev PCB
 		front_->next->prev = front_->prev;
-		// Set front to prev (So on next "GetNextPCB" call it doesnt skip anyone) 
+		// Set front to prev (So on next "GetNextPCB" call does not skip a PCB) 
 		front_ = front_->prev;
 	}
 }
 
-// For debugging
+/*
+    Function: DiagnosticsDisplay
+    Output: display_output: String for the output to be displayed with
+    Brief: PCBList (Bottom) portion of debugging function performs PCBList query
+*/
 void PCBList::DiagnosticsDisplay(std::string &display_output) {
 	if (IsEmpty()) {
 		// std::cout << "\tThis list is empty\n\n";

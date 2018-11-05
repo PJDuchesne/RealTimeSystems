@@ -21,7 +21,7 @@ OperatingSystem *OperatingSystem::OperatingSystemInstance_ = 0;
 
 /*
     Function:OperatingSystem 
-    Brief: Constructor for the OS, which creates a new TaskScheduler
+    Brief: Constructor for the OS, which creates a new TaskScheduler.
 */
 OperatingSystem::OperatingSystem() {
     TaskScheduler_ = new TaskScheduler;
@@ -30,7 +30,10 @@ OperatingSystem::OperatingSystem() {
     PostOfficeInstance_ = PostOffice::GetPostOffice();
 }
 
-
+/*
+    Function: Inialize
+    Brief: Initializes the OS by registering processes and then kickstarting the first in queue.
+*/
 void OperatingSystem::Inialize() {
     // Register all initial processes
     RegProc(&MonitorProcess, 123, P_THREE, "Monitor");
@@ -42,6 +45,14 @@ void OperatingSystem::Inialize() {
     KickStart();
 }
 
+/*
+    Function: RegProc
+    Inputs: entry_point: A pointer to the position in memory of the process itself
+            pid: A process identification number to attach to the process
+            priority: The priority for the process to start with (1-5)
+            name: String name for the process (Essentially used for debugging)
+    Brief: Registers a process by allocating its PCB and stack before queueing it to it's PCBList.
+*/
 void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t priority, std::string name) {
     // Make new pcb
     pcb_t* new_pcb = new pcb();
@@ -79,6 +90,11 @@ void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t pr
     QueuePCB(new_pcb);
 }
 
+/*
+    Function: InitStackFrame
+    Input: sf: A pointer to the stack frame to update
+    Brief: Initializes the stack frame to known values (Primarily used for debugging).
+*/
 void OperatingSystem::InitStackFrame(stack_frame_t* sf) {
     sf->r0 = 0;
     sf->r1 = 1;
@@ -95,24 +111,48 @@ void OperatingSystem::InitStackFrame(stack_frame_t* sf) {
     sf->r12 = 12;
 }
 
+/*
+    Function: KickStart
+    Brief: Sets the process stack pointer to the next PCB in queue and then
+           makes and SVC call to start it (In conjunction with code within 
+           the SCV call itself).
+*/
 void OperatingSystem::KickStart() {
-    // Force start new process
     set_PSP(GetNextPCB()->stack_ptr);
     SVC();
 }
 
+/*
+    Function: GetCurrentPCB
+    Output: <return value>: Pointer to the current PCB
+    Brief: Getter function for the current PCB by querying the TaskScheduler.
+*/
 pcb_t* OperatingSystem::GetCurrentPCB() {
     return TaskScheduler_->GetCurrentPCB();
 }
 
+/*
+    Function: GetNextPCB
+    Output: <return value>: Pointer to the next PCB
+    Brief: Getter function for the next PCB by querying the TaskScheduler.
+*/
 pcb_t* OperatingSystem::GetNextPCB() {
     return TaskScheduler_->GetNextPCB();
 }
 
+/*
+    Function: DeleteCurrentPCB
+    Brief: Function to ask the TaskScheduler to delete the current PCB.
+*/
 void OperatingSystem::DeleteCurrentPCB() {
     TaskScheduler_->DeleteCurrentPCB();
 }
 
+/*
+    Function: QuantumTick
+    Brief: Called on every SYSTick (~100 Hz) to save the current process state
+           and start the next process in queue.
+*/
 void OperatingSystem::QuantumTick() {
     // Fetch CurrentPCB for function
     pcb_t* CurrentPCB = TaskScheduler_->GetCurrentPCB();
@@ -131,10 +171,21 @@ void OperatingSystem::QuantumTick() {
     restore_registers();
 }
 
+/*
+    Function: foo
+    Input: new_pcb: Pointer to the PCB to queue
+    Brief: Queues the provided PCB by passing it down to the TaskScheduler
+*/
 void OperatingSystem::QueuePCB(pcb_t* new_pcb) {
     TaskScheduler_->AddProcess(new_pcb);
 }
 
+/*
+    Function: DiagnosticsDisplay
+    Output: display_output: String for the output to be displayed with
+    Brief: OperatingSystem (Top) Portion Debugging function that returns a diagnostics string of
+           the current processes present in all 5 PCBLists in the system. Used heavily for debugging.
+*/
 void OperatingSystem::DiagnosticsDisplay(std::string &display_output) {
     display_output = "";
     TaskScheduler_->DiagnosticsDisplay(display_output);

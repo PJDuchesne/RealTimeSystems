@@ -16,16 +16,40 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/TaskScheduler.h"
 
+/*
+    Function: TaskScheduler
+    Brief: Constructor for the TaskScheduler, which creates the PCBLists used in the OS
+*/
 TaskScheduler::TaskScheduler() {
     for (int i = 0; i <= MAX_PRIORITY; i++) {
         PCBLists_[i] = new PCBList;
     }
 }
 
+/*
+    Function: ~TaskScheduler
+    Brief: Destructor for the TaskScheduler, which destroys the PCBLists used in the OS
+*/
+TaskScheduler::~TaskScheduler() {
+    for (int i = 0; i <= MAX_PRIORITY; i++) {
+        delete PCBLists_[i];
+    }
+}
+
+/*
+    Function: AddProcess
+    Input: new_pcb: PCB to add to the relevent PCBList
+    Brief: Adds a process to the PCBList indicated in its priority
+*/
 void TaskScheduler::AddProcess(pcb_t* new_pcb) {
     PCBLists_[new_pcb->priority]->AddPCB(new_pcb);
 }
 
+/*
+    Function: GetNextPCB
+    Output: <Return Value>: Pointer to next PCB in queue
+    Brief: Finds the next PCB in queue by iterating from the highest priority to lowest
+*/
 pcb_t* TaskScheduler::GetNextPCB() {
     // Iterate through each PCBList and return the first that is not full
     for (int i = MAX_PRIORITY; i >= 0; i--) {
@@ -36,6 +60,12 @@ pcb_t* TaskScheduler::GetNextPCB() {
     return 0;
 }
 
+/*
+    Function: GetCurrentPCB
+    Output: <Return Value>: Pointer to current PCB in queue
+    Brief: Finds the current PCB in queue by iterating from the highest priority to lowest
+           Note: This assumes that the kernel hasn't mucked around with queues during THIS quantum
+*/
 pcb_t* TaskScheduler::GetCurrentPCB() {
     // Iterate through each PCBList and return the first that is not full
     for (int i = MAX_PRIORITY; i >= 0; i--) {
@@ -46,6 +76,11 @@ pcb_t* TaskScheduler::GetCurrentPCB() {
     return 0;
 }
 
+/*
+    Function: DeleteCurrentPCB
+    Brief: Finds the current PCB in queue by iterating from the highest priority to lowest and deletes it
+           Note: This assumes that the kernel hasn't mucked around with queues during THIS quantum
+*/
 void TaskScheduler::DeleteCurrentPCB() {
     for (int i = MAX_PRIORITY; i >= 0; i--) {
         if (!PCBLists_[i]->IsEmpty()) {
@@ -55,6 +90,12 @@ void TaskScheduler::DeleteCurrentPCB() {
     }
 }
 
+/*
+    Function: DiagnosticsDisplay
+    Output: display_output: String for the output to be displayed with
+    Brief: TaskScheduler (Middle) portion of debugging function that queries each PCBList for
+           its processes and a brief description.
+*/
 void TaskScheduler::DiagnosticsDisplay(std::string &display_output) {
     std::stringstream tmp_ss;
 
