@@ -34,6 +34,10 @@ extern "C" void SysTick_ISR_C(void) {
 	SysTickDriver::GetSysTickDriver()->SysTickHandler();
 }
 
+/*
+    Function: SVC_ISR_C
+    Brief: Dummy function to be called from C code to access its C++ equivalent for SVC calls 
+*/
 extern "C" void SVC_ISR_C(void) {
     SVCall();
 }

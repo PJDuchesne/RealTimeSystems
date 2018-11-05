@@ -22,7 +22,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "OSLibrary.h"
 
 #define TOTAL_MAILBOXES 256
-
 #define MAX_LETTERS 16
 
 class PostOffice {
@@ -36,7 +35,8 @@ class PostOffice {
         // BindMailbox
         bool BuyMailbox(uint8_t mailbox_no, 
                         letter_size_t letter_size,
-                        pcb_t* current_pcb);
+                        pcb_t* current_pcb,
+                        uint8_t mailbox_size = MAX_LETTERS);
 
         bool SellMailbox(uint8_t mailbox_no, pcb_t* current_pcb);
 

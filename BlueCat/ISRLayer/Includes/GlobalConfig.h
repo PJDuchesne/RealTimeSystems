@@ -34,6 +34,15 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #define INT_VEC_UART0   5  // UART0 Rx and Tx interrupt index (decimal)
 
+#define ISR_QUEUE_SIZE 100
+#define OUTPUT_DATA_BUFFER_SIZE 250
+
+enum public_mailboxes {
+	KERNEL_MB, 			// 0 -> Special case, ignores all incoming messages and allows outgoing messages
+	MONITOR_MB, 		// 1
+	ISR_MSG_HANDLER_MB  // 2
+};
+
 void InterruptMasterEnable();
 void InterruptEnable(unsigned long InterruptIndex);
 

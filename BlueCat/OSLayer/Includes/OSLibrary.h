@@ -43,7 +43,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define MAX_MAILBOXES_PER_PROCESS 3
 
 #define MIN(x, y) ((x < y) ? x : y )
-#define MAX(x, y) ((x > y) ? x : y ) // TODO: Remove, not currently used
+#define MAX(x, y) ((x > y) ? x : y )
 
 typedef enum kernel_responses {
     FAILURE_KR,
@@ -159,6 +159,7 @@ typedef struct kcallargs
         {
             uint8_t req_q;
             letter_size_t q_size;
+            uint8_t mailbox_size;
         };
     };
 } kcallargs_t;

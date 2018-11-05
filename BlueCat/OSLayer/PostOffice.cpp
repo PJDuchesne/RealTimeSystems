@@ -27,7 +27,7 @@ PostOffice *PostOffice::PostOfficeInstance_ = 0;
     Output: <Return Value>: Boolean value to indicate success or failure
     Brief: Used to instantiate a mailbox within the Mailboxes pointer list
 */
-bool PostOffice::BuyMailbox(uint8_t mailbox_no, letter_size_t letter_size, pcb_t* current_pcb) {
+bool PostOffice::BuyMailbox(uint8_t mailbox_no, letter_size_t letter_size, pcb_t* current_pcb, uint8_t mailbox_size) {
     // Return false if the mailbox is already in use
     mailbox_t* relevant_mailbox = &Mailboxes_[mailbox_no];
 
@@ -51,13 +51,13 @@ bool PostOffice::BuyMailbox(uint8_t mailbox_no, letter_size_t letter_size, pcb_t
     void* tmp;
     switch(letter_size) {
         case ZERO_CHAR:
-            tmp = (void *)(new RingBuffer<empty_msg_t>(MAX_LETTERS));
+            tmp = (void *)(new RingBuffer<empty_msg_t>(mailbox_size));
             break;
         case ONE_CHAR:
-            tmp = (void *)(new RingBuffer<one_char_msg_t>(MAX_LETTERS));
+            tmp = (void *)(new RingBuffer<one_char_msg_t>(mailbox_size));
             break;
         case BIG_LETTER:
-            tmp = (void *)(new RingBuffer<big_letter_msg>(MAX_LETTERS));
+            tmp = (void *)(new RingBuffer<big_letter_msg>(mailbox_size));
             break;
         default:
             // TODO: ERROR STATE HERE

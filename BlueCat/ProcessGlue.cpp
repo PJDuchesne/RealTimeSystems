@@ -20,6 +20,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 void MonitorProcess() {
     std::cout << "[ProcessesGlue] Entering Monitor!\n";
+
+    // Bind queues for the monitor's message handler
+    PBind(MONITOR_MB, BIG_LETTER);
+    PBind(ISR_MSG_HANDLER_MB, ONE_CHAR, ISR_QUEUE_SIZE);
+
     // Pass Control to Monitor
     Monitor::GetMonitor()->CentralLoop();
 }

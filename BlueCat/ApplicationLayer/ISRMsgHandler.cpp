@@ -74,7 +74,7 @@ void ISRMsgHandler::GetFromISRQueue(MsgType_t &type, char &data) {
 }
 
 /*
-    Function: QueueISRMsg
+    Function: QueueOutputMsg
     Input:  msg: Message to queue into the output UART character queue
     Brief: API to queue a message into the output UART character queue
 */

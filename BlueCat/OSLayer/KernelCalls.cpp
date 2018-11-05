@@ -266,5 +266,6 @@ kernel_responses_t KBind(kcallargs_t *kcaptr) {
     if (requested_mailbox->currently_owned == true) return FAILURE_KR;
 
     // Buy a mailbox!
-    return (kernel_responses_t) PostOfficeInstance->BuyMailbox(kcaptr->req_q, kcaptr->q_size, OSInstance->GetCurrentPCB());
+    return (kernel_responses_t) PostOfficeInstance->BuyMailbox(kcaptr->req_q, kcaptr->q_size,
+                                                               OSInstance->GetCurrentPCB(), kcaptr->mailbox_size);
 }

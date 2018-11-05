@@ -112,11 +112,12 @@ bool PRecv(uint8_t& src_q, uint8_t dst_q, void* msg_ptr, uint32_t& msg_len, bool
     Output: <Return Value>: True/False depending on success or failure
     Brief: Process side call to bind a specific mailbox
 */
-bool PBind(uint8_t req_q, letter_size_t size) {
+bool PBind(uint8_t req_q, letter_size_t size, uint8_t mailbox_size) {
     volatile kcallargs_t KernelArgs;
     KernelArgs.kcode  = BIND;
     KernelArgs.req_q  = req_q;
     KernelArgs.q_size = size;
+    KernelArgs.mailbox_size = mailbox_size;
     assignR7((uint32_t) &KernelArgs);
     SVC();
 

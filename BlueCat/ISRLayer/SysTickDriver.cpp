@@ -56,7 +56,6 @@ void SysTickDriver::SysTickEnable(bool enable) {
 */
 void SysTickDriver::SingletonGrab() {
     ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
-
     OperatingSystemInstance_ = OperatingSystem::GetOperatingSystem();
 }
 
@@ -77,7 +76,7 @@ SysTickDriver::SysTickDriver() {
 void SysTickDriver::SysTickHandler() {
     static uint8_t CentiSecondCounter = 0;
 
-    // // Queue message for time application
+    // Queue message for time application
     if (CentiSecondCounter++ >= CENTI_TO_DECI_SECONDS) {
         ISRMsgHandlerInstance_->QueueISRMsg(SYSTICK, char());
         CentiSecondCounter = 0;
