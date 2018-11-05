@@ -40,10 +40,18 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #define INVALID_NUM UINT32_MAX
 
+#define MAX_MAILBOXES_PER_PROCESS 3
+
 #define MIN(x, y) ((x < y) ? x : y )
 #define MAX(x, y) ((x > y) ? x : y ) // TODO: Remove, not currently used
 
-typedef enum Priorities {
+typedef enum kernel_responses {
+    FAILURE_KR,
+    NO_MSG_KR,
+    SUCCESS_KR
+} kernel_responses_t;
+
+typedef enum priorities {
     P_ONE,
     P_TWO,
     P_THREE,
@@ -86,6 +94,7 @@ typedef struct pcb
     uint32_t q_count;
     priority_t priority;
     std::string name;
+    uint8_t mailbox_numbers[MAX_MAILBOXES_PER_PROCESS] = { 0 }; // [3]
 
     /* Links to adjacent PCBs */
     pcb *next;
@@ -107,17 +116,15 @@ typedef struct empty_msg { // ZERO_CHAR
 } empty_msg_t;
 
 typedef struct one_char_msg { // ONE_CHAR
-    one_char_msg() : msg_size(ONE_CHAR), msg(new char[ONE_CHAR]) {}
     uint8_t msg_size;
     uint8_t msg_src;
-    char* msg;
+    char msg[ONE_CHAR];
 } one_char_msg_t;
 
 typedef struct big_letter_msg { // BIG_LETTER
-    big_letter_msg() : msg(new char[BIG_LETTER]) {}
     uint8_t msg_size; // TODO: This is actually 255 max?
     uint8_t msg_src;
-    char* msg;
+    char msg[BIG_LETTER];
 } big_letter_msg_t;
 
 typedef enum kernelcallcodes {
@@ -144,7 +151,8 @@ typedef struct kcallargs
             uint8_t src_q;
             uint8_t dst_q;
             void* msg_ptr;
-            uint16_t msg_len;    
+            uint16_t msg_len;
+            bool enable_sleep;
         }; 
         // Bind Arguments
         struct 

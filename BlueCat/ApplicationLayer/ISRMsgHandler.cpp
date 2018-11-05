@@ -82,8 +82,7 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg) {
     char tmpChar;
     for (int i = 0; i < msg.length(); i++) {
         tmpChar = msg[i];
-        output_data_buffer_->Add((char *) &tmpChar);
-        // output_data_buffer_->Add((char *) &char(msg[i]));
+        output_data_buffer_->Add(tmpChar);
     }
 
     // Jumpstart output if necessary

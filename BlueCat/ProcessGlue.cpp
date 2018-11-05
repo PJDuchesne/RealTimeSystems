@@ -16,6 +16,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include <ISRLayer/Includes/GlobalConfig.h>
 #include <OSLayer/Includes/OperatingSystem.h>
+#include <OSLayer/Includes/PostOffice.h>
 
 void MonitorProcess() {
     std::cout << "[ProcessesGlue] Entering Monitor!\n";
@@ -77,6 +78,17 @@ void DummpyProcess2() {
 void DummpyProcess3() {
     std::cout << "[ProcessesGlue] Entering DummpyProcess3!\n";
 
+    // Buy a mailbox!
+    PBind(3, BIG_LETTER);
+
+    // Add a noticable delay
+    uint32_t counter = 0;
+    while (counter < 1000000) counter++;
+    std::cout << "[DummpyProcess3] FIRST CHECK\n";
+    counter = 0;
+    while (counter < 1000000) counter++;
+    std::cout << "[DummpyProcess3] SECOND CHECK\n";
+
     char tmpArray[] = { 'h','e','l','l','o','w','o','r','l','d' };
 
     PSend(3, 4, &tmpArray, 10);      // helloworld
@@ -91,24 +103,30 @@ void DummpyProcess3() {
 void DummpyProcess4() {
     std::cout << "[ProcessesGlue] Entering DummpyProcess4!\n";
 
+    // Buy a mailbox!
+    PBind(4, BIG_LETTER);
+
+    uint32_t counter = 0;
+    while (counter < 1000000) counter++;
+    std::cout << "[DummpyProcess4] FIRST CHECK\n";
+
     char* tmpArray = new char[256];
     uint8_t srq_q = 0;
     uint32_t msg_len = 0;
-    uint32_t return_value = 0;
+    uint32_t return_value = 100;
 
-    while (return_value == 0) {
-        return_value = PRecv(srq_q, (uint8_t) 4, tmpArray, msg_len);
-    }
-
+    return_value = PRecv(srq_q, (uint8_t) 4, tmpArray, msg_len);
+    assert(msg_len == 10);
     std::cout << "[DummpyProcess4] >>" << msg_len << "<<\n";
     PRecv(srq_q, (uint8_t) 4, tmpArray, msg_len);
+    assert(msg_len == 5);
     std::cout << "[DummpyProcess4] >>" << msg_len << "<<\n";
+    msg_len = 0;
     PRecv(srq_q, (uint8_t) 4, tmpArray, msg_len);
+    assert(msg_len == 5);
     std::cout << "[DummpyProcess4] >>" << msg_len << "<<\n";
 
-
-    // Handle msg here
-
+    delete[] tmpArray;
 
     while (1) {
 

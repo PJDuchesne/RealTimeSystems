@@ -48,9 +48,9 @@ static PostOffice* PostOfficeInstance;
 void KNice(priority_t new_priority);
 void KTerminateProcess();
 
-bool KSend(kcallargs_t *kcaptr);
-bool KRecv(kcallargs_t *kcaptr);
-bool KBind(kcallargs_t *kcaptr);
+kernel_responses_t KSend(kcallargs_t *kcaptr);
+kernel_responses_t KRecv(kcallargs_t *kcaptr);
+kernel_responses_t KBind(kcallargs_t *kcaptr);
 
 // PSpace calls used to pass to control kernel via SVC()
 uint32_t PGetID();
@@ -58,7 +58,7 @@ void PNice(priority_t priority);
 void PTerminateProcess();
 
 bool PSend(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len);
-bool PRecv(uint8_t& src_q, uint8_t dst_q, void* msg_ptr, uint32_t& msg_len);
+bool PRecv(uint8_t& src_q, uint8_t dst_q, void* msg_ptr, uint32_t& msg_len, bool enable_sleep = true);
 bool PBind(uint8_t req_q, letter_size_t size);
 
 #endif /* KernelFunctions_H */

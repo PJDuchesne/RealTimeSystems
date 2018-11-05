@@ -94,6 +94,7 @@ void CommandCenter::DiagCommand(std::string arg) {
     std::string DisplayString;
     OSInstance_->DiagnosticsDisplay(DisplayString);
     MonitorInstance_->PrintMsg(DisplayString);
+    // std::cout << DisplayString;
 }
 
 /*

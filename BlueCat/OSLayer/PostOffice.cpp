@@ -21,15 +21,25 @@ PostOffice *PostOffice::PostOfficeInstance_ = 0;
 
 // TODO: PCB should not be an input value, that should simply 
 //   be a "GET Current PCB from 'running' value
-bool PostOffice::BuyMailbox(uint8_t mailbox_no, letter_size_t letter_size, pcb_t* TMP_input_pcb) {
+bool PostOffice::BuyMailbox(uint8_t mailbox_no, letter_size_t letter_size, pcb_t* current_pcb) {
     // Return false if the mailbox is already in use
     mailbox_t* relevant_mailbox = &Mailboxes_[mailbox_no];
 
     if (Mailboxes_[mailbox_no].currently_owned == true) return false;
 
+    // Check if the process is allowed to buy more mailboxes
+    bool full_flag = true;
+    for (uint8_t i = 0; i < 3; i++) {
+        if (current_pcb->mailbox_numbers[i] == 0) {
+            current_pcb->mailbox_numbers[i] = mailbox_no;
+            full_flag = false;
+        }
+    }
+    if (full_flag) return false;
+
     // Else, buy it!
     relevant_mailbox->currently_owned = true;
-    relevant_mailbox->owner_pcb = TMP_input_pcb;
+    relevant_mailbox->owner_pcb = current_pcb;
     relevant_mailbox->letter_size = letter_size;
 
     void* tmp;
@@ -51,10 +61,33 @@ bool PostOffice::BuyMailbox(uint8_t mailbox_no, letter_size_t letter_size, pcb_t
     return true;
 }
 
+bool PostOffice::SellMailbox(uint8_t mailbox_no, pcb_t* current_pcb) {
+    // Return false if the mailbox is not currently in use
+    mailbox_t* relevant_mailbox = &Mailboxes_[mailbox_no];
+    if (Mailboxes_[mailbox_no].currently_owned == false) return false;    
+
+    // Else, sell it!
+    relevant_mailbox->currently_owned = false;
+    switch(relevant_mailbox->letter_size) {
+        case ZERO_CHAR:
+            delete (RingBuffer<empty_msg_t> *)(relevant_mailbox->mailbox_ptr);
+            break;
+        case ONE_CHAR:
+            delete (RingBuffer<one_char_msg_t> *)(relevant_mailbox->mailbox_ptr);
+            break;
+        case BIG_LETTER:
+            delete (RingBuffer<big_letter_msg> *)(relevant_mailbox->mailbox_ptr);
+            break;
+        default:
+            // TODO: ERROR STATE HERE
+            break;
+    }
+    return true;
+}
+
 mailbox_t* PostOffice::GetMailBox(uint8_t mailbox_no) {
     return &Mailboxes_[mailbox_no];
 }
-
 
 /*
     Function: GetPostOffice

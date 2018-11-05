@@ -69,7 +69,6 @@ class PostOffice;
 // Edited Version (In case that is ever relevant?)
 void SVCall()
 {
-
     static bool firstSVCcall = true;
 
     /* Supervisor call (trap) entry point
@@ -106,9 +105,10 @@ void SVCall()
         __asm("   BL  SVCHandler"); /* r0 Is PSP */
 
         /* Restore r4..r11 from trapping process stack  */
-        __asm("   mrs   r0,psp");
-        __asm("   ldmia   r0!,{r4-r11}"); /* Load multiple, increment after */
-        __asm("   msr psp,r0");
+        restore_registers();
+        // __asm("   mrs   r0,psp");
+        // __asm("   ldmia   r0!,{r4-r11}"); /* Load multiple, increment after */
+        // __asm("   msr psp,r0");
 
         // Force a PSP return??
         // __asm("   POP {r7}"); /* R7 is already clobbered */
@@ -219,9 +219,7 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
                 // TODO: Some sort of real error handling here
                 kcaptr -> rtnvalue = 0;
         }
-
     }
-
 }
 
 uint32_t get_PSP(void)
@@ -287,7 +285,6 @@ void assignR7(volatile uint32_t data)
     __asm(" mov r7,r0");
 }
 
-
 void KNice(priority_t new_priority) {
     pcb_t* CurrentPCB = OSInstance->GetCurrentPCB();
 
@@ -314,6 +311,12 @@ void KTerminateProcess() {
     // Deattach PCB
     OSInstance->DeleteCurrentPCB();
 
+    // Delete any mailboxes that the PCB owns
+    for (uint8_t i = 0; i < 3; i++) {
+        if (CurrentPCB->mailbox_numbers[i] == 0) break;
+        else PostOfficeInstance->SellMailbox(CurrentPCB->mailbox_numbers[i], CurrentPCB);
+    }
+
     // Deallocate Process Stack
     // Deallocate PCB
     delete[] CurrentPCB->stack_start;
@@ -323,18 +326,18 @@ void KTerminateProcess() {
     set_PSP(OSInstance->GetNextPCB()->stack_ptr);
 }
 
-bool KSend(kcallargs_t *kcaptr) {
+kernel_responses_t KSend(kcallargs_t *kcaptr) {
     // Get requested mailbox
     mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q);
 
     // Check if it is in use
-    if (requested_mailbox->currently_owned == false) return false;
+    if (requested_mailbox->currently_owned == false) return FAILURE_KR;
 
     // Check if the current PCB owns owns the "SRC_Q" mailbox (For replies) and is in use
-    // TODO: Let this be optional! So processes can send anonymous messages
+    // TODO: Let this be optional! So processes (or the kernel itself) can send anonymous messages
     mailbox_t* owners_mailbox = PostOfficeInstance->GetMailBox(kcaptr->src_q);
-    if (owners_mailbox->currently_owned == false) return false;
-    if (OSInstance->GetCurrentPCB() != owners_mailbox->owner_pcb) return false;
+    if (owners_mailbox->currently_owned == false) return FAILURE_KR;
+    if (OSInstance->GetCurrentPCB() != owners_mailbox->owner_pcb) return FAILURE_KR;
 
     // Add message to mailbox!
     uint16_t actual_msg_len = MIN(kcaptr->msg_len, (uint16_t)(requested_mailbox->letter_size));
@@ -357,7 +360,7 @@ bool KSend(kcallargs_t *kcaptr) {
         requested_mailbox->kcaptr->src_q = kcaptr->src_q;
 
         switch(requested_mailbox->letter_size) {
-            case ZERO_CHAR: // Not forgotten, just empty. This will be optimized away
+            case ZERO_CHAR: // Not forgotten, just empty. This will (Probably) be optimized away
                 break;
             case ONE_CHAR:
                 ((char *)(requested_mailbox->kcaptr->msg_ptr))[0] = ((char *)(kcaptr->msg_ptr))[0];
@@ -374,19 +377,18 @@ bool KSend(kcallargs_t *kcaptr) {
     else {
         switch (requested_mailbox->letter_size) {
             case ZERO_CHAR:
-                if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
+                if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return FAILURE_KR;
                 ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
                 break;
             case ONE_CHAR:
-                if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
+                if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return FAILURE_KR;
                 (input_msg.msg)[0] = ((char*)(kcaptr->msg_ptr))[0];
                 ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
                 break;
             case BIG_LETTER:
-                if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return false;
+                if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return FAILURE_KR;
                 // TODO: Fix the fact that this is copying twice by adding a new "Add" function that directly copies it into the
                 memcpy(input_msg.msg, kcaptr->msg_ptr, actual_msg_len);
-                // std::memcpy(kcaptr->msg_ptr, tmp, actual_msg_len);
                 ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
                 break;
             default:
@@ -394,29 +396,31 @@ bool KSend(kcallargs_t *kcaptr) {
                 break;
         }
     }
-    return true;
+    return SUCCESS_KR;
 }
 
-bool KRecv(kcallargs_t *kcaptr) {
+kernel_responses_t KRecv(kcallargs_t *kcaptr) {
     // Get requested mailbox
     mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q);
 
     // Check if it is in use
-    if (requested_mailbox->currently_owned == false) return false;
+    if (requested_mailbox->currently_owned == false) return FAILURE_KR;
 
     // Check if this is your mailbox!
-    if (OSInstance->GetCurrentPCB() != requested_mailbox->owner_pcb) return false;
+    if (OSInstance->GetCurrentPCB() != requested_mailbox->owner_pcb) return FAILURE_KR;
 
     // Fetch mail! (Using different structures)
-    static empty_msg_t recv_msg0;
-    static one_char_msg_t recv_msg1;
-    static big_letter_msg_t recv_msg256;
+    empty_msg_t recv_msg0;
+    one_char_msg_t recv_msg1;
+    big_letter_msg_t recv_msg256;
 
     bool put_to_sleep = false;
     switch (requested_mailbox->letter_size) {
     case ZERO_CHAR:
-        // Get for the sake of getting, but ignore result
-        if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) put_to_sleep = true;
+        if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
+            if (kcaptr->enable_sleep) put_to_sleep = true;
+            else kcaptr->rtnvalue = NO_MSG_KR;
+        } 
         else {
             recv_msg0 = ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
             kcaptr->msg_len = recv_msg0.msg_size;
@@ -424,7 +428,10 @@ bool KRecv(kcallargs_t *kcaptr) {
         }
         break;
     case ONE_CHAR:
-        if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) put_to_sleep = true;
+        if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
+            if (kcaptr->enable_sleep) put_to_sleep = true;
+            else kcaptr->rtnvalue = NO_MSG_KR;
+        } 
         else {
             recv_msg1 = ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
             kcaptr->msg_len = recv_msg1.msg_size;
@@ -433,7 +440,10 @@ bool KRecv(kcallargs_t *kcaptr) {
         }
         break;
     case BIG_LETTER:
-        if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) put_to_sleep = true;
+        if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
+            if (kcaptr->enable_sleep) put_to_sleep = true;
+            else kcaptr->rtnvalue = NO_MSG_KR;
+        } 
         else {
             recv_msg256 = ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
             kcaptr->msg_len = recv_msg256.msg_size;
@@ -446,6 +456,7 @@ bool KRecv(kcallargs_t *kcaptr) {
         break;
     }
 
+    // If required, put message to sleep
     if (put_to_sleep) {
         // Update mailbox state
         requested_mailbox->currently_blocked = true;
@@ -457,22 +468,22 @@ bool KRecv(kcallargs_t *kcaptr) {
         // Store current PSP
         requested_mailbox->owner_pcb->stack_ptr = get_PSP();
 
-        // Set PCB to next process
+        // Set PSP to next process
         set_PSP(OSInstance->GetNextPCB()->stack_ptr);
     }
 
-    return true;
+    return SUCCESS_KR;
 }
 
-bool KBind(kcallargs_t *kcaptr) {
+kernel_responses_t KBind(kcallargs_t *kcaptr) {
     // Get requested mailbox
     mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q);
 
     // Check if it is in use
-    if (requested_mailbox->currently_owned == false) return false;
+    if (requested_mailbox->currently_owned == true) return FAILURE_KR;
 
     // Buy a mailbox!
-    return PostOfficeInstance->BuyMailbox(kcaptr->req_q, kcaptr->q_size, OSInstance->GetCurrentPCB());
+    return (kernel_responses_t) PostOfficeInstance->BuyMailbox(kcaptr->req_q, kcaptr->q_size, OSInstance->GetCurrentPCB());
 }
 
 // The following are performed within PSP Space and are not actually kernel calls,
@@ -514,11 +525,12 @@ bool PSend(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len) {
     return KernelArgs.rtnvalue;
 }
 
-bool PRecv(uint8_t& src_q, uint8_t dst_q, void* msg_ptr, uint32_t& msg_len) {
+bool PRecv(uint8_t& src_q, uint8_t dst_q, void* msg_ptr, uint32_t& msg_len, bool enable_sleep) {
     volatile kcallargs_t KernelArgs;
     KernelArgs.kcode = RECV;
     KernelArgs.dst_q = dst_q;
     KernelArgs.msg_ptr = msg_ptr;
+    KernelArgs.enable_sleep = enable_sleep;
     assignR7((uint32_t) &KernelArgs);
     SVC();
 
@@ -532,7 +544,9 @@ bool PRecv(uint8_t& src_q, uint8_t dst_q, void* msg_ptr, uint32_t& msg_len) {
 
 bool PBind(uint8_t req_q, letter_size_t size) {
     volatile kcallargs_t KernelArgs;
-    KernelArgs.kcode = BIND;
+    KernelArgs.kcode  = BIND;
+    KernelArgs.req_q  = req_q;
+    KernelArgs.q_size = size;
     assignR7((uint32_t) &KernelArgs);
     SVC();
 

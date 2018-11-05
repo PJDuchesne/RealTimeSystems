@@ -36,7 +36,9 @@ class PostOffice {
         // BindMailbox
         bool BuyMailbox(uint8_t mailbox_no, 
                         letter_size_t letter_size,
-                        pcb_t* TMP_input_pcb);
+                        pcb_t* current_pcb);
+
+        bool SellMailbox(uint8_t mailbox_no, pcb_t* current_pcb);
 
         mailbox_t* GetMailBox(uint8_t mailbox_no);
 

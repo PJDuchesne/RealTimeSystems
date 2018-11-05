@@ -78,15 +78,16 @@ void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t pr
     // Add to PCBList queue
     QueuePCB(new_pcb);
 
-    // FOR TESTING MESSAGING: Manually bind messages here
-    static uint8_t QID_Counter = 1;
-    PostOfficeInstance_->BuyMailbox(QID_Counter++, BIG_LETTER, new_pcb);
+    // TODO: FOR TESTING MESSAGING: Manually bind messages here
+    // static uint8_t QID_Counter = 1;
+    // if (QID_Counter > 2) PostOfficeInstance_->BuyMailbox(QID_Counter, BIG_LETTER, new_pcb);
+    // QID_Counter++;
 }
 
 void OperatingSystem::InitStackFrame(stack_frame_t* sf) {
     sf->r0 = 0;
     sf->r1 = 1;
-    sf->r2 = 77;
+    sf->r2 = 2;
     sf->r3 = 3;
     sf->r4 = 4;
     sf->r5 = 5;
@@ -121,6 +122,7 @@ void OperatingSystem::QuantumTick() {
     // Fetch CurrentPCB for function
     pcb_t* CurrentPCB = TaskScheduler_->GetCurrentPCB();
 
+    // For debugging / statistics
     CurrentPCB->q_count++;
 
     // 1: Save registers
