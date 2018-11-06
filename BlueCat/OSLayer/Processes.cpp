@@ -240,7 +240,10 @@ void SendConstantRate() {
 
         // Print message
         PSend(my_mailbox, recv_mailbox, msgArray[arrayCnt++], 6);
-        if (arrayCnt > 3) arrayCnt = 0;
+
+        // Reset loop or go forever
+        // if (arrayCnt > 3) arrayCnt = 0;
+        if (arrayCnt > 3) break;
     }
 }
 

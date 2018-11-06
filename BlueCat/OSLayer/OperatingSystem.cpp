@@ -35,7 +35,7 @@ OperatingSystem::OperatingSystem() {
     Brief: Initializes the OS by registering processes and then kickstarting the first in queue.
 */
 void OperatingSystem::Inialize() {
-    uint8_t test_case = 6;
+    uint8_t test_case = 0;
 
     // Initialize ISR_MSG_Handler Singleton
     ISRMsgHandler::GetISRMsgHandler();
