@@ -76,9 +76,19 @@ SysTickDriver::SysTickDriver() {
 void SysTickDriver::SysTickHandler() {
     static uint8_t CentiSecondCounter = 0;
 
+    static kcallargs_t SysTickArguments;
+    static bool first_time = true;
+
+    if (first_time) {
+        SysTickArguments.src_q = KERNEL_MB;
+        SysTickArguments.dst_q = ISR_MSG_HANDLER_MB;
+        SysTickArguments.msg_len = 0;
+        first_time = false;
+    }
+
     // Queue message for time application
     if (CentiSecondCounter++ >= CENTI_TO_DECI_SECONDS) {
-        KSendSysTickFromKernel();
+        KSend(&SysTickArguments);
         CentiSecondCounter = 0;
     }
 

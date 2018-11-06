@@ -18,47 +18,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <ISRLayer/Includes/GlobalConfig.h>
 
 // Hughes version
-extern "C" void SVCall()
-{
-
-    /* Supervisor call (trap) entry point
-       Using MSP - trapping process either MSP or PSP (specified in LR)
-       Source is specified in LR: F9 (MSP) or FD (PSP)
-       Save r4-r11 on trapping process stack (MSP or PSP)
-       Restore r4-r11 from trapping process stack to CPU
-       SVCHandler is called with r0 equal to MSP or PSP to access any arguments
-    */
-
-    /* Save LR for return via MSP or PSP */
-    __asm("   PUSH  {LR}");
-
-    /* Trapping source: MSP or PSP? */
-    __asm("   TST   LR,#4");   // Bit #4 indicates MSP (0) or PSP (1) 
-    __asm("   BNE   RtnViaPSP");
-
-     /* Trapping source is MSP - save r4-r11 on stack (default, so just push)  */
-    __asm("   PUSH  {r4-r11}");
-    __asm("   MRS r0,msp");
-    __asm("   BL  SVCHandler"); /* r0 is MSP */
-    __asm("   POP {r4-r11}");
-    __asm("   POP   {PC}");
-
-    /* Trapping source is PSP - save r4-r11 on psp stack (MSP is active stack) */
-    __asm("RtnViaPSP:");
-    save_registers();
-    __asm("   BL  SVCHandler"); /* r0 Is PSP */
-
-    /* Restore r4..r11 from trapping process stack  */
-    restore_registers();
-
-    __asm("   POP   {PC}");
-
-}
-
-// Edited Version (In case that is ever relevant?)
-// void SVCall()
+// extern "C" void SVCall()
 // {
-//     static bool firstSVCcall = true;
 
 //     /* Supervisor call (trap) entry point
 //        Using MSP - trapping process either MSP or PSP (specified in LR)
@@ -71,33 +32,75 @@ extern "C" void SVCall()
 //     /* Save LR for return via MSP or PSP */
 //     __asm("   PUSH  {LR}");
 
-//     // Not letting SVCall decide where it came from, I know where it came from
 //     /* Trapping source: MSP or PSP? */
-//     // __asm("   TST   LR,#4");   // Bit #4 indicates MSP (0) or PSP (1) 
-//     // __asm("   BNE   RtnViaPSP");
+//     __asm("   TST   LR,#4");   // Bit #4 indicates MSP (0) or PSP (1) 
+//     __asm("   BNE   RtnViaPSP");
 
-//     if (firstSVCcall) {
-//         firstSVCcall = false;
-//         /* Trapping source is MSP - save r4-r11 on stack (default, so just push) */
-//         __asm("   PUSH  {r4-r11}");
-//         __asm("   MRS r0,msp");
-//         __asm("   BL  SVCHandler"); /* r0 is MSP */
-//         __asm("   POP {r4-r11}");
-//         __asm("   POP   {PC}");
-//     }
-//     else {
-//         /* Trapping source is PSP - save r4-r11 on psp stack (MSP is active stack) */
-//         __asm("RtnViaPSP:");
-//         save_registers();
-//         __asm("   BL  SVCHandler"); /* r0 Is PSP */
+//      /* Trapping source is MSP - save r4-r11 on stack (default, so just push)  */
+//     __asm("   PUSH  {r4-r11}");
+//     __asm("   MRS r0,msp");
+//     __asm("   BL  SVCHandler"); /* r0 is MSP */
+//     __asm("   POP {r4-r11}");
+//     __asm("   POP   {PC}");
 
-//         /* Restore r4..r11 from trapping process stack  */
-//         restore_registers();
+//     /* Trapping source is PSP - save r4-r11 on psp stack (MSP is active stack) */
+//     __asm("RtnViaPSP:");
+//     save_registers();
+//     __asm("   BL  SVCHandler"); /* r0 Is PSP */
 
-//         __asm("   POP   {PC}");
-//     }
+//     /* Restore r4..r11 from trapping process stack  */
+//     restore_registers();
+
+//     __asm("   POP   {PC}");
 
 // }
+
+// Edited Version:
+/*
+    This is done because porting this to C++ requires a glue layer, which means this function call
+    in particular occationally thinks it's an MSP call, when in fact is is a PSP call. This causes
+    registers to save improperly and everything gets mucked up. This is a quick and dirty fix
+    that prevents any future usage of SVCalls from MSP space, but is fully functional for this
+    OS implementation
+*/
+void SVCall()
+{
+    static bool firstSVCcall = true;
+
+    /* Supervisor call (trap) entry point
+       Using MSP - trapping process either MSP or PSP (specified in LR)
+       Source is specified in LR: F9 (MSP) or FD (PSP)
+       Save r4-r11 on trapping process stack (MSP or PSP)
+       Restore r4-r11 from trapping process stack to CPU
+       SVCHandler is called with r0 equal to MSP or PSP to access any arguments
+    */
+
+    /* Save LR for return via MSP or PSP */
+    __asm("   PUSH  {LR}");
+
+    // Not letting SVCall decide where it came from, I know where it came from
+    if (firstSVCcall) {
+        firstSVCcall = false;
+        /* Trapping source is MSP - save r4-r11 on stack (default, so just push) */
+        __asm("   PUSH  {r4-r11}");
+        __asm("   MRS r0,msp");
+        __asm("   BL  SVCHandler"); /* r0 is MSP */
+        __asm("   POP {r4-r11}");
+        __asm("   POP   {PC}");
+    }
+    else {
+        /* Trapping source is PSP - save r4-r11 on psp stack (MSP is active stack) */
+        __asm("RtnViaPSP:");
+        save_registers();
+        __asm("   BL  SVCHandler"); /* r0 Is PSP */
+
+        /* Restore r4..r11 from trapping process stack  */
+        restore_registers();
+
+        __asm("   POP   {PC}");
+    }
+
+}
 
 extern "C" void SVCHandler(struct stack_frame *argptr)
 {

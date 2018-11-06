@@ -142,7 +142,7 @@ typedef struct kcallargs
     uint32_t rtnvalue;
     union {
         // General Argument input
-        uint32_t arg1; // 4 Bytes
+        uint32_t arg1; // 4 Bytes // TODO: remove?
         // Priority Argument
         priority_t priority; // 4 Bytes
         // Send & Recv Arguments

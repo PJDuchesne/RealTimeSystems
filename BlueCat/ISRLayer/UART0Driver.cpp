@@ -86,11 +86,28 @@ UART0Driver::UART0Driver() {
                           outputting the first character 
 */
 void UART0Driver::UART0Handler() {
+
+    // Set up arguments for future use
+    static kcallargs_t UARTArguments;
+    static bool first_time = true;
+    static char uart_data;
+
+    if (first_time) {
+        UARTArguments.src_q = KERNEL_MB;
+        UARTArguments.dst_q = ISR_MSG_HANDLER_MB;
+        UARTArguments.msg_len = 1;
+        UARTArguments.msg_ptr = &uart_data;
+        first_time = false;
+    }
+
     // Check if RECV Done
     if (UART0_MIS_R & UART_INT_RX)
     {
         // Queue the msg
-        KSendUARTFromKernel(UART0_DR_R);
+        uart_data = UART0_DR_R;
+        KSend(&UARTArguments);
+
+        // KSendUARTFromKernel(UART0_DR_R);
 
         /* Clear interrupt */
         UART0_ICR_R |= UART_INT_RX;

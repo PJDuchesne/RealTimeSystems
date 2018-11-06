@@ -81,6 +81,7 @@ pcb_t* TaskScheduler::GetCurrentPCB() {
     Brief: Finds the current PCB in queue by iterating from the highest priority to lowest and deletes it
            Note: This assumes that the kernel hasn't mucked around with queues during THIS quantum
 */
+// void TaskScheduler::DeleteCurrentPCB(pcb_t* current_pcb) {
 void TaskScheduler::DeleteCurrentPCB() {
     for (int i = MAX_PRIORITY; i >= 0; i--) {
         if (!PCBLists_[i]->IsEmpty()) {

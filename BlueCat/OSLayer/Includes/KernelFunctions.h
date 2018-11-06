@@ -24,7 +24,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 class OperatingSystem;
 class PostOffice;
 
-extern "C" void SVCall();
+// extern "C" void SVCall();
+void SVCall();
 extern "C" void SVCHandler(struct stack_frame *argptr);
 
 void set_LR(volatile uint32_t);

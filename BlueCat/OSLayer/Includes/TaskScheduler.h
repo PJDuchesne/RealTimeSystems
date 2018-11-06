@@ -30,6 +30,7 @@ class TaskScheduler {
         void AddProcess(pcb_t* new_pcb);
         pcb_t* GetNextPCB();
         pcb_t* GetCurrentPCB();
+        // void DeleteCurrentPCB(pcb_t* current_pcb);
         void DeleteCurrentPCB();
 
         void DiagnosticsDisplay(std::string &display_output);

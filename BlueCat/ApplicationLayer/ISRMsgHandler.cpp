@@ -34,6 +34,9 @@ void ISRMsgHandler::SingletonGrab() {
            This function also initializes the uart_output_idle_ to false.
 */
 ISRMsgHandler::ISRMsgHandler() {
+    // PostOffice::GetPostOffice()->BuyMailbox(ISR_MSG_HANDLER_MB, ONE_CHAR, 0, ISR_QUEUE_SIZE);
+    // PBind(ISR_MSG_HANDLER_MB, ONE_CHAR, ISR_QUEUE_SIZE);
+
     output_data_buffer_ = new RingBuffer<char>(OUTPUT_DATA_BUFFER_SIZE);
 
     uart_output_idle_ = true;
@@ -56,7 +59,8 @@ ISRMsgHandler::~ISRMsgHandler() {
 void ISRMsgHandler::GetFromISRQueue(MsgType_t &type, char &data) {
     uint8_t src_q;
     uint32_t msg_len;
-    if (PRecv(src_q, ISR_MSG_HANDLER_MB, &data, msg_len, false)) {
+    // if (PRecv(src_q, ISR_MSG_HANDLER_MB, &data, msg_len, false)) {
+    if (PRecv(src_q, ISR_MSG_HANDLER_MB, &data, msg_len)) {
         assert(msg_len <= 1);
         type = ((msg_len == 1) ? UART : SYSTICK);
     }

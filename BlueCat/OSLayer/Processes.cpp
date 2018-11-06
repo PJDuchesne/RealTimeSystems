@@ -19,9 +19,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 void MonitorProcessEntry() {
     std::cout << "[MonitorProcessEntry] Starting!\n";
 
+    // TODO: Remove
     // Bind queues for the monitor's message handler
-    PBind(MONITOR_MB, BIG_LETTER);
-    PBind(ISR_MSG_HANDLER_MB, ONE_CHAR, ISR_QUEUE_SIZE);
+    // PBind(MONITOR_MB, BIG_LETTER);
+    // PBind(ISR_MSG_HANDLER_MB, ONE_CHAR, ISR_QUEUE_SIZE);
 
     // Pass Control to Monitor
     Monitor::GetMonitor()->CentralLoop();
@@ -223,10 +224,11 @@ void IdleProcess() {
     uint8_t spinner_i = 0;
     while (1) {
         delay_cnt = 0;
-        while (delay_cnt++ < LONG_WAIT) {}
+        // TODO: move back
+        while (delay_cnt++ < 10*LONG_WAIT) {}
 
         ISRMsgHandlerInstance_->QueueOutputMsg("\e[1;80H" + spinner_parts[spinner_i++]);
 
-        if (spinner_i >= 3) spinner_i = 0;
+        if (spinner_i > 3) spinner_i = 0;
     }
 }

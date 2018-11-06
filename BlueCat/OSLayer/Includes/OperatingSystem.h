@@ -37,6 +37,7 @@ class OperatingSystem {
         static OperatingSystem* OperatingSystemInstance_;
         TaskScheduler* TaskScheduler_;
         PostOffice* PostOfficeInstance_;
+        pcb_t* current_pcb_;
 
         void RegProc(process_t entry_point, uint32_t pid, priority_t priority, std::string name);
         void InitStackFrame(stack_frame_t* new_sf);

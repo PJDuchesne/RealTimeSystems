@@ -25,5 +25,5 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 int main(void)
 {
     // Pass control to OS
-     OperatingSystem::GetOperatingSystem()->Inialize();
+    OperatingSystem::GetOperatingSystem()->Inialize();
 }

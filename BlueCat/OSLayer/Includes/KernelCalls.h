@@ -29,8 +29,6 @@ static OperatingSystem* OSInstance;
 static PostOffice* PostOfficeInstance;
 
 void KSingletonGrab();
-void KSendSysTickFromKernel();
-void KSendUARTFromKernel(char msg);
 
 void KNice(priority_t new_priority);
 void KTerminateProcess();

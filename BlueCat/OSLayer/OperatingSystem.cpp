@@ -35,10 +35,14 @@ OperatingSystem::OperatingSystem() {
     Brief: Initializes the OS by registering processes and then kickstarting the first in queue.
 */
 void OperatingSystem::Inialize() {
-    uint8_t test_case = 1;
+    uint8_t test_case = 4;
+
+    // Initialize ISR_MSG_Handler Singleton
+    ISRMsgHandler::GetISRMsgHandler();
 
     // Always add idle process to lowest priority
-    RegProc(&IdleProcess, 001, P_ONE, "IdleProcess");
+    // RegProc(&IdleProcess, 001, P_ONE, "IdleProcess");
+    RegProc(&EndlessProcess, 001, P_ONE, "IdleProcess");
 
     switch (test_case) {
         case 1: // Default running with monitor and several empty processes
@@ -47,7 +51,7 @@ void OperatingSystem::Inialize() {
             RegProc(&EndlessProcess, 400, P_FOUR,  "Endless_4");
             RegProc(&EndlessProcess, 500, P_FIVE,  "Endless_5");
             RegProc(&EndlessProcess, 600, P_FIVE,  "Endless_6");
-            RegProc(&MonitorProcessEntry, 700, P_FIVE, "Monitor");
+            RegProc(&MonitorProcessEntry, 123, P_FIVE, "Monitor");
             break;
         case 2: // Testing Termination
             RegProc(&ShortProcess, 300, P_THREE, "Endless_3");
@@ -57,18 +61,18 @@ void OperatingSystem::Inialize() {
 
             // TODO: Make 5 and then drop to 2 after binding
             // Add monitor to catch diagnostics messages
-            RegProc(&MonitorProcessEntry, 700, P_TWO, "Monitor");
+            RegProc(&MonitorProcessEntry, 123, P_TWO, "Monitor");
 
             break;
         case 3: // Testing NICE
             RegProc(&NiceTestProcess, 100, P_FIVE, "NiceTestProcess");
 
             // Add monitor to catch diagnostics messages
-            RegProc(&MonitorProcessEntry, 700, P_TWO, "Monitor");
+            RegProc(&MonitorProcessEntry, 123, P_TWO, "Monitor");
             break;
         case 4: // Test non-blocking message passing (i.e. monitor?)
+            RegProc(&MonitorProcessEntry, 123, P_TWO, "Monitor");
 
-        
             break;
         case 5: // Test blocking message passing
             RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
@@ -163,6 +167,7 @@ void OperatingSystem::InitStackFrame(stack_frame_t* sf) {
 */
 void OperatingSystem::KickStart() {
     set_PSP(GetNextPCB()->stack_ptr);
+    // set_PSP(GetNextPCB()->stack_ptr);
     SVC();
 }
 
@@ -172,7 +177,8 @@ void OperatingSystem::KickStart() {
     Brief: Getter function for the current PCB by querying the TaskScheduler.
 */
 pcb_t* OperatingSystem::GetCurrentPCB() {
-    return TaskScheduler_->GetCurrentPCB();
+    return current_pcb_;
+    // return TaskScheduler_->GetCurrentPCB();
 }
 
 /*
@@ -181,7 +187,8 @@ pcb_t* OperatingSystem::GetCurrentPCB() {
     Brief: Getter function for the next PCB by querying the TaskScheduler.
 */
 pcb_t* OperatingSystem::GetNextPCB() {
-    return TaskScheduler_->GetNextPCB();
+    current_pcb_ = TaskScheduler_->GetNextPCB();
+    return current_pcb_;
 }
 
 /*
@@ -190,6 +197,7 @@ pcb_t* OperatingSystem::GetNextPCB() {
 */
 void OperatingSystem::DeleteCurrentPCB() {
     TaskScheduler_->DeleteCurrentPCB();
+    // TaskScheduler_->DeleteCurrentPCB(current_pcb_);
 }
 
 /*
@@ -199,24 +207,23 @@ void OperatingSystem::DeleteCurrentPCB() {
 */
 void OperatingSystem::QuantumTick() {
     // Fetch CurrentPCB for function
-    pcb_t* CurrentPCB = TaskScheduler_->GetCurrentPCB();
+    // pcb_t* CurrentPCB = TaskScheduler_->GetCurrentPCB();
 
     // For debugging / statistics
-    CurrentPCB->q_count++;
+    current_pcb_->q_count++;
 
     // 1: Save registers
     save_registers();
     // 2: Set Stack Pointer on current PCB
-    CurrentPCB->stack_ptr = get_PSP();
+    current_pcb_->stack_ptr = get_PSP();
     // 3: Get new process PCB and set stack pointer from it
-    CurrentPCB = GetNextPCB();
-    set_PSP(CurrentPCB->stack_ptr);
+    set_PSP(GetNextPCB()->stack_ptr);
     // 4: Restore_Registers
     restore_registers();
 }
 
 /*
-    Function: foo
+    Function: QueuePCB
     Input: new_pcb: Pointer to the PCB to queue
     Brief: Queues the provided PCB by passing it down to the TaskScheduler
 */
