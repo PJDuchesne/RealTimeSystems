@@ -17,44 +17,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "Includes/KernelFunctions.h"
 #include <ISRLayer/Includes/GlobalConfig.h>
 
-// Hughes version
-// extern "C" void SVCall()
-// {
-
-//     /* Supervisor call (trap) entry point
-//        Using MSP - trapping process either MSP or PSP (specified in LR)
-//        Source is specified in LR: F9 (MSP) or FD (PSP)
-//        Save r4-r11 on trapping process stack (MSP or PSP)
-//        Restore r4-r11 from trapping process stack to CPU
-//        SVCHandler is called with r0 equal to MSP or PSP to access any arguments
-//     */
-
-//     /* Save LR for return via MSP or PSP */
-//     __asm("   PUSH  {LR}");
-
-//     /* Trapping source: MSP or PSP? */
-//     __asm("   TST   LR,#4");   // Bit #4 indicates MSP (0) or PSP (1) 
-//     __asm("   BNE   RtnViaPSP");
-
-//      /* Trapping source is MSP - save r4-r11 on stack (default, so just push)  */
-//     __asm("   PUSH  {r4-r11}");
-//     __asm("   MRS r0,msp");
-//     __asm("   BL  SVCHandler"); /* r0 is MSP */
-//     __asm("   POP {r4-r11}");
-//     __asm("   POP   {PC}");
-
-//     /* Trapping source is PSP - save r4-r11 on psp stack (MSP is active stack) */
-//     __asm("RtnViaPSP:");
-//     save_registers();
-//     __asm("   BL  SVCHandler"); /* r0 Is PSP */
-
-//     /* Restore r4..r11 from trapping process stack  */
-//     restore_registers();
-
-//     __asm("   POP   {PC}");
-
-// }
-
 // Edited Version:
 /*
     This is done because porting this to C++ requires a glue layer, which means this function call
@@ -127,8 +89,6 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
 
     if (firstSVCcall)
     {
-        std::cout << "[KernelFunctions] SVCHandler: First Call\n";
-
         // Set singletons pointers for use in future KernelCalls
         KSingletonGrab();
 

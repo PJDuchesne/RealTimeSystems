@@ -20,9 +20,9 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <ISRLayer/Includes/GlobalConfig.h>
 #include <OSLayer/Includes/OperatingSystem.h>
 
-#define TINY_WAIT  500000	// ~1 second alone
-#define SHORT_WAIT 1000000  // ~5 seconds alone
-#define LONG_WAIT  3000000	// ~15 seconds alone
+#define TINY_WAIT  500000
+#define SHORT_WAIT 1000000
+#define LONG_WAIT  3000000
 
 void MonitorProcessEntry();
 
@@ -32,42 +32,14 @@ void LongProcess();
 
 void NiceTestProcess();
 
-void DummpyProcess3();
-void DummpyProcess4();
+void SendProcess();
+void RecvProcess();
+
+void SendConstantRate();
+void RecvNonBlockingProcess();
 
 void ReverseString();
 
 void IdleProcess();
-
-// TESTPLAN RUNDOWN:
-/*
-
-1) Solo Monitor with full functionality
-2) Duo: Monitor + Empty Function to demonstrate switching of same priority
-3) Duo: Monitor + ~10 second function at higher priority to demonstrate 
-                    termination and activation of monitor
-4) Hop/Jump: 2 processes at higher priorities than monitor jumping to lower levels 
-5) Message Blocking:
-6) 
-7)
-8)
-9)
-10)
-
-*/
-
-/*
-
-Major Components of A2
-1) Process Switching
-2) Process Priority
-3) GETID
-4) NICE
-5) Process Termination
-6) Message passing
-    - Blocking/Waking
-    - 
-
-*/
 
 #endif /* Processes_H */

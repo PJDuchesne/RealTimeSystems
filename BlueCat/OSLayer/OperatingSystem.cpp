@@ -40,54 +40,53 @@ void OperatingSystem::Inialize() {
     // Initialize ISR_MSG_Handler Singleton
     ISRMsgHandler::GetISRMsgHandler();
 
-    // Always add idle process to lowest priority
-    // RegProc(&IdleProcess, 001, P_ONE, "IdleProcess");
-    RegProc(&EndlessProcess, 001, P_ONE, "IdleProcess");
-
+    bool idle_needed_flag = true;
     switch (test_case) {
         case 1: // Default running with monitor and several empty processes
-            RegProc(&EndlessProcess, 200, P_TWO,   "Endless_2");
-            RegProc(&EndlessProcess, 300, P_THREE, "Endless_3");
-            RegProc(&EndlessProcess, 400, P_FOUR,  "Endless_4");
-            RegProc(&EndlessProcess, 500, P_FIVE,  "Endless_5");
-            RegProc(&EndlessProcess, 600, P_FIVE,  "Endless_6");
+            RegProc(&EndlessProcess, 20, P_TWO,   "Endless_2");
+            RegProc(&EndlessProcess, 30, P_THREE, "Endless_3");
+            RegProc(&EndlessProcess, 40, P_FOUR,  "Endless_4");
+            RegProc(&EndlessProcess, 50, P_FIVE,  "Endless_5");
+            RegProc(&EndlessProcess, 60, P_FIVE,  "Endless_6");
             RegProc(&MonitorProcessEntry, 123, P_FIVE, "Monitor");
             break;
-        case 2: // Testing Termination
-            RegProc(&ShortProcess, 300, P_THREE, "Endless_3");
-            RegProc(&ShortProcess, 400, P_FOUR,  "Endless_4");
-            RegProc(&LongProcess, 500, P_FIVE,   "Endless_5");
-            RegProc(&LongProcess, 600, P_FIVE,   "Endless_6");           
+        case 2: // Testing termination
+            RegProc(&ShortProcess, 30, P_THREE, "ShortProcess_3");
+            RegProc(&ShortProcess, 40, P_FOUR,  "ShortProcess_4");
+            RegProc(&LongProcess, 50, P_FIVE,   "LongProcess_5");
+            RegProc(&LongProcess, 60, P_FIVE,   "LongProcess_6");           
 
-            // TODO: Make 5 and then drop to 2 after binding
             // Add monitor to catch diagnostics messages
-            RegProc(&MonitorProcessEntry, 123, P_TWO, "Monitor");
-
+            RegProc(&MonitorProcessEntry, 123, P_FIVE, "Monitor");
             break;
         case 3: // Testing NICE
-            RegProc(&NiceTestProcess, 100, P_FIVE, "NiceTestProcess");
-
+            RegProc(&LongProcess, 30, P_THREE, "LongProcess_3");
+            RegProc(&LongProcess, 40, P_FOUR, "LongProcess_4");
+            RegProc(&NiceTestProcess, 50, P_FIVE, "NiceTestProcess");
             // Add monitor to catch diagnostics messages
-            RegProc(&MonitorProcessEntry, 123, P_TWO, "Monitor");
+            RegProc(&MonitorProcessEntry, 123, P_FIVE, "Monitor");
             break;
-        case 4: // Test non-blocking message passing (i.e. monitor?)
-            RegProc(&MonitorProcessEntry, 123, P_TWO, "Monitor");
-
+        case 4: // Test non-blocking message passing
+            RegProc(&MonitorProcessEntry, 123, P_FIVE, "Monitor");
+            RegProc(&SendConstantRate, 25, P_THREE, "SendProcess");
+            RegProc(&RecvNonBlockingProcess, 50, P_THREE, "RecvProcess");
             break;
         case 5: // Test blocking message passing
             RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
-            RegProc(&DummpyProcess3, 789, P_THREE, "DummpyProcess3");
-            RegProc(&DummpyProcess4, 890, P_THREE, "DummpyProcess4");
+            RegProc(&SendProcess, 70, P_THREE, "SendProcess");
+            RegProc(&RecvProcess, 80, P_THREE, "RecvProcess");
             break;
         case 6: // Test UART passing message to monitor and then replying
             RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
-        
             break;
         default:
-
+            idle_needed_flag = false;
+            RegProc(&IdleProcess, 1, P_ONE, "IdleProcess");
             break;
     }
+
+    if (idle_needed_flag) RegProc(&EndlessProcess, 1, P_ONE, "IdleProcess");
 
     // Pass control to first process
     KickStart();
