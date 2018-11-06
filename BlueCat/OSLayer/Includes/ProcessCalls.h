@@ -17,8 +17,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+#include "Kernel.h"
 #include "OSLibrary.h"
-#include "KernelFunctions.h"
 #include "PostOffice.h"
 
 uint32_t PGetID();

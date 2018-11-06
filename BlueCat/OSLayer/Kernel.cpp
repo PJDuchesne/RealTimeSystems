@@ -8,14 +8,14 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
       _\/\\\___________/\\\___\/\\\_____\/\\\_______/\\\__  
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
--> Name:  KernelFunctions.cpp
+-> Name:  Kernel.cpp
 -> Date: Oct 21, 2018  (Created)
 -> Author: Dr. Larry Hughes, Modified by Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
 
-#include "Includes/KernelFunctions.h"
 #include <ISRLayer/Includes/GlobalConfig.h>
+#include <OSLayer/Includes/Kernel.h>
 
 // Edited Version:
 /*

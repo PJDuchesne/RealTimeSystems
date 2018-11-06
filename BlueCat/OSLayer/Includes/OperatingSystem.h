@@ -17,11 +17,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+#include "Kernel.h"
 #include "OSLibrary.h"
 #include "PostOffice.h"
 
 #include "TaskScheduler.h"
-#include "KernelFunctions.h"
 #include "KernelCalls.h"
 #include "ProcessCalls.h"
 #include "Processes.h"

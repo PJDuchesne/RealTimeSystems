@@ -35,7 +35,7 @@ OperatingSystem::OperatingSystem() {
     Brief: Initializes the OS by registering processes and then kickstarting the first in queue.
 */
 void OperatingSystem::Inialize() {
-    uint8_t test_case = 4;
+    uint8_t test_case = 6;
 
     // Initialize ISR_MSG_Handler Singleton
     ISRMsgHandler::GetISRMsgHandler();
@@ -55,7 +55,6 @@ void OperatingSystem::Inialize() {
             RegProc(&ShortProcess, 40, P_FOUR,  "ShortProcess_4");
             RegProc(&LongProcess, 50, P_FIVE,   "LongProcess_5");
             RegProc(&LongProcess, 60, P_FIVE,   "LongProcess_6");           
-
             // Add monitor to catch diagnostics messages
             RegProc(&MonitorProcessEntry, 123, P_FIVE, "Monitor");
             break;

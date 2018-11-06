@@ -16,7 +16,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include <ISRLayer/Includes/SysTickDriver.h>
 #include <ISRLayer/Includes/UART0Driver.h>
-#include "OSLayer/Includes/KernelFunctions.h"
+#include <OSLayer/Includes/Kernel.h>
 
 /*
     Function: UART0_ISR_C

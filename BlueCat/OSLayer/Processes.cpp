@@ -22,6 +22,7 @@ void MonitorProcessEntry() {
 }
 
 void EndlessProcess() {
+
     while (1) {
 
     }
@@ -140,8 +141,9 @@ void SendProcess() {
     PBind(my_mailbox, BIG_LETTER);
 
     // Add a noticable delay
-    uint32_t counter = 0;
-    while (counter < LONG_WAIT) counter++;
+    uint32_t counter;
+    counter = 0;
+    while (counter < 3*LONG_WAIT) counter++;
 
     char tmpArray[] = { "helloworld" };
 
