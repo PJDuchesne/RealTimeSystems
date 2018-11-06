@@ -158,8 +158,8 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
                 kcaptr->rtnvalue = (uint32_t) KBind(kcaptr);
                 break;
             default:
-                // TODO: Some sort of real error handling here
-                kcaptr -> rtnvalue = 0;
+                std::cout << "[SVCHandler] INVALID KERNEL CODE\n";
+                while (1) {}
         }
     }
 }

@@ -142,7 +142,8 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
                 memcpy(requested_mailbox->kcaptr->msg_ptr, kcaptr->msg_ptr, actual_msg_len);
                 break;
             default:
-                // TODO: Some sort of error msg here
+                std::cout << "[KSend] INVALID LETTER_SIZE\n";
+                while (1) {}
                 break;
         }
     }
@@ -160,12 +161,12 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
                 break;
             case BIG_LETTER:
                 if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return FAILURE_KR;
-                // TODO: Fix the fact that this is copying twice by adding a new "Add" function that directly copies it into the
                 memcpy(input_msg.msg, kcaptr->msg_ptr, actual_msg_len);
                 ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
                 break;
             default:
-                // TODO: Some sort of error msg here
+                std::cout << "[KSend] INVALID LETTER_SIZE\n";
+                while (1) {}
                 break;
         }
     }
@@ -235,7 +236,8 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
         }
         break;
     default:
-        // TODO: Some sort of error msg here
+        std::cout << "[KRecv] INVALID LETTER_SIZE\n";
+        while (1) {}
         break;
     }
 

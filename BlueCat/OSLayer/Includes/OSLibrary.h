@@ -22,7 +22,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <string>
 #include <sstream>
 
-#define MAX_PRIORITY (uint32_t) P_FIVE // TODO: MAGIC NUMBER
+#define MAX_PRIORITY (uint32_t) P_FIVE
 
 #define TRUE    1
 #define FALSE   0
@@ -122,7 +122,7 @@ typedef struct one_char_msg { // ONE_CHAR
 } one_char_msg_t;
 
 typedef struct big_letter_msg { // BIG_LETTER
-    uint8_t msg_size; // TODO: This is actually 255 max?
+    uint8_t msg_size;
     uint8_t msg_src;
     char msg[BIG_LETTER];
 } big_letter_msg_t;
@@ -141,8 +141,6 @@ typedef struct kcallargs
     k_call_code_t kcode;
     uint32_t rtnvalue;
     union {
-        // General Argument input
-        uint32_t arg1; // 4 Bytes // TODO: remove?
         // Priority Argument
         priority_t priority; // 4 Bytes
         // Send & Recv Arguments

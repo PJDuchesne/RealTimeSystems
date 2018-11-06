@@ -86,7 +86,13 @@ void CommandCenter::AlarmCommand(std::string arg) {
     }
 }
 
-// TODO: Commend
+/*
+    Function: DiagCommand
+    Input:  arg: Command argument to be parsed
+    Brief: Handles the diagnostics command by generating and printing out the operating system status
+        NOTE: This is not designed to be safe, it was used as a quick and dirty way to test. If
+              a process is moved while this is being called, things can go awry.
+*/
 void CommandCenter::DiagCommand(std::string arg) {
     if (arg != "") {
         MonitorInstance_->PrintErrorMsg("ERROR: Diag does not take arguments");
@@ -103,13 +109,12 @@ void CommandCenter::DiagCommand(std::string arg) {
     Brief: Sends the given argument to be 
 */
 void CommandCenter::ReverseCommand(std::string arg) {
-    // Send message to ReverseCommand process
-
     // Convert message to CString
-    uint32_t msg_len = MIN(arg.length(), 256); // TODO: magic number
+    uint32_t msg_len = MIN(arg.length(), BIG_LETTER);
     char* char_array = new char[msg_len + 1];
     std::strcpy(char_array, arg.c_str());
 
+    // Send message to ReverseCommand process
     PSend(MONITOR_MB, REVERSE_MSG_MB, char_array, msg_len);
 
     delete[] char_array;

@@ -16,18 +16,31 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/Processes.h"
 
+
+/*
+    Function: MonitorProcessEntry 
+    Brief: Provides an easy to access entry point for the Operating system to access the monitor
+*/
 void MonitorProcessEntry() {
     // Pass Control to Monitor
     Monitor::GetMonitor()->CentralLoop();
 }
 
+/*
+    Function: EndlessProcess 
+    Brief: Test function that simply loops
+*/
 void EndlessProcess() {
-
     while (1) {
 
     }
 }
 
+/*
+    Function: ShortProcess 
+    Brief: Test function that loops for a 'short' time before terminating. Also binds a mailbox
+           and sends message updates to the monitor about its status
+*/
 void ShortProcess() {
     // Get ID so a unique mailbox can be bound
     uint32_t srq_q = PGetID();
@@ -53,6 +66,11 @@ void ShortProcess() {
     PSend(srq_q, MONITOR_MB, tmpArray2, counter-1);
 }
 
+/*
+    Function: LongProcess 
+    Brief: Test function that loops for a 'long' time before terminating. Also binds a mailbox
+           and sends message updates to the monitor about its status
+*/
 void LongProcess() {
     // Get ID so a unique mailbox can be bound
     uint32_t srq_q = PGetID();
@@ -78,7 +96,12 @@ void LongProcess() {
     PSend(srq_q, MONITOR_MB, tmpArray2, counter-1);
 }
 
-// Currently configured as an overarching test for NICE, GETID, and TERMINATE
+/*
+    Function: NiceTestProcess 
+    Brief: Test function that utilizes the NICE command to change its own priority and
+           at specifc intervals. After two jumps the process terminates. This also binds
+           a mailbox and sends message updates to the monitor about its status
+*/
 void NiceTestProcess() {
     // Get ID so a unique mailbox can be bound
     uint32_t srq_q = PGetID();
@@ -96,7 +119,6 @@ void NiceTestProcess() {
     std::string DiagDisplay = "";
     bool end_flag = false;
     int i = 0;
-    int fetched_pid = -1;
     while (1) {
         i++;
         if (i >= LONG_WAIT) {
@@ -106,21 +128,18 @@ void NiceTestProcess() {
                     counter = 0;
                     while (tmpMsg1[counter] != '\0') { counter++; }
                     PSend(srq_q, MONITOR_MB, tmpMsg1, counter);
-                    // std::cout << "\nAttempting to NICE DummpyProcess2 (5 to 4)\n";
                     PNice(P_FOUR);
                     break;
                 case 2:
                     counter = 0;
                     while (tmpMsg2[counter] != '\0') { counter++; }
                     PSend(srq_q, MONITOR_MB, tmpMsg2, counter);
-                    // std::cout << "\nAttempting to NICE DummpyProcess2 (4 to 3)\n";
                     PNice(P_THREE);
                     break;
                 case 3:
                     counter = 0;
                     while (tmpMsg3[counter] != '\0') { counter++; }
                     PSend(srq_q, MONITOR_MB, tmpMsg3, counter);
-                    // std::cout << "\nAttempting to terminate DummpyProcess2\n";
                     end_flag = true;
                     break;
                 default:
@@ -132,6 +151,10 @@ void NiceTestProcess() {
     }
 }
 
+/*
+    Function: SendProcess 
+    Brief: Test function that sends 3 messages in a row to a hardcoded mailbox
+*/
 void SendProcess() {
     // Mailboxes to test
     uint32_t my_mailbox = PGetID(); // 70
@@ -156,6 +179,10 @@ void SendProcess() {
     }
 }
 
+/*
+    Function: RecvProcess 
+    Brief: Test function that receives 4 messages using the blocking option
+*/
 void RecvProcess() {
     uint32_t my_mailbox = PGetID(); // 80
 
@@ -168,7 +195,6 @@ void RecvProcess() {
     char* tmpArray = new char[256];
     uint8_t srq_q = 0;
     uint32_t msg_len = 0;
-    uint32_t return_value = 100;
 
     // Get first message, send result to monitor!
     PRecv(srq_q, my_mailbox, tmpArray, msg_len);
@@ -193,6 +219,10 @@ void RecvProcess() {
     }
 }
 
+/*
+    Function: SendConstantRate 
+    Brief: Test function that sends messages at a constant rate
+*/
 void SendConstantRate() {
     // Mailboxes to test
     uint32_t my_mailbox = PGetID(); // 25
@@ -217,6 +247,10 @@ void SendConstantRate() {
     }
 }
 
+/*
+    Function: RecvNonBlockingProcess 
+    Brief: Test function that receives messages using the non-blocking flag
+*/
 void RecvNonBlockingProcess() {
     uint32_t my_mailbox = PGetID(); // 50
 
@@ -226,7 +260,6 @@ void RecvNonBlockingProcess() {
     char* tmpArray = new char[256];
     uint8_t srq_q = 0;
     uint32_t msg_len = 0;
-    uint32_t return_value = 100;
 
     while (1) {
         // Constantly poll for messages
@@ -240,6 +273,10 @@ void RecvNonBlockingProcess() {
     delete[] tmpArray;
 }
 
+/*
+    Function: ReverseString 
+    Brief: Test function that reverses the string send to its mailbox and outputs to the monitor
+*/
 void ReverseString() {
     // Bind queue
     PBind(REVERSE_MSG_MB, BIG_LETTER);
@@ -248,7 +285,6 @@ void ReverseString() {
     char* reversedMsg = new char[256];
     uint8_t srq_q = 0;
     uint32_t msg_len = 0;
-    uint32_t return_value = 100;
 
     int tmp = 0;
     while (tmp++ < 3*LONG_WAIT) {}
@@ -271,6 +307,10 @@ void ReverseString() {
     delete[] reversedMsg;
 }
 
+/*
+    Function: IdleProcess 
+    Brief: Default idle process that provides the user with a spinner
+*/
 void IdleProcess() {
     // Get ISRMsgHandler
     ISRMsgHandler *ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
@@ -285,7 +325,6 @@ void IdleProcess() {
     uint8_t spinner_i = 0;
     while (1) {
         delay_cnt = 0;
-        // TODO: move back
         while (delay_cnt++ < LONG_WAIT) {}
 
         ISRMsgHandlerInstance_->QueueOutputMsg("\e[1;80H" + spinner_parts[spinner_i++]);

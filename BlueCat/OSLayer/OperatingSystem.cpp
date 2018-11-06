@@ -20,7 +20,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 OperatingSystem *OperatingSystem::OperatingSystemInstance_ = 0;
 
 /*
-    Function:OperatingSystem 
+    Function: OperatingSystem 
     Brief: Constructor for the OS, which creates a new TaskScheduler.
 */
 OperatingSystem::OperatingSystem() {
