@@ -53,9 +53,8 @@ void Monitor::CheckMessageHandler() {
 
     // If there is a message, print it
     if (PRecv(src_q, MONITOR_MB, &msg_body, msg_len, false)) {
-        assert(msg_len <= 255);
         msg_body[msg_len] = '\0';
-        PrintMsg(("\n[MSG FROM: " + std::to_string(src_q) + "] >>" + std::string(msg_body) + "<<" + NEW_LINE));
+        PrintMsg(("\n[MSG FROM: " + std::to_string(src_q) + "] >>" + std::string(msg_body) + "<<"+NEW_LINE));
 
         // Then reprint output buffer!
         RePrintOutputBuffer();

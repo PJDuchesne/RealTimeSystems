@@ -192,7 +192,7 @@ void RecvProcess() {
     uint32_t counter = 0;
     while (counter < SHORT_WAIT) counter++;
 
-    char* tmpArray = new char[256];
+    char tmpArray[256];
     uint8_t srq_q = 0;
     uint32_t msg_len = 0;
 
@@ -210,9 +210,6 @@ void RecvProcess() {
 
     // Attempt to get 4th message and go to sleep
     PRecv(srq_q, my_mailbox, tmpArray, msg_len);
-
-
-    delete[] tmpArray;
 
     while (1) {
 
@@ -257,7 +254,7 @@ void RecvNonBlockingProcess() {
     // Buy a mailbox!
     PBind(my_mailbox, BIG_LETTER);
 
-    char* tmpArray = new char[256];
+    char tmpArray[256];
     uint8_t srq_q = 0;
     uint32_t msg_len = 0;
 
@@ -268,9 +265,6 @@ void RecvNonBlockingProcess() {
         // Pass any results on to the monitor
         PSend(my_mailbox, MONITOR_MB, tmpArray, msg_len);
     }
-
-    // Will never be reached
-    delete[] tmpArray;
 }
 
 /*
@@ -281,8 +275,8 @@ void ReverseString() {
     // Bind queue
     PBind(REVERSE_MSG_MB, BIG_LETTER);
 
-    char* tmpArray = new char[256];
-    char* reversedMsg = new char[256];
+    char tmpArray[256];
+    char reversedMsg[256];
     uint8_t srq_q = 0;
     uint32_t msg_len = 0;
 
@@ -301,10 +295,6 @@ void ReverseString() {
         // Send it to the monitor for printing
         PSend(REVERSE_MSG_MB, MONITOR_MB, reversedMsg, msg_len);
     }
-
-    // Will never be reached
-    delete[] tmpArray;
-    delete[] reversedMsg;
 }
 
 /*

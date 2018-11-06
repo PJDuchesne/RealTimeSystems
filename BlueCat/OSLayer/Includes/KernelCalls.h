@@ -36,5 +36,4 @@ kernel_responses_t KSend(kcallargs_t *kcaptr);
 kernel_responses_t KRecv(kcallargs_t *kcaptr);
 kernel_responses_t KBind(kcallargs_t *kcaptr);
 
-
 #endif /* KernelCalls_H */

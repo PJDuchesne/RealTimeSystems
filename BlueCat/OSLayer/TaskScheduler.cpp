@@ -61,22 +61,6 @@ pcb_t* TaskScheduler::GetNextPCB() {
 }
 
 /*
-    Function: GetCurrentPCB
-    Output: <Return Value>: Pointer to current PCB in queue
-    Brief: Finds the current PCB in queue by iterating from the highest priority to lowest
-           Note: This assumes that the kernel hasn't mucked around with queues during THIS quantum
-*/
-pcb_t* TaskScheduler::GetCurrentPCB() {
-    // Iterate through each PCBList and return the first that is not full
-    for (int i = MAX_PRIORITY; i >= 0; i--) {
-        if (!PCBLists_[i]->IsEmpty()) return PCBLists_[i]->CurrentPCB();
-    }
-
-    // If all queues are empty, this will return an uncaught 0 (NULL), which should crash pretty fast
-    return 0;
-}
-
-/*
     Function: DeleteCurrentPCB
     Brief: Finds the current PCB in queue by iterating from the highest priority to lowest and deletes it
            Note: This assumes that the kernel hasn't mucked around with queues during THIS quantum

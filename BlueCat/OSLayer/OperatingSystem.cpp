@@ -67,8 +67,8 @@ void OperatingSystem::Inialize() {
             break;
         case 4: // Test non-blocking message passing
             RegProc(&MonitorProcessEntry, 123, P_FIVE, "Monitor");
-            RegProc(&SendConstantRate, 25, P_THREE, "SendProcess");
-            RegProc(&RecvNonBlockingProcess, 50, P_THREE, "RecvProcess");
+            RegProc(&SendConstantRate, 25, P_THREE, "SendConstantRate");
+            RegProc(&RecvNonBlockingProcess, 50, P_THREE, "RecvNonBlockingProcess");
             break;
         case 5: // Test blocking message passing
             RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
@@ -107,7 +107,7 @@ void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t pr
     new_pcb->stack_start = new uint32_t[STACKSIZE]; 
 
     // Add stack pointer
-    new_pcb->stack_ptr = (uint32_t)(new_pcb->stack_start + STACKSIZE*sizeof(uint32_t) - sizeof(stack_frame_t));
+    new_pcb->stack_ptr = (uint32_t)(new_pcb->stack_start+STACKSIZE*sizeof(uint32_t) - sizeof(stack_frame_t));
 
     // Add pid and name
     new_pcb->pid = pid;

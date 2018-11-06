@@ -61,7 +61,6 @@ void ISRMsgHandler::GetFromISRQueue(MsgType_t &type, char &data) {
     uint32_t msg_len;
     // if (PRecv(src_q, ISR_MSG_HANDLER_MB, &data, msg_len, false)) {
     if (PRecv(src_q, ISR_MSG_HANDLER_MB, &data, msg_len)) {
-        assert(msg_len <= 1);
         type = ((msg_len == 1) ? UART : SYSTICK);
     }
     else type = NONE;

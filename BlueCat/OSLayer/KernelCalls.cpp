@@ -47,7 +47,6 @@ void KNice(priority_t new_priority) {
     OSInstance->DeleteCurrentPCB();
 
     // Update priority
-    assert(new_priority <= P_FIVE); // For debugging
     CurrentPCB->priority = new_priority;
 
     // Store current PSP
@@ -136,7 +135,9 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
             case ZERO_CHAR: // Not forgotten, just empty. This will (Probably) be optimized away
                 break;
             case ONE_CHAR:
-                if (actual_msg_len) ((char *)(requested_mailbox->kcaptr->msg_ptr))[0] = ((char *)(kcaptr->msg_ptr))[0];
+                if (actual_msg_len) {
+                    ((char *)(requested_mailbox->kcaptr->msg_ptr))[0] = ((char *)(kcaptr->msg_ptr))[0];
+                }
                 break;
             case BIG_LETTER:
                 memcpy(requested_mailbox->kcaptr->msg_ptr, kcaptr->msg_ptr, actual_msg_len);
@@ -276,5 +277,5 @@ kernel_responses_t KBind(kcallargs_t *kcaptr) {
 
     // Buy a mailbox!
     return (kernel_responses_t) PostOfficeInstance->BuyMailbox(kcaptr->req_q, kcaptr->q_size,
-                                                               OSInstance->GetCurrentPCB(), kcaptr->mailbox_size);
+                                                 OSInstance->GetCurrentPCB(), kcaptr->mailbox_size);
 }
