@@ -34,12 +34,11 @@ void ISRMsgHandler::SingletonGrab() {
            This function also initializes the uart_output_idle_ to false.
 */
 ISRMsgHandler::ISRMsgHandler() {
-    // PostOffice::GetPostOffice()->BuyMailbox(ISR_MSG_HANDLER_MB, ONE_CHAR, 0, ISR_QUEUE_SIZE);
-    // PBind(ISR_MSG_HANDLER_MB, ONE_CHAR, ISR_QUEUE_SIZE);
+    uart0_output_data_buffer_ = new RingBuffer<char>(UART0_OUTPUT_DATA_BUFFER_SIZE);
+    uart1_output_data_buffer_ = new RingBuffer<char>(UART1_OUTPUT_DATA_BUFFER_SIZE);
 
-    output_data_buffer_ = new RingBuffer<char>(OUTPUT_DATA_BUFFER_SIZE);
-
-    uart_output_idle_ = true;
+    uart0_output_idle_ = true;
+    uart1_output_idle_ = true;
 }
 
 /*
@@ -47,7 +46,8 @@ ISRMsgHandler::ISRMsgHandler() {
     Brief: Destructor for ISRMsgHandler. This deletes the two queues when the program ends.
 */
 ISRMsgHandler::~ISRMsgHandler() {
-    delete output_data_buffer_;
+    delete uart0_output_data_buffer_;
+    delete uart1_output_data_buffer_;
 }
 
 /*
@@ -71,37 +71,107 @@ void ISRMsgHandler::GetFromISRQueue(MsgType_t &type, char &data) {
     Input:  msg: Message to queue into the output UART character queue
     Brief: API to queue a message into the output UART character queue
 */
-void ISRMsgHandler::QueueOutputMsg(std::string msg) {
-    char tmpChar;
-    for (int i = 0; i < msg.length(); i++) {
-        tmpChar = msg[i];
-        output_data_buffer_->Add(tmpChar);
-    }
+void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
+    char tmpChar, first_char;
 
-    // Jumpstart output if necessary
-    if (uart_output_idle_) {
-        char first_char = output_data_buffer_->Get();
-        uart_output_idle_ = false;
-        UART0DriverInstance_->JumpStartOutput(first_char);
+    // TODO: Make this table driven
+    switch (uart_num) {
+        case 0:
+            for (int i = 0; i < msg.length(); i++) {
+                tmpChar = msg[i];
+                uart0_output_data_buffer_->Add(tmpChar);
+            }
+
+            // Jumpstart output if necessary
+            if (uart0_output_idle_) {
+                first_char = uart0_output_data_buffer_->Get();
+                uart0_output_idle_ = false;
+                UART0DriverInstance_->JumpStartOutput0(first_char);
+            }
+        case 1:
+            for (int i = 0; i < msg.length(); i++) {
+                tmpChar = msg[i];
+                uart1_output_data_buffer_->Add(tmpChar);
+            }
+
+            // Jumpstart output if necessary
+            if (uart1_output_idle_) {
+                first_char = uart1_output_data_buffer_->Get();
+                uart1_output_idle_ = false;
+                UART0DriverInstance_->JumpStartOutput1(first_char);
+            }
+        default:
+            // TODO: Error Msg here
+    }
+}
+
+/*
+    Function: QueueOutputMsg
+    Input:  msg: Message to queue into the output UART character queue
+    Brief: API to queue a message into the output UART character queue
+*/
+void ISRMsgHandler::QueueOutputMsg(char* msg, uint16_t len, uint8_t uart_num) {
+    char first_char;
+
+    // TODO: Make this table driven
+    switch (uart_num) {
+        case 0:
+            for (int i = 0; i < len; i++) uart0_output_data_buffer_->Add(msg[i]);
+
+            // Jumpstart output if necessary
+            if (uart0_output_idle_) {
+                first_char = uart0_output_data_buffer_->Get();
+                uart0_output_idle_ = false;
+                UART0DriverInstance_->JumpStartOutput0(first_char);
+            }
+        case 1:
+            std::cout << "ISRMsgHandler::QueueOutputMsg(): Outputting on UART1\n";
+
+            uart1_output_data_buffer_->Add('\x02');
+            for (int i = 0; i < len; i++) uart1_output_data_buffer_->Add(msg[i]);
+            uart1_output_data_buffer_->Add('\x03');
+
+            // Jumpstart output if necessary
+            if (uart1_output_idle_) {
+                first_char = uart1_output_data_buffer_->Get();
+                uart1_output_idle_ = false;
+                UART0DriverInstance_->JumpStartOutput1(first_char);
+            }
+        default:
+            // TODO: Error Msg here
     }
 }
 
 /*
     Function: OutputBufferEmpty
-    Output:  bool: Boolean that indicates whether the output_data_buffer_ is empty not.
+    Output:  bool: Boolean that indicates whether the uart0_output_data_buffer_ is empty not.
     Brief: Returns the bool described above
 */
-bool ISRMsgHandler::OutputBufferEmpty() {
-    return output_data_buffer_->Empty();
+bool ISRMsgHandler::OutputBufferEmpty(uint8_t uart_num) {
+    switch (uart_num) {
+        case UART0:
+            return uart0_output_data_buffer_->Empty();
+        case UART1:
+            return uart1_output_data_buffer_->Empty();
+        default:
+            // TODO: Error case
+    }
 }
 
 /*
     Function: GetOutputChar
-    Output:  char: Character value from the output_data_buffer_
+    Output:  char: Character value from the uart0_output_data_buffer_
     Brief: Returns the char described above
 */
-char ISRMsgHandler::GetOutputChar() {
-    return output_data_buffer_->Get();
+char ISRMsgHandler::GetOutputChar(uint8_t uart_num) {
+    switch (uart_num) {
+        case UART0:
+            return uart0_output_data_buffer_->Get();
+        case UART1:
+            return uart1_output_data_buffer_->Get();
+        default:
+            // TODO: Error case
+    }
 }
 
 /*

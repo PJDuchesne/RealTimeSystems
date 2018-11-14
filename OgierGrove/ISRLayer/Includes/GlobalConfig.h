@@ -35,7 +35,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define INT_VEC_UART0   5  // UART0 Rx and Tx interrupt index (decimal)
 
 #define ISR_QUEUE_SIZE 100
-#define OUTPUT_DATA_BUFFER_SIZE 250
+#define UART0_OUTPUT_DATA_BUFFER_SIZE 250
+#define UART1_OUTPUT_DATA_BUFFER_SIZE 100
 
 enum public_mailboxes {
 	KERNEL_MB, 			     // 0

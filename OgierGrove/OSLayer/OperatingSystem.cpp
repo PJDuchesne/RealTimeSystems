@@ -35,10 +35,12 @@ OperatingSystem::OperatingSystem() {
     Brief: Initializes the OS by registering processes and then kickstarting the first in queue.
 */
 void OperatingSystem::Inialize() {
-    uint8_t test_case = 6;
+    uint8_t test_case = 7;
 
     // Initialize ISR_MSG_Handler Singleton
     ISRMsgHandler::GetISRMsgHandler();
+
+    std::cout << "Launching things\n";
 
     bool idle_needed_flag = true;
     switch (test_case) {
@@ -79,6 +81,10 @@ void OperatingSystem::Inialize() {
             RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
             break;
+        case 7: // Trains!
+            RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
+            RegProc(&ReverseString, 124, P_THREE, "ReverseString");
+            RegProc(&TestSwitches, 125, P_THREE, "TestSwitches");
         default:
             idle_needed_flag = false;
             RegProc(&IdleProcess, 1, P_ONE, "IdleProcess");

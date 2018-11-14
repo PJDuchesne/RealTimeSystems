@@ -25,6 +25,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "KernelCalls.h"
 #include "ProcessCalls.h"
 #include "Processes.h"
+#include "TrainProcesses.h"
 
 // Function pointer typedef
 typedef void (*process_t)();

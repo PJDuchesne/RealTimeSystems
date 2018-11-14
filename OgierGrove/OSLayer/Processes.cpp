@@ -8,14 +8,13 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
       _\/\\\___________/\\\___\/\\\_____\/\\\_______/\\\__  
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
--> Name:  ProcessesGlue.cpp
+-> Name:  Processes.cpp
 -> Date: Oct 21, 2018  (Created)
 -> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
 
 #include "Includes/Processes.h"
-
 
 /*
     Function: MonitorProcessEntry 
@@ -309,7 +308,7 @@ void IdleProcess() {
     ISRMsgHandler *ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
 
     // Clear screen
-    ISRMsgHandlerInstance_->QueueOutputMsg(CLEAR_SCREEN);
+    ISRMsgHandlerInstance_->QueueOutputMsg(CLEAR_SCREEN, UART0);
 
     // Set a spinner going
     std::string spinner_parts[] = { "|", "/", "-", "\\" };
@@ -320,7 +319,7 @@ void IdleProcess() {
         delay_cnt = 0;
         while (delay_cnt++ < LONG_WAIT) {}
 
-        ISRMsgHandlerInstance_->QueueOutputMsg("\e[1;80H" + spinner_parts[spinner_i++]);
+        ISRMsgHandlerInstance_->QueueOutputMsg("\e[1;80H" + spinner_parts[spinner_i++], UART0);
 
         if (spinner_i > 3) spinner_i = 0;
     }

@@ -44,7 +44,8 @@ class ISRMsgHandler {
     private:
         static ISRMsgHandler* ISRMsgHandlerInstance_;
         RingBuffer<ISRMsg_t> *isr_queue_;
-        RingBuffer<char> *output_data_buffer_;
+        RingBuffer<char> *uart0_output_data_buffer_;
+        RingBuffer<char> *uart1_output_data_buffer_;
 
         UART0Driver *UART0DriverInstance_;
     public:
@@ -53,13 +54,15 @@ class ISRMsgHandler {
         void SingletonGrab();
 
         void GetFromISRQueue(MsgType_t &type, char &data);
-        void QueueOutputMsg(std::string msg);
-        bool OutputBufferEmpty();
-        char GetOutputChar();
+        void QueueOutputMsg(std::string msg, uint8_t uart_num); // TODO: make uart_num an enum msg type
+        void QueueOutputMsg(char* msg, uint16_t len, uint8_t uart_num); // TODO: make uart_num an enum msg type
+        bool OutputBufferEmpty(uint8_t uart_num);
+        char GetOutputChar(uint8_t uart_num);
         static ISRMsgHandler* GetISRMsgHandler();
 
         // This is public as it is shared with UART0Driver
-        bool uart_output_idle_; // Used to jumpstart output
+        bool uart0_output_idle_; // Used to jumpstart output on uart0
+        bool uart1_output_idle_; // Used to jumpstart output on uart1
 };
 
 #endif /* ISRMsgHandler_H */

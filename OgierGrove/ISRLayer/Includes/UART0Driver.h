@@ -24,6 +24,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define GPIO_PORTA_AFSEL_R (*((volatile unsigned long *)0x40058420)) // GPIOA Alternate Function Select Reg
 #define GPIO_PORTA_PCTL_R  (*((volatile unsigned long *)0x4005852C)) // GPIOA Port Control Reg
 #define GPIO_PORTA_DEN_R   (*((volatile unsigned long *)0x4005851C)) // GPIOA Digital Enable Reg
+
 #define UART0_DR_R         (*((volatile unsigned long *)0x4000C000)) // UART0 Data Reg
 #define UART0_FR_R         (*((volatile unsigned long *)0x4000C018)) // UART0 Flag Reg
 #define UART0_IBRD_R       (*((volatile unsigned long *)0x4000C024)) // UART0 Integer Baud-Rate Divisor Reg
@@ -40,6 +41,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define GPIO_PORTB_AFSEL_R (*((volatile unsigned long *)0x40059420)) // GPIOB Alternate Function Select Reg
 #define GPIO_PORTB_PCTL_R  (*((volatile unsigned long *)0x4005952C)) // GPIOB Port Control Reg
 #define GPIO_PORTB_DEN_R   (*((volatile unsigned long *)0x4005951C)) // GPIOB Digital Enable Reg
+
 #define UART1_DR_R         (*((volatile unsigned long *)0x4000D000)) // UART1 Data Reg
 #define UART1_FR_R         (*((volatile unsigned long *)0x4000D018)) // UART1 Flag Reg
 #define UART1_IBRD_R       (*((volatile unsigned long *)0x4000D024)) // UART1 Integer Baud-Rate Divisor Reg
@@ -79,14 +81,19 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define SYSCTL_RCGCGPIO_UART1      0x00000002  // UART1 Clock Gating Control (TODO: These two not used)
 #define SYSCTL_RCGCUART_GPIOB      0x00000002  // Port B Clock Gating Control
 
-#define SYSCTL_RCGCGPIO_UART0_1    0x00000003  // UART0 & 1 Clock Gating Control
-#define SYSCTL_RCGCUART_GPIOA_B    0x00000003  // Port A & B Clock Gating Control
+#define SYSCTL_RCGCGPIO_UART0_1    0x00000003  // UART0 & UART1 Clock Gating Control
+#define SYSCTL_RCGCUART_GPIOA_B    0x00000003  // PortA & PORTB Clock Gating Control
 
 // Clock Configuration Register
 #define SYSCTRL_RCC_R          (*((volatile unsigned long *)0x400FE0B0)) //
 
 #define CLEAR_USRSYSDIV     0xF83FFFFF  // Clear USRSYSDIV Bits //
 #define SET_BYPASS          0x00000800  // Set BYPASS Bit //
+
+typedef enum uarts {
+    UART0,
+    UART1
+} uarts_t;
 
 // Forward Declaration
 class ISRMsgHandler;
@@ -96,7 +103,6 @@ class UART0Driver {
         static UART0Driver* UART0DriverInstance_;
         ISRMsgHandler *ISRMsgHandlerInstance_;
         void UART0Init();
-        void UART1Init();
         void UART0Enable(unsigned long flags);
 
     public:
@@ -104,7 +110,8 @@ class UART0Driver {
         void SingletonGrab();
         void UART0Handler();
         void UART1Handler();
-        void JumpStartOutput(char first_char);
+        void JumpStartOutput0(char first_char);
+        void JumpStartOutput1(char first_char);
         static UART0Driver* GetUART0Driver();
 };
 

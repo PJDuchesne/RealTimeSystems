@@ -51,6 +51,7 @@ extern uint32_t __STACK_TOP;
 
 // Extern C++ Functions
 extern void UART0_ISR_C();
+extern void UART1_ISR_C();
 extern void SysTick_ISR_C();
 extern void SVC_ISR_C();
 
@@ -94,7 +95,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // GPIO Port D
     IntDefaultHandler,                      // GPIO Port E
     UART0_ISR_C,                            // UART0 Rx and Tx
-    IntDefaultHandler,                      // UART1 Rx and Tx
+    UART1_ISR_C,                            // UART1 Rx and Tx
     IntDefaultHandler,                      // SSI0 Rx and Tx
     IntDefaultHandler,                      // I2C0 Master and Slave
     IntDefaultHandler,                      // PWM Fault

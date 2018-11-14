@@ -22,7 +22,7 @@ Monitor *Monitor::MonitorInstance_ = 0;
 /*
     Function: CheckMessageHandler
     Brief: Checks the ISR message queue and handles message if one is present,
-           constantly polled from CentralLoop
+       constantly polled from CentralLoop
 */
 void Monitor::CheckMessageHandler() {
     static MsgType_t type = NONE;
@@ -134,9 +134,6 @@ void Monitor::HandleSYSTICK() {
     Brief: Constructor for the Monitor class, which initializes the data_buffer_ on startup
 */
 Monitor::Monitor() {
-    // Bind the monitor
-    // PBind(MONITOR_MB, BIG_LETTER);
-
     data_buffer_ = new RingBuffer<char>(DATA_BUFFER_SIZE);
 }
 
@@ -208,10 +205,10 @@ void Monitor::RePrintOutputBuffer() {
     Brief: Queues the message into the UART transmit buffer
 */
 void Monitor::PrintMsg(std::string msg) {
-    // ISRMsgHandlerInstance_->QueueOutputMsg(msg);
+    // ISRMsgHandlerInstance_->QueueOutputMsg(msg, UART0);
 
-    if (msg.length() <= OUTPUT_DATA_BUFFER_SIZE / 2) {
-        ISRMsgHandlerInstance_->QueueOutputMsg(msg);
+    if (msg.length() <= UART0_OUTPUT_DATA_BUFFER_SIZE / 2) {
+        ISRMsgHandlerInstance_->QueueOutputMsg(msg, UART0);
         return;
     }
 
@@ -232,7 +229,7 @@ void Monitor::PrintMsg(std::string msg) {
             // Slice off that line
             msg = msg.substr(next_endline + 1); // +1 to exclude '\n'
         }
-        ISRMsgHandlerInstance_->QueueOutputMsg(substr + "\r");
+        ISRMsgHandlerInstance_->QueueOutputMsg(substr + "\r", UART0);
         if (end_flag) break;
     }
 }
