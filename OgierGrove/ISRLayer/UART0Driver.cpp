@@ -47,11 +47,11 @@ void UART0Driver::UART0Init() {
     // Set up PORTA (For UART0)
     GPIO_PORTA_AFSEL_R = 0x3;                    // Enable Receive and Transmit on PA1-0
     GPIO_PORTA_PCTL_R = (0x01) | ((0x01) << 4);  // Enable UART RX/TX pins on PA1-0
-    GPIO_PORTA_DEN_R = EN_DIG_PA0 | EN_DIG_PA1;  // Enable Digital I/O on PA1-0
+    GPIO_PORTA_DEN_R = EN_DIG_Px0 | EN_DIG_Px1;  // Enable Digital I/O on PA1-0
 
-    // Enable UART1
+    // Enable UART0
     UART0_CTL_R = UART_CTL_UARTEN;
-    wait = 0; // wait; give UART1 time to enable itself
+    wait = 0; // wait; give UART0 time to enable itself
 }
 
 void UART0Driver::UART1Init() {
@@ -77,7 +77,7 @@ void UART0Driver::UART1Init() {
     // Set up PORTB (For UART1)
     GPIO_PORTB_AFSEL_R = 0x3;                    // Enable Receive and Transmit on PB1-0
     GPIO_PORTB_PCTL_R = (0x01) | ((0x01) << 4);  // Enable UART RX/TX pins on PB1-0
-    GPIO_PORTB_DEN_R = EN_DIG_PA0 | EN_DIG_PA1;  // Enable Digital I/O on PB1-0
+    GPIO_PORTB_DEN_R = EN_DIG_Px0 | EN_DIG_Px1;  // Enable Digital I/O on PB1-0
 
     // Enable UART1
     UART1_CTL_R = UART_CTL_UARTEN;
@@ -186,6 +186,7 @@ void UART0Driver::UART1Handler() {
     static kcallargs_t UARTArguments;
     static bool first_time = true;
     static char uart_data;
+    static char output_char;
 
     if (first_time) {
         UARTArguments.src_q = KERNEL_MB;
@@ -198,10 +199,11 @@ void UART0Driver::UART1Handler() {
     // Check if RECV Done
     if (UART1_MIS_R & UART_INT_RX)
     {
-        std::cout << "UART1Handler(): RX\n";
+
 
         // Queue the msg
         uart_data = UART1_DR_R;
+        std::cout << "UART1Handler() RX >>" << int(UART1_DR_R) << "<<\n";
 
         // TODO: Pass to different queue
         // KSend(&UARTArguments);
@@ -213,18 +215,19 @@ void UART0Driver::UART1Handler() {
     // Check if XMIT done
     if (UART1_MIS_R & UART_INT_TX)
     {
-        std::cout << "UART1Handler(): TX\n";
-
         /* Clear interrupt */
         UART1_ICR_R |= UART_INT_TX;
 
-        // If there is more data in the buffer, output another char
+        // If the buffer is empty, set UART to idle
         if (ISRMsgHandlerInstance_->OutputBufferEmpty(UART1)) {
             ISRMsgHandlerInstance_->uart1_output_idle_ = true;
+            std::cout << "UART1Handler() TX\n";
         }
+        // Else, the buffer has more to print
         else {
             char tmp = ISRMsgHandlerInstance_->GetOutputChar(UART1);
-            UART1_DR_R = tmp;
+            std::cout << "UART1Handler() TX: >>" << int(tmp) << "<<\n";
+            UART1_DR_R = output_char;
         }
     }
 }
@@ -244,6 +247,7 @@ void UART0Driver::JumpStartOutput0(char first_char) {
            process cascades to empty out the buffer.
 */
 void UART0Driver::JumpStartOutput1(char first_char) {
+    std::cout << "UART0Driver::JumpStartOutput1() >>" << int(first_char) << "<<\n";
     UART1_DR_R = first_char;
 }
 

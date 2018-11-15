@@ -88,6 +88,8 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
                 uart0_output_idle_ = false;
                 UART0DriverInstance_->JumpStartOutput0(first_char);
             }
+
+            break;
         case 1:
             for (int i = 0; i < msg.length(); i++) {
                 tmpChar = msg[i];
@@ -98,8 +100,11 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
             if (uart1_output_idle_) {
                 first_char = uart1_output_data_buffer_->Get();
                 uart1_output_idle_ = false;
+                std::cout << "WHY?\n";
                 UART0DriverInstance_->JumpStartOutput1(first_char);
             }
+
+            break;
         default:
             // TODO: Error Msg here
     }
@@ -110,26 +115,41 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
     Input:  msg: Message to queue into the output UART character queue
     Brief: API to queue a message into the output UART character queue
 */
-void ISRMsgHandler::QueueOutputMsg(char* msg, uint16_t len, uint8_t uart_num) {
+void ISRMsgHandler::QueueOutputMsg(char* packet, uint16_t len, uint8_t uart_num) {
     char first_char;
+
+    std::cout << "ISRMsgHandler::QueueOutputMsg(char)\n";
+
+    uint8_t checksum = 0;
 
     // TODO: Make this table driven
     switch (uart_num) {
         case 0:
-            for (int i = 0; i < len; i++) uart0_output_data_buffer_->Add(msg[i]);
+            std::cout << "ISRMsgHandler::QueueOutputMsg(char): Outputting on UART0\n";
 
-            // Jumpstart output if necessary
-            if (uart0_output_idle_) {
-                first_char = uart0_output_data_buffer_->Get();
-                uart0_output_idle_ = false;
-                UART0DriverInstance_->JumpStartOutput0(first_char);
-            }
+            break;
         case 1:
-            std::cout << "ISRMsgHandler::QueueOutputMsg(): Outputting on UART1\n";
+            std::cout << "ISRMsgHandler::QueueOutputMsg(char): Outputting on UART1\n";
 
-            uart1_output_data_buffer_->Add('\x02');
-            for (int i = 0; i < len; i++) uart1_output_data_buffer_->Add(msg[i]);
-            uart1_output_data_buffer_->Add('\x03');
+            uart1_output_data_buffer_->Add('\x02'); // Add start CTRL
+            for (int i = 0; i < len; i++) {
+                checksum += uint8_t(packet[i]);
+
+                // Adds excape characters for UART1 frames
+                switch (int(packet[i])) {
+                    // If the character is an escape character, output 0x10 and save the character for next TX
+                    case '\x02':
+                    case '\x03':
+                    case '\x10':
+                        uart1_output_data_buffer_->Add('\x10');
+                    default:
+                        uart1_output_data_buffer_->Add(packet[i]);
+                }
+
+            }
+
+            uart1_output_data_buffer_->Add(checksum); // Add checksum
+            uart1_output_data_buffer_->Add('\x03'); // Add stop CTRL
 
             // Jumpstart output if necessary
             if (uart1_output_idle_) {
@@ -137,6 +157,8 @@ void ISRMsgHandler::QueueOutputMsg(char* msg, uint16_t len, uint8_t uart_num) {
                 uart1_output_idle_ = false;
                 UART0DriverInstance_->JumpStartOutput1(first_char);
             }
+
+            break;
         default:
             // TODO: Error Msg here
     }

@@ -68,8 +68,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define UART_CTL_EOT            0x00000010  // UART End of Transmission Enable
 #define EN_RX_PA0               0x00000001  // Enable Receive Function on PA0
 #define EN_TX_PA1               0x00000002  // Enable Transmit Function on PA1
-#define EN_DIG_PA0              0x00000001  // Enable Digital I/O on PA0
-#define EN_DIG_PA1              0x00000002  // Enable Digital I/O on PA1
+#define EN_DIG_Px0              0x00000001  // Enable Digital I/O on Px0
+#define EN_DIG_Px1              0x00000002  // Enable Digital I/O on Px1
 
 // Clock Gating Registers (Shared by UART0 and UART1)
 #define SYSCTL_RCGCGPIO_R      (*((volatile unsigned long *)0x400FE608))

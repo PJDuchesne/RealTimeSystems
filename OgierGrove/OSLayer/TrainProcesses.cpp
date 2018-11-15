@@ -20,12 +20,6 @@ void TestSwitches() {
     std::cout << "TestSwitches(): Starting\n";
     // Make a packet
 
-    int i = 0;
-
-    while (i < 1000000) { i++; }
-
-    std::cout << "TestSwitches(): Sending\n";
-
     // TODO: use constructor
     control_t control_block;
     control_block.nr = 0;
@@ -39,19 +33,47 @@ void TestSwitches() {
     unsigned char switchFrame[5];
     switchFrame[0] = control_block.all; // Control
     switchFrame[1] = 3;                 // Length
-    switchFrame[2] = '\xe0';            // Payload
-    switchFrame[3] = '\xff';            // ""
-    switchFrame[4] = '\x00';            // "" -> Straight
-    // switchFrame[4] = "\x01";         // "" -> Diverted
 
-    // Shove packet out UART1
-    ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg((char *)switchFrame, 5, UART1);
+    // Switches
+    // switchFrame[2] = '\xe0';            // Payload
+    // switchFrame[3] = '\xff';            // ""
+    // switchFrame[4] = '\x00';            // "" -> Straight
+    // switchFrame[4] = '\x01';         // "" -> Diverted
 
-    std::cout << "TestSwitches(): Ending\n";
+    // Train
+    switchFrame[2] = '\xc0';          // Payload
+    switchFrame[3] = '\x01';          // Train #2
+    switchFrame[4] = '\x88';         // "" -> CW, speed 8
 
-    // Stay around to diagnostics
+    int i = 0;
+    bool flag = false;
+
     while (1) {
+        // Delay
+        // Toggle
 
+        switchFrame[0] = control_block.all; // Control
+        if (flag) {
+            // switchFrame[4] = '\x00';            // "" -> Straight
+            ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg((char *)switchFrame, 5, UART1);
+            flag = false;
+        }
+        else {
+            // switchFrame[4] = '\x01';                // "" -> Diverted
+            ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg((char *)switchFrame, 5, UART1);
+            flag = true;
+        }
+
+        control_block.ns++;
+
+        break;
+
+        i = 0;
+        while (i++ < 10000000) {
+
+        }
     }
+
+    while (1) {}
 }
 

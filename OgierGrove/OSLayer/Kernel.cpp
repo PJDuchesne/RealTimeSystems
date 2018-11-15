@@ -111,6 +111,7 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
 
         // Start SysTick
         InterruptEnable(INT_VEC_UART0);  // Allow UART0 interrupts
+        InterruptEnable(INT_VEC_UART1);  // Allow UART1 interrupts
         InterruptMasterEnable();         // Enable global interrupts
         SingletonSetup();                // Instantiates all singletons
 

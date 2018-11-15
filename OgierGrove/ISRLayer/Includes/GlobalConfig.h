@@ -33,6 +33,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define NVIC_EN1_R (*((volatile unsigned long *)0xE000E104)) // Interrupt 32-54 Set Enable Register
 
 #define INT_VEC_UART0   5  // UART0 Rx and Tx interrupt index (decimal)
+#define INT_VEC_UART1   6  // UART1 Rx and Tx interrupt index (decimal)
 
 #define ISR_QUEUE_SIZE 100
 #define UART0_OUTPUT_DATA_BUFFER_SIZE 250
