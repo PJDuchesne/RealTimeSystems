@@ -84,7 +84,7 @@ void OperatingSystem::Inialize() {
         case 7: // Trains!
             RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
-            RegProc(&TestSwitches, 125, P_THREE, "TestSwitches");
+            RegProc(&TestSwitches,  125, P_THREE, "TestSwitches");
         default:
             idle_needed_flag = false;
             RegProc(&IdleProcess, 1, P_ONE, "IdleProcess");

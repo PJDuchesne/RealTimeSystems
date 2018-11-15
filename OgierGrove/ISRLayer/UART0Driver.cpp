@@ -25,17 +25,18 @@ UART0Driver *UART0Driver::UART0DriverInstance_ = 0;
            clock gating registers, baud rate registers, and port A registers
 */
 void UART0Driver::UART0Init() {
-    std::cout << "UART0Driver::UART0Init()\n";
+    std::cout << "UARTDriver::UART0Init()\n";
 
     volatile int wait;
 
     /* Initialize UART0 */
-    SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCUART_GPIOA_B;   // Enable Clock Gating for UART0 & UART1
-    SYSCTL_RCGCUART_R |= SYSCTL_RCGCGPIO_UART0_1;   // Enable Clock Gating for PORTA & PORTB
+    // Shared registers
+    SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCUART_GPIOA;   // Enable Clock Gating for UART0
+    SYSCTL_RCGCUART_R |= SYSCTL_RCGCGPIO_UART0;   // Enable Clock Gating for PORTA
     wait = 0; // give time for the clocks to activate
 
-    // UART0 Enable Section
-    UART0_CTL_R &= ~UART_CTL_UARTEN;        // Disable the UART0
+    // Disable UART0 to muck around with its registers
+    UART0_CTL_R &= ~UART_CTL_UARTEN;
     wait = 0;   // wait required before accessing the UART config regs
 
     // Setup the BAUD rate
@@ -48,11 +49,24 @@ void UART0Driver::UART0Init() {
     GPIO_PORTA_PCTL_R = (0x01) | ((0x01) << 4);  // Enable UART RX/TX pins on PA1-0
     GPIO_PORTA_DEN_R = EN_DIG_PA0 | EN_DIG_PA1;  // Enable Digital I/O on PA1-0
 
-    UART0_CTL_R = UART_CTL_UARTEN; // Enable the UART0
+    // Enable UART1
+    UART0_CTL_R = UART_CTL_UARTEN;
     wait = 0; // wait; give UART1 time to enable itself
+}
 
-    // UART1 Enable section
-    UART1_CTL_R &= ~UART_CTL_UARTEN;        // Disable the UART1
+void UART0Driver::UART1Init() {
+    std::cout << "UARTDriver::UART1Init()\n";
+
+    volatile int wait;
+
+    /* Initialize UART1 */
+    // Shared registers
+    SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCUART_GPIOB;   // Enable Clock Gating for UART1
+    SYSCTL_RCGCUART_R |= SYSCTL_RCGCGPIO_UART1;   // Enable Clock Gating for PORTB
+    wait = 0; // give time for the clocks to activate
+
+    // Disable UART1 to muck around with its registers
+    UART1_CTL_R &= ~UART_CTL_UARTEN;
     wait = 0;   // wait required before accessing the UART config regs
 
     // Setup the BAUD rate
@@ -65,7 +79,8 @@ void UART0Driver::UART0Init() {
     GPIO_PORTB_PCTL_R = (0x01) | ((0x01) << 4);  // Enable UART RX/TX pins on PB1-0
     GPIO_PORTB_DEN_R = EN_DIG_PA0 | EN_DIG_PA1;  // Enable Digital I/O on PB1-0
 
-    UART1_CTL_R = UART_CTL_UARTEN; // Enable the UART1
+    // Enable UART1
+    UART1_CTL_R = UART_CTL_UARTEN;
     wait = 0; // wait; give UART1 time to enable itself
 }
 
@@ -75,8 +90,18 @@ void UART0Driver::UART0Init() {
     Brief: Specifically enables the UART0 interrupt
 */
 void UART0Driver::UART0Enable(unsigned long flags) {
+    std::cout << "UARTDriver::UART0Enable()\n";
     UART0_IM_R |= flags;
-    UART1_IM_R |= flags; // TODO: Decouple this, but fine for now
+}
+
+/*
+    Function: UART0Enable
+    Input: flags: specified bits to set for interrupt
+    Brief: Specifically enables the UART1 interrupt
+*/
+void UART0Driver::UART1Enable(unsigned long flags) {
+    std::cout << "UARTDriver::UART1Enable()\n";
+    UART1_IM_R |= flags;
 }
 
 /*
@@ -93,8 +118,13 @@ void UART0Driver::SingletonGrab() {
     Brief: Constructor for the UART0Driver class, which initializes UART0 & UART1 on startup
 */
 UART0Driver::UART0Driver() {
+    // On startup, initialize UART0
     UART0Init();
-    UART0Enable(UART_INT_RX | UART_INT_TX); // TODO: Rename now that it enables both
+    UART0Enable(UART_INT_RX | UART_INT_TX);
+
+    // On startup, initialize UART1
+    UART1Init();
+    UART1Enable(UART_INT_RX | UART_INT_TX);
 }
 
 /*

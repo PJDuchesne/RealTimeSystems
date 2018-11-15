@@ -75,10 +75,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define SYSCTL_RCGCGPIO_R      (*((volatile unsigned long *)0x400FE608))
 #define SYSCTL_RCGCUART_R      (*((volatile unsigned long *)0x400FE618))
 
-#define SYSCTL_RCGCGPIO_UART0      0x00000001  // UART0 Clock Gating Control (TODO: These two not used)
+#define SYSCTL_RCGCGPIO_UART0      0x00000001  // UART0 Clock Gating Control
 #define SYSCTL_RCGCUART_GPIOA      0x00000001  // Port A Clock Gating Control
 
-#define SYSCTL_RCGCGPIO_UART1      0x00000002  // UART1 Clock Gating Control (TODO: These two not used)
+#define SYSCTL_RCGCGPIO_UART1      0x00000002  // UART1 Clock Gating Control
 #define SYSCTL_RCGCUART_GPIOB      0x00000002  // Port B Clock Gating Control
 
 #define SYSCTL_RCGCGPIO_UART0_1    0x00000003  // UART0 & UART1 Clock Gating Control
@@ -103,7 +103,9 @@ class UART0Driver {
         static UART0Driver* UART0DriverInstance_;
         ISRMsgHandler *ISRMsgHandlerInstance_;
         void UART0Init();
+        void UART1Init();
         void UART0Enable(unsigned long flags);
+        void UART1Enable(unsigned long flags);
 
     public:
         UART0Driver();

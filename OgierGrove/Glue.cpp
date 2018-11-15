@@ -28,7 +28,7 @@ extern "C" void UART0_ISR_C(void) {
 
 /*
     Function: UART1_ISR_C
-    Brief: Dummy function to be called from C code to access its C++ equivalent for UART0
+    Brief: Dummy function to be called from C code to access its C++ equivalent for UART1
 */
 extern "C" void UART1_ISR_C(void) {
   UART0Driver::GetUART0Driver()->UART1Handler();
