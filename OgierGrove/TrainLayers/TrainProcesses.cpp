@@ -14,9 +14,16 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "Includes/TrainProcesses.h"
+#include "Includes/TrainLibrary.h"
+
+// Included for testing in TestSwitches()
+#include <ISRLayer/Includes/GlobalConfig.h>
+#include <OSLayer/Includes/OperatingSystem.h>
 
 void TestSwitches() {
+    // Test mailbox is 200
+    // PBind(200, ZERO_CHAR); // TODO: Why does this crash??
+
     std::cout << "TestSwitches(): Starting\n";
     // Make a packet
 
@@ -38,12 +45,12 @@ void TestSwitches() {
     // switchFrame[2] = '\xe0';            // Payload
     // switchFrame[3] = '\xff';            // ""
     // switchFrame[4] = '\x00';            // "" -> Straight
-    // switchFrame[4] = '\x01';         // "" -> Diverted
+    // switchFrame[4] = '\x01';            // "" -> Diverted
 
-    // Train
+    // Train Speed
     switchFrame[2] = '\xc0';          // Payload
     switchFrame[3] = '\x01';          // Train #2
-    switchFrame[4] = '\x88';         // "" -> CW, speed 8
+    switchFrame[4] = '\x0F';         // "" -> CW, speed 8
 
     int i = 0;
     bool flag = false;
@@ -52,17 +59,30 @@ void TestSwitches() {
         // Delay
         // Toggle
 
-        switchFrame[0] = control_block.all; // Control
-        if (flag) {
-            // switchFrame[4] = '\x00';            // "" -> Straight
-            ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg((char *)switchFrame, 5, UART1);
-            flag = false;
-        }
-        else {
-            // switchFrame[4] = '\x01';                // "" -> Diverted
-            ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg((char *)switchFrame, 5, UART1);
-            flag = true;
-        }
+        // Train 1
+        ISRMsgHandler::GetISRMsgHandler()->QueueOutputPacket((char *)switchFrame, 5);
+
+        // // // train 2
+        // switchFrame[3] = '\x02';   // Train #1
+        // switchFrame[4] = '\x08';         // "" -> CW, speed 8
+
+        // control_block.ns++;
+        // switchFrame[0] = control_block.all; // Control
+        // ISRMsgHandler::GetISRMsgHandler()->QueueOutputPacket((char *)switchFrame, 5);
+
+
+
+        // switchFrame[0] = control_block.all; // Control
+        // if (flag) {
+        //     // switchFrame[4] = '\x00';            // "" -> Straight
+        //     ISRMsgHandler::GetISRMsgHandler()->QueueOutputPacket((char *)switchFrame, 5);
+        //     flag = false;
+        // }
+        // else {
+        //     // switchFrame[4] = '\x01';                // "" -> Diverted
+        //     ISRMsgHandler::GetISRMsgHandler()->QueueOutputPacket((char *)switchFrame, 5);
+        //     flag = true;
+        // }
 
         control_block.ns++;
 
@@ -76,4 +96,15 @@ void TestSwitches() {
 
     while (1) {}
 }
+
+void PhysicalLayerUARTLoopEntry() {
+    PhysicalLayer::GetPhysicalLayer()->UARTMailboxLoop();
+}
+
+
+void PhysicalLayerPacketLoopEntry() {
+    PhysicalLayer::GetPhysicalLayer()->PacketMailboxLoop();
+}
+
+
 

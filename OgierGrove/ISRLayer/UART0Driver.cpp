@@ -70,8 +70,14 @@ void UART0Driver::UART1Init() {
     wait = 0;   // wait required before accessing the UART config regs
 
     // Setup the BAUD rate
+    // 9,600
+    // UART1_IBRD_R = 104;   // IBRD = int(16,000,000 / (16 * 9,600)) = 104.1666666666667
+    // UART1_FBRD_R = 11;  // FBRD = int(.1666666666667 * 64 + 0.5) = 11.16666666666667
+
+    // 115,200
     UART1_IBRD_R = 8;   // IBRD = int(16,000,000 / (16 * 115,200)) = 8.680555555555556
     UART1_FBRD_R = 44;  // FBRD = int(.680555555555556 * 64 + 0.5) = 44.05555555555556
+
     UART1_LCRH_R = (UART_LCRH_WLEN_8);  // WLEN: 8, no parity, one stop bit, without FIFOs)
 
     // Set up PORTB (For UART1)
@@ -153,7 +159,7 @@ void UART0Driver::UART0Handler() {
     // Check if RECV Done
     if (UART0_MIS_R & UART_INT_RX)
     {
-        // Queue the msg
+        // Queue the incoming msg
         uart_data = UART0_DR_R;
         KSend(&UARTArguments);
 
@@ -180,13 +186,19 @@ void UART0Driver::UART0Handler() {
 
 void UART0Driver::UART1Handler() {
     // This should be spamming to high heaven
-    std::cout << "UART1Handler()\n";
+    // std::cout << "UART1Handler()\n";
 
     // Set up arguments for future use
     static kcallargs_t UARTArguments;
     static bool first_time = true;
     static char uart_data;
     static char output_char;
+
+    static unsigned char testArray[100] = {0};
+    static unsigned char outputTestArray[100] = {0};
+
+    static int i = 0;
+    static int i2 = 0;
 
     if (first_time) {
         UARTArguments.src_q = KERNEL_MB;
@@ -199,11 +211,12 @@ void UART0Driver::UART1Handler() {
     // Check if RECV Done
     if (UART1_MIS_R & UART_INT_RX)
     {
-
-
-        // Queue the msg
+        // Queue the incoming msg
         uart_data = UART1_DR_R;
-        std::cout << "UART1Handler() RX >>" << int(UART1_DR_R) << "<<\n";
+        // std::cout << "UART1Handler() RX >>" << int(uart_data) << "<<\n";
+
+        testArray[i] = uart_data;
+        i++;
 
         // TODO: Pass to different queue
         // KSend(&UARTArguments);
@@ -221,15 +234,45 @@ void UART0Driver::UART1Handler() {
         // If the buffer is empty, set UART to idle
         if (ISRMsgHandlerInstance_->OutputBufferEmpty(UART1)) {
             ISRMsgHandlerInstance_->uart1_output_idle_ = true;
-            std::cout << "UART1Handler() TX\n";
+
+            // Debugging printout:
+            std::cout << "UART1Handler() TX Results >> ";
+            for (int x = 0; x < i2; x++) {
+                std::cout << int(outputTestArray[x]) << " ";
+            }
+            std::cout << "<<\n";
+            i2 = 0;
         }
         // Else, the buffer has more to print
         else {
             char tmp = ISRMsgHandlerInstance_->GetOutputChar(UART1);
-            std::cout << "UART1Handler() TX: >>" << int(tmp) << "<<\n";
-            UART1_DR_R = output_char;
+            // std::cout << "UART1Handler() TX: >>" << int(tmp) << "<<\n";
+            UART1_DR_R = tmp;
+            outputTestArray[i2++] = tmp;
         }
     }
+
+    if (i >= 2 && (testArray[i-1] == 3 && testArray[i-2] != 16)) {
+        std::cout << "UART1Handler() RX Results >> ";
+        for (int x = 0; x < i; x++) {
+            std::cout << int(testArray[x]) << " ";
+        }
+        std::cout << "<<\n";
+        i = 0;
+    }
+
+    if (i == 100) i = 0;
+
+    // int testEnd = 25;
+    // if (i == testEnd) {
+    //     std::cout << "UART1Handler() RX Results >> ";
+    //     for (int x = 0; x < testEnd; x++) {
+    //         std::cout << int(testArray[x]) << " ";
+    //     }
+    //     std::cout << "<<\n";
+
+    //     while (1) { }
+    // }
 }
 
 /*
@@ -247,7 +290,7 @@ void UART0Driver::JumpStartOutput0(char first_char) {
            process cascades to empty out the buffer.
 */
 void UART0Driver::JumpStartOutput1(char first_char) {
-    std::cout << "UART0Driver::JumpStartOutput1() >>" << int(first_char) << "<<\n";
+    // std::cout << "UART0Driver::JumpStartOutput1() >>" << int(first_char) << "<<\n";
     UART1_DR_R = first_char;
 }
 

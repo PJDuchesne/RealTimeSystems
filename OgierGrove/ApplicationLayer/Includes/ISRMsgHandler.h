@@ -55,7 +55,7 @@ class ISRMsgHandler {
 
         void GetFromISRQueue(MsgType_t &type, char &data);
         void QueueOutputMsg(std::string msg, uint8_t uart_num); // TODO: make uart_num an enum msg type
-        void QueueOutputMsg(char* msg, uint16_t len, uint8_t uart_num); // TODO: make uart_num an enum msg type
+        void QueueOutputPacket(char* msg, uint16_t len);
         bool OutputBufferEmpty(uint8_t uart_num);
         char GetOutputChar(uint8_t uart_num);
         static ISRMsgHandler* GetISRMsgHandler();

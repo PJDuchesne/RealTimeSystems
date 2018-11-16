@@ -1,5 +1,5 @@
-#ifndef TrainProcesses_H
-#define TrainProcesses_H
+#ifndef TrainLibrary_H
+#define TrainLibrary_H
 
 /*
 __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____        
@@ -11,14 +11,27 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
       _\/\\\___________/\\\___\/\\\_____\/\\\_______/\\\__  
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
--> Name:  TrainProcesses.h
--> Date: Nov 14, 2018  (Created)
+-> Name:  TrainLibrary.h
+-> Date: Nov 16, 2018  (Created)
 -> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
 
-#include <ISRLayer/Includes/GlobalConfig.h>
-#include <OSLayer/Includes/OperatingSystem.h>
+// TODO: Remove any unncessary includes
+#include <cstdint>
+#include <iostream>
+#include <string>
+#include <sstream>
+
+#include <OSLayer/Includes/ProcessCalls.h>
+
+#define UART_PHYSICAL_LAYER_MB_SIZE 100
+
+enum train_layer_mailboxes {
+    UART_PHYSICAL_LAYER_MB   = 200,
+    PACKET_PHYSICAL_LAYER_MB = 201,
+    DATA_LINK_LAYER_MB       = 202
+};
 
 typedef enum PacketType {
     DATA_PT = 0,
@@ -42,6 +55,4 @@ typedef struct control
     // TODO: Add constructor
 } control_t;
 
-void TestSwitches();
-
-#endif /* TrainProcesses_H */
+#endif /* TrainLibrary_H */

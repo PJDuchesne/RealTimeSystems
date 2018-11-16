@@ -39,7 +39,7 @@ const std::string valid_commands[NUM_VALID_COMMANDS] = {
   "DATE",
   "ALARM",
   "DIAG",
-  "REVERSE"
+  "REVERSE",
 };
 
 // Forward Declarations

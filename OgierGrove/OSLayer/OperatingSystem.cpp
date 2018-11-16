@@ -85,6 +85,10 @@ void OperatingSystem::Inialize() {
             RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
             RegProc(&TestSwitches,  125, P_THREE, "TestSwitches");
+
+            // Add physical layer loops
+            RegProc(&PhysicalLayerUARTLoopEntry,   200, P_THREE, "PhysicalLayerUARTLoop");
+            RegProc(&PhysicalLayerPacketLoopEntry, 201, P_THREE, "PhysicalLayerPacketLoop");
         default:
             idle_needed_flag = false;
             RegProc(&IdleProcess, 1, P_ONE, "IdleProcess");

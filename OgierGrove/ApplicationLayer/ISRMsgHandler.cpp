@@ -111,57 +111,46 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
 }
 
 /*
-    Function: QueueOutputMsg
-    Input:  msg: Message to queue into the output UART character queue
-    Brief: API to queue a message into the output UART character queue
+    Function: QueueOutputPacket
+    Input:  msg: Message to queue into the output UART1 character queue
+    Brief: API to queue a message into the output UART1 character queue
 */
-void ISRMsgHandler::QueueOutputMsg(char* packet, uint16_t len, uint8_t uart_num) {
+void ISRMsgHandler::QueueOutputPacket(char* packet, uint16_t len) {
     char first_char;
 
-    std::cout << "ISRMsgHandler::QueueOutputMsg(char)\n";
+    std::cout << "ISRMsgHandler::QueueOutputPacket(char)\n";
 
     uint8_t checksum = 0;
 
-    // TODO: Make this table driven
-    switch (uart_num) {
-        case 0:
-            std::cout << "ISRMsgHandler::QueueOutputMsg(char): Outputting on UART0\n";
+    std::cout << "ISRMsgHandler::QueueOutputPacket(char): Outputting on UART1\n";
 
-            break;
-        case 1:
-            std::cout << "ISRMsgHandler::QueueOutputMsg(char): Outputting on UART1\n";
+    uart1_output_data_buffer_->Add('\x02'); // Add start CTRL
+    for (int i = 0; i < len; i++) {
+        checksum += uint8_t(packet[i]);
 
-            uart1_output_data_buffer_->Add('\x02'); // Add start CTRL
-            for (int i = 0; i < len; i++) {
-                checksum += uint8_t(packet[i]);
+        // Adds excape characters for UART1 frames
+        switch (int(packet[i])) {
+            // If the character is an escape character, output 0x10 and save the character for next TX
+            case '\x02':
+            case '\x03':
+            case '\x10':
+                uart1_output_data_buffer_->Add('\x10');
+            default:
+                uart1_output_data_buffer_->Add(packet[i]);
+        }
 
-                // Adds excape characters for UART1 frames
-                switch (int(packet[i])) {
-                    // If the character is an escape character, output 0x10 and save the character for next TX
-                    case '\x02':
-                    case '\x03':
-                    case '\x10':
-                        uart1_output_data_buffer_->Add('\x10');
-                    default:
-                        uart1_output_data_buffer_->Add(packet[i]);
-                }
-
-            }
-
-            uart1_output_data_buffer_->Add(checksum); // Add checksum
-            uart1_output_data_buffer_->Add('\x03'); // Add stop CTRL
-
-            // Jumpstart output if necessary
-            if (uart1_output_idle_) {
-                first_char = uart1_output_data_buffer_->Get();
-                uart1_output_idle_ = false;
-                UART0DriverInstance_->JumpStartOutput1(first_char);
-            }
-
-            break;
-        default:
-            // TODO: Error Msg here
     }
+
+    uart1_output_data_buffer_->Add(255 - checksum); // Add checksum (Including 1s compliment)
+    uart1_output_data_buffer_->Add('\x03'); // Add stop CTRL
+
+    // Jumpstart output if necessary
+    if (uart1_output_idle_) {
+        first_char = uart1_output_data_buffer_->Get();
+        uart1_output_idle_ = false;
+        UART0DriverInstance_->JumpStartOutput1(first_char);
+    }
+
 }
 
 /*
