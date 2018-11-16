@@ -30,29 +30,54 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 enum train_layer_mailboxes {
     UART_PHYSICAL_LAYER_MB   = 200,
     PACKET_PHYSICAL_LAYER_MB = 201,
-    DATA_LINK_LAYER_MB       = 202
+    DATA_LINK_LAYER_MB       = 202,
+    APPLICATION_LAYER_MB     = 203
 };
 
-typedef enum PacketType {
+typedef enum packet_type {
     DATA_PT = 0,
     ACK_PT  = 1,
-    NACK_PT = 2
-} PacketType_t;
+    NACK_PT = 2,
+    UNUSED_PT = 3 // Actually used internally as a NULL value of packets
+} packet_type_t;
 
 typedef struct control 
 {
-    // control(uint8_t nr, uint8_t ns, PacketType_t type) : nr(nr),
+    // TODO: Constructor for useful initilizations
+    // control(uint8_t nr, uint8_t ns, packet_type_t type) : nr(nr),
     //                                                   ns(ns),
     //                                                   type(type) {}
     union {
         struct {
             uint8_t nr : 3;
             uint8_t ns : 3;
-            PacketType_t type : 2;
+            packet_type_t type : 2;
         };
         uint8_t all;
     };
     // TODO: Add constructor
 } control_t;
+
+typedef struct train_msg {
+    packet_type_t code;
+    uint8_t arg1;
+    uint8_t arg2;
+} train_msg_t;
+
+typedef struct packet {
+    control_t control_block;
+    uint8_t length;
+    // TODO: Is this necessary?
+    // Anonymous union for direct access
+    union {
+        train_msg_t msg;
+        struct 
+        {
+            packet_type_t code;
+            uint8_t arg1;
+            uint8_t arg2;
+        };
+    };
+} packet_t;
 
 #endif /* TrainLibrary_H */

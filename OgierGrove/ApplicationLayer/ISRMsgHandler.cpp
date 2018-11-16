@@ -128,6 +128,7 @@ void ISRMsgHandler::QueueOutputPacket(char* packet, uint16_t len) {
     for (int i = 0; i < len; i++) {
         checksum += uint8_t(packet[i]);
 
+        // TODO: Ask about this efficiency versus one large if statement
         // Adds excape characters for UART1 frames
         switch (int(packet[i])) {
             // If the character is an escape character, output 0x10 and save the character for next TX
@@ -141,7 +142,11 @@ void ISRMsgHandler::QueueOutputPacket(char* packet, uint16_t len) {
 
     }
 
+    // Calculate final checksum and add (Escaping if necessary)
+    checksum = (ONE_BYTE_MAX - checksum);
+    if (checksum == '\x02' || checksum == '\x03' || checksum == '\x10') uart1_output_data_buffer_->Add('\x10');
     uart1_output_data_buffer_->Add(255 - checksum); // Add checksum (Including 1s compliment)
+
     uart1_output_data_buffer_->Add('\x03'); // Add stop CTRL
 
     // Jumpstart output if necessary

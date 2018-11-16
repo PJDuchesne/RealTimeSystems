@@ -58,29 +58,42 @@ void PhysicalLayer::UARTMailboxLoop() {
 
 /*
     Function: PassFrame
-    Brief: <>
+    Brief: Passes frame up to the Data Link Layer, checking the checksum and 
+            removing any escape characters
 */
 void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
+    static uint8_t msg_body[256];
+
+    int msg_idx = 0;
+
     // Ensure frame starts with STX (0x02) and ends with ETX (0x03)
+    // Note: This should be taken care of in the previous function. TODO: Remove
     assert(frame_ptr[0]         == '\x02');
     assert(frame_ptr[frame_len] == '\x03');
 
     // Checks checksum
     uint8_t frame_checksum = 0;
 
-    for(int i = 1; i < frame_len - 2; i++) {
-        if (frame_ptr[i] != '\x10') frame_checksum += int(frame_ptr[i]);
-        else {
-            // Check that the next character is not the checksum itself 
-            assert(i + 1 < frame_len - 1);
-            frame_checksum += frame_ptr[++i];
+    // TODO: This would be simpler if the loop just kept iterating when an escape character
+    //       was found, leaving the bounds to be the bounds
+
+    // Create msg_body to send up
+    for(int i = 1; i < frame_len - 1; i++) {
+        // If not an escape character ('0x10'), add the char to the msg_body
+        if (frame_ptr[i] != '\x10') msg_body[msg_idx] = uint8_t(frame_ptr[i]);
+        // If it is an escape character, ensure it is not escaping the checksum
+        else if (i + 1 != frame_len - 1) { // (i + 1) is the escaped character and (frame_len - 1) is the checksum
+            // For debugging
+            assert(frame_ptr[i] == '\x02' || frame_ptr[i] == '\x03' || frame_ptr[i] == '\x10');
+            msg_body[msg_idx] = frame_ptr[++i]; // Add value of escaped character, iterating i
         }
+        frame_checksum += int(msg_body[msg_idx++]); // Add checksum value
     }
 
     // If checksum passes, pass msg, otherwise drop it
     if ((ONE_BYTE_MAX - frame_checksum) == frame_ptr[frame_len - 1]) {
         // Send message up to Data Link Layer, without the STX, Checksum, or ETX
-        PSend(UART_PHYSICAL_LAYER_MB, DATA_LINK_LAYER_MB, (void *)frame_ptr[1], frame_len - 2);
+        PSend(UART_PHYSICAL_LAYER_MB, DATA_LINK_LAYER_MB, (void *)msg_body, msg_idx);
     }
     // Not an error state, but unlikely enough to warrant a warning to user
     else std::cout << "PhysicalLayer::PassFrame(): WARNING -> DROPPING FRAME DUE TO INVALID CHECKSUM\n";
@@ -100,7 +113,7 @@ void PhysicalLayer::PacketMailboxLoop() {
         PRecv(src_q, PACKET_PHYSICAL_LAYER_MB, &msg_body, mailbox_msg_len);
         
         // Error state checking for testing
-        assert(mailbox_msg_len < 255);
+        assert(mailbox_msg_len < 256);
         assert(src_q == DATA_LINK_LAYER_MB); // Frame should always be coming from DLL
 
         // Output Packet
@@ -112,18 +125,16 @@ void PhysicalLayer::PacketMailboxLoop() {
 
 /*
     Function: PhysicalLayer
-    Brief: Constructor for the PhysicalLayer class, which initializes the data_buffer_ on startup
+    Brief: Constructor for the PhysicalLayer class
 */
 PhysicalLayer::PhysicalLayer() {
-    uart1_output_data_buffer_ = new RingBuffer<char>(UART1_OUTPUT_DATA_BUFFER_SIZE);
 }
 
 /*
     Function: ~PhysicalLayer
-    Brief: Destructor for the PhysicalLayer class, which deletes the data_buffer_ on shutdown
+    Brief: Destructor for the PhysicalLayer class
 */
 PhysicalLayer::~PhysicalLayer() {
-    delete uart1_output_data_buffer_;
 }
 
 void PhysicalLayer::SingletonGrab() {

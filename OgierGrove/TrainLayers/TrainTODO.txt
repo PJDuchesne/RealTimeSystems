@@ -1,0 +1,11 @@
+Train TODO List
+
+--> Core features
+1. Physical Layer
+2. Data Link Layer
+3. Application Layer
+	- Train display
+	- Train sending commands with routing tables and such
+
+--> "Should Really Be Done"
+- Make a new mailbox size, 16 to handle all the train messages (Because they will never be bigger than that)
