@@ -17,11 +17,25 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+#include "TrainLibrary.h"
+
+// Layers
+#include "DataLinkLayer.h"
 #include "PhysicalLayer.h"
+#include "TrainCommandApplication.h"
 
-void TestSwitches();
+// Testing functions
+void TestSwitches(); // PRE-Physical Layer / Data Link Layer: Raw publishes!
+void TestLayers();   // Utilizes all three layers to test functionality
 
+// Physical layer loops
 void PhysicalLayerUARTLoopEntry();
 void PhysicalLayerPacketLoopEntry();
+
+// Data link layer loop
+void DataLinkLayerLoopEntry();
+
+// Train Application layer loop
+void TrainCommandApplicationLoopEntry();
 
 #endif /* TrainProcesses_H */

@@ -9,12 +9,15 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
 -> Name:  DataLinkLayer.cpp
--> Date: Sept 17, 2018  (Created)
+-> Date: Nov 16, 2018  (Created)
 -> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
 
 #include "Includes/DataLinkLayer.h"
+
+#include <ISRLayer/Includes/GlobalConfig.h>
+#include <OSLayer/Includes/OperatingSystem.h>
 
 // Singleton Instance
 DataLinkLayer *DataLinkLayer::DataLinkLayerInstance_ = 0;
@@ -22,7 +25,10 @@ DataLinkLayer *DataLinkLayer::DataLinkLayerInstance_ = 0;
 // Note: The pre-infinite loop of this acts as an initialization sequence
 void DataLinkLayer::MailboxLoop() {
     // Bind PhysicalLayer queue
-    PBind(DATA_LINK_LAYER_MB, ONE_CHAR); // Default mailbox size of 16
+    if (PBind(DATA_LINK_LAYER_MB, BIG_LETTER) == false) { // Default mailbox size of 16
+        std::cout << "DataLinkLayer::MailboxLoop(): WARNING Mailbox failed to bind\n";
+    }
+    else std::cout << "DataLinkLayer::MailboxLoop(): Mailbox bound\n";
 
     uint8_t src_q;
     uint32_t mailbox_msg_len;
@@ -48,7 +54,7 @@ void DataLinkLayer::MailboxLoop() {
 
         switch(src_q) {
             // If from the physical layer, handle each packet type separately
-            case PACKET_PHYSICAL_LAYER_MB:
+            case UART_PHYSICAL_LAYER_MB:
                 // Cast message to the correct format
                 recv_packet_ptr = (packet_t *)msg_body;
                 switch(recv_packet_ptr->control_block.type) {
@@ -92,6 +98,8 @@ void DataLinkLayer::MailboxLoop() {
             */
             // Else it is from the application layer and should be sent down to the Physical Layer
             default:
+                std::cout << "DataLinkLayer::MailboxLoop(): Msg from Application Layer, packeting and sending to Physical layer\n";
+
                 // Make packet for sending or buffering
                 assert(mailbox_msg_len < 8);
                 MakePacket(newly_made_packet, (train_msg_t *)msg_body);
@@ -122,7 +130,8 @@ void DataLinkLayer::MailboxLoop() {
 
 // Send message up to application layer
 void DataLinkLayer::SendMessageUp(packet_t* packet) {
-    assert(packet->length <= 1 && packet->length >= 3);
+    std::cout << "DataLinkLayer::SendMessageUp() >>" << int(packet->length) << "<<\n";
+    assert(packet->length >= 1 && packet->length <= 3);
 
     // Strip out message itself and send up to the application layer
     static char msg_body[256];
@@ -142,7 +151,7 @@ void DataLinkLayer::SendMessageUp(packet_t* packet) {
 
     }
 
-    PSend(DATA_LINK_LAYER_MB, APPLICATION_LAYER_MB, (void *)msg_body, packet->length);
+    PSend(DATA_LINK_LAYER_MB, TRAIN_APPLICATION_LAYER_MB, (void *)msg_body, packet->length);
 }
 
 // Send packet down to application layer
@@ -190,6 +199,8 @@ void DataLinkLayer::HandleNACK(uint8_t train_nr) {
 
 // Send an ACK to acknowedge we receieved and accepted their message
 void DataLinkLayer::SendACK() {
+    std::cout << "DataLinkLayer::SendACK()\n";
+
     // TODO: Get initializer to set the starting value to NACK_PT
     static control_t control_block;
 
@@ -204,6 +215,7 @@ void DataLinkLayer::SendACK() {
 // Send a nack to request the message we were expecting,
 // this is called if we get a message we were not expecting (Trainset NS didn't equal TIVA NR)
 void DataLinkLayer::SendNACK() {
+    std::cout << "DataLinkLayer::SendNACK()\n";
     // TODO: Get initializer to set the starting value to NACK_PT
     static control_t control_block;
 
@@ -226,7 +238,7 @@ void DataLinkLayer::MakePacket(packet_t &packet, train_msg_t* msg) {
     // TODO: Maybe optimize this abit, the double switch statements are a bit much
 
     // Set length
-    packet.length = PacketLengthFromCode(packet.msg.code);
+    packet.length = MsgLengthFromCode(packet.msg.code);
 
     switch(packet.length) {
         // Note: The lack of break statements is intentional for a waterfall effect
@@ -244,21 +256,6 @@ void DataLinkLayer::MakePacket(packet_t &packet, train_msg_t* msg) {
     }
 }
 
-uint8_t DataLinkLayer::PacketLengthFromCode(uint8_t msg_code) {
-    switch (msg_code) {
-        case '\xA8':
-            return 1;
-        case '\xA2':
-            return 2;
-        case '\xC0':
-        case '\xE0':
-            return 3;
-        default:
-            std::cout << "DataLinkLayer::PacketLengthFromCode(): ERROR, Invalid Message code\n";
-            while(1) {}
-    }
-}
-
 /*
     Function: DataLinkLayer
     Brief: Constructor for the DataLinkLayer class
@@ -273,10 +270,6 @@ DataLinkLayer::DataLinkLayer() {
 */
 DataLinkLayer::~DataLinkLayer() {
     delete packet_buffer_;
-}
-
-void DataLinkLayer::SingletonGrab() {
-    ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
 }
 
 /*

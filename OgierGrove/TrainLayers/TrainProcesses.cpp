@@ -14,7 +14,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "Includes/TrainLibrary.h"
+#include "Includes/TrainProcesses.h"
 
 // Included for testing in TestSwitches()
 #include <ISRLayer/Includes/GlobalConfig.h>
@@ -49,7 +49,7 @@ void TestSwitches() {
 
     // Train Speed
     switchFrame[2] = '\xc0';          // Payload
-    switchFrame[3] = '\x01';          // Train #2
+    switchFrame[3] = '\x02';          // Train #2
     switchFrame[4] = '\x0F';         // "" -> CW, speed 8
 
     int i = 0;
@@ -97,13 +97,52 @@ void TestSwitches() {
     while (1) {}
 }
 
+// Tests layers!
+void TestLayers() {
+    // TODO: Send mail to this mailbox from the monitor, and then send commands based on that mail
+    // Bind a mailbox
+    PBind(TEST_PROCESS_MB, ONE_CHAR);
+
+    // int i = 0;
+    // while(i++ < 100000) {}
+
+    // // For now, manual testing!
+    TrainCommandApplication::GetTrainCommandApplication()->SendSwitchCommand(ALL, DIVERTED, TEST_PROCESS_MB);
+
+    int i_DELAY;
+
+    // No semi-colon needed! Woot woot
+    DELAY(1000000)
+    TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CCW, TEST_PROCESS_MB);
+    // DELAY(1000000)
+    // TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CW, TEST_PROCESS_MB);
+    // DELAY(1000000)
+    // TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CCW, TEST_PROCESS_MB);
+    // DELAY(1000000)
+    // TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CW, TEST_PROCESS_MB);
+
+    while(1) {}
+}
+
 void PhysicalLayerUARTLoopEntry() {
+    ISRMsgHandler::GetISRMsgHandler();
     PhysicalLayer::GetPhysicalLayer()->UARTMailboxLoop();
 }
 
 
 void PhysicalLayerPacketLoopEntry() {
+    ISRMsgHandler::GetISRMsgHandler();
     PhysicalLayer::GetPhysicalLayer()->PacketMailboxLoop();
+}
+
+void DataLinkLayerLoopEntry() {
+    ISRMsgHandler::GetISRMsgHandler();
+    DataLinkLayer::GetDataLinkLayer()->MailboxLoop();
+}
+
+void TrainCommandApplicationLoopEntry() {
+    ISRMsgHandler::GetISRMsgHandler();
+    TrainCommandApplication::GetTrainCommandApplication()->MailboxLoop();
 }
 
 

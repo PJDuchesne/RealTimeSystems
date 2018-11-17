@@ -19,6 +19,9 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include <ApplicationLayer/Includes/ISRMsgHandler.h>
 #include "../../OSLayer/Includes/RingBuffer.h"
+#include <TrainLayers/Includes/TrainLibrary.h> // For nice hex output
+
+#include <iomanip>
 
 // PORTA & UART0 Registers
 #define GPIO_PORTA_AFSEL_R (*((volatile unsigned long *)0x40058420)) // GPIOA Alternate Function Select Reg

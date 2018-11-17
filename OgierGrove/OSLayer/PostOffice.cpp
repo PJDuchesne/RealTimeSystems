@@ -34,7 +34,7 @@ bool PostOffice::BuyMailbox(uint8_t mailbox_no, letter_size_t letter_size, pcb_t
     if (Mailboxes_[mailbox_no].currently_owned == true) return false;
 
     // Check if the process is allowed to buy more mailboxes
-    bool full_flag = true;;
+    bool full_flag = true;
     if (current_pcb) {
         for (uint8_t i = 0; i < MAX_MAILBOXES_PER_PROCESS; i++) {
             if (current_pcb->mailbox_numbers[i] == 0) {

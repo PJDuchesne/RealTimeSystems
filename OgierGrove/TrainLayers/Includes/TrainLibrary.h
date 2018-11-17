@@ -23,15 +23,22 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <string>
 #include <sstream>
 
-#include <OSLayer/Includes/ProcessCalls.h>
+// For cleaning printing hex characters
+#include <iomanip>
+#define HEX(x) " " << std::setw(2) << std::setfill('0') << std::hex << int(x) << " " << std::dec
+
+#define DELAY(x) i_DELAY = 0; while(i_DELAY++ < x) {}
 
 #define UART_PHYSICAL_LAYER_MB_SIZE 100
 
+#define ALL 255 // Used to acknowledge all sensor resets or throw all switches
+
 enum train_layer_mailboxes {
-    UART_PHYSICAL_LAYER_MB   = 200,
-    PACKET_PHYSICAL_LAYER_MB = 201,
-    DATA_LINK_LAYER_MB       = 202,
-    APPLICATION_LAYER_MB     = 203
+    UART_PHYSICAL_LAYER_MB     = 200,
+    PACKET_PHYSICAL_LAYER_MB   = 201,
+    DATA_LINK_LAYER_MB         = 202,
+    TRAIN_APPLICATION_LAYER_MB = 203,
+    TEST_PROCESS_MB = 210 // For future testing
 };
 
 typedef enum packet_type {
@@ -79,5 +86,27 @@ typedef struct packet {
         };
     };
 } packet_t;
+
+typedef struct train_request {
+
+} train_request_t;
+
+uint8_t MsgLengthFromCode(uint8_t msg_code);
+
+typedef enum train_direction {
+    CW = 0,
+    CCW = 8 // 8 because that's the value within its nibble
+} train_direction_t;
+
+typedef enum switch_direction {
+    STRAIGHT = 0,
+    DIVERTED = 1
+} switch_direction_t;
+
+typedef struct train_settings
+{
+    uint8_t speed : 4;
+    train_direction_t direction : 4;
+} train_settings_t;
 
 #endif /* TrainLibrary_H */

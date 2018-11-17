@@ -9,12 +9,16 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
 -> Name:  PhysicalLayer.cpp
--> Date: Sept 17, 2018  (Created)
+-> Date: Nov 16, 2018  (Created)
 -> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
 
 #include "Includes/PhysicalLayer.h"
+
+// TODO: Delete, used for testing
+#include <ISRLayer/Includes/GlobalConfig.h>
+#include <OSLayer/Includes/OperatingSystem.h>
 
 // Singleton Instance
 PhysicalLayer *PhysicalLayer::PhysicalLayerInstance_ = 0;
@@ -25,7 +29,13 @@ PhysicalLayer *PhysicalLayer::PhysicalLayerInstance_ = 0;
 */
 void PhysicalLayer::UARTMailboxLoop() {
     // Bind PhysicalLayer queue
-    PBind(UART_PHYSICAL_LAYER_MB, ONE_CHAR, UART_PHYSICAL_LAYER_MB_SIZE);
+    if (!PBind(UART_PHYSICAL_LAYER_MB, ONE_CHAR, UART_PHYSICAL_LAYER_MB_SIZE)) {
+        std::cout << "PhysicalLayer::UARTMailboxLoop(): WARNING Mailbox failed to bind!\n";
+    }
+    else std::cout << "PhysicalLayer::UARTMailboxLoop(): Mailbox bound\n";
+
+    // Grab singleton for future use
+    ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
 
     static uint8_t src_q;
     static uint32_t mailbox_msg_len;
@@ -35,22 +45,47 @@ void PhysicalLayer::UARTMailboxLoop() {
 
     while (1) {
         // Blocking message request
-        PRecv(src_q, ISR_MSG_HANDLER_MB, &msg_body, mailbox_msg_len);
+        PRecv(src_q, UART_PHYSICAL_LAYER_MB, &msg_body, mailbox_msg_len);
         
         // Error state checking for testing
-        assert(mailbox_msg_len < 256);
+        assert(mailbox_msg_len == 1);
         assert(frame_len < MAX_FRAME_SIZE);
 
-        // Add msg to internal msg maker
+        // Add msg to internal frame array 
         incoming_frame[frame_len] = msg_body;
 
-        // Check if this is the end of the frame (Needs to be at least 2 length and a non-escaped ETX (0x03))
-        if (frame_len >= 1 && incoming_frame[frame_len - 2] != '\x10' && incoming_frame[frame_len - 1] == '\x03') {
-            // Handle Frame
-            PassFrame(incoming_frame, frame_len);
+        if (frame_len >= 1 && incoming_frame[frame_len - 1] != '\x10') {
+            switch (msg_body) {
+                // Unescaped 0x03 found, signalling the end of the frame
+                case '\x03':
+                    // Send the complete frame
+                    PassFrame(incoming_frame, frame_len + 1);
+                    // Reset frame
+                    frame_len = 0;
+                    break;
+                // Unescaped 0x02 found (That wasn't the first char), must restart the frame with this first character
+                case '\x02':
+                    // TODO: Delete debugging info
+                    std::cout << "PhysicalLayer::UARTMailboxLoop(): WARNING: Unescaped 0x02 found: >>";
+                    for (int i = 0; i <= frame_len; i++) {
+                        std::cout << HEX(incoming_frame[i]);
+                    }
+                    std::cout << "<<\n";
 
-            // Reset Length
-            frame_len = 0;
+                    // Perform reset
+                    incoming_frame[0] = msg_body;
+                    frame_len = 1;
+                    break;
+
+                // They can escape any character, doesn't *have* to be a control character technically
+                // case '\x10':
+                //     std::cout << "PhysicalLayer::UARTMailboxLoop(): ERROR: UNESCAPED 0x10 FOUND\n";
+                //     while (1) {}
+                default:
+                    frame_len++;
+                    // A normal character, which was not escaped (This is fine)
+                    break;
+            }
         }
         else frame_len++;
     }
@@ -66,10 +101,18 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
 
     int msg_idx = 0;
 
+    // TODO: Remove debugging printout
+    std::cout << "PhysicalLayer::PassFrame: Frame >>";
+    for (int i = 0; i < frame_len; i++) {
+        std::cout << HEX(frame_ptr[i]);
+    }
+    std::cout << "<<\n";
+
     // Ensure frame starts with STX (0x02) and ends with ETX (0x03)
-    // Note: This should be taken care of in the previous function. TODO: Remove
-    assert(frame_ptr[0]         == '\x02');
-    assert(frame_ptr[frame_len] == '\x03');
+    // Note: These checks should be taken care of in the previous function. TODO: Remove
+    assert(frame_len >= 4); // NACKs and ACKS are at least length 4, DATA should be 6. More with escape characters
+    assert(frame_ptr[0]             == '\x02');
+    assert(frame_ptr[frame_len - 1] == '\x03');
 
     // Checks checksum
     uint8_t frame_checksum = 0;
@@ -78,30 +121,42 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
     //       was found, leaving the bounds to be the bounds
 
     // Create msg_body to send up
-    for(int i = 1; i < frame_len - 1; i++) {
+    for(int i = 1; i < frame_len - 2; i++) {
         // If not an escape character ('0x10'), add the char to the msg_body
-        if (frame_ptr[i] != '\x10') msg_body[msg_idx] = uint8_t(frame_ptr[i]);
-        // If it is an escape character, ensure it is not escaping the checksum
-        else if (i + 1 != frame_len - 1) { // (i + 1) is the escaped character and (frame_len - 1) is the checksum
+        if (frame_ptr[i] != '\x10') {
+            // For debugging, ensure there are no unescaped 0x02 or 0x03 characters (Should be handled previously)
+            assert(frame_ptr[i] != '\x02' && frame_ptr[i] != '\x03');
+            msg_body[msg_idx] = uint8_t(frame_ptr[i]);
+        }
+        // If it is an escape character, add the character it is escaping (And ensure it is not escaping the checksum)
+        else if (i + 1 != frame_len - 2) { // (i + 1) is the escaped character and (frame_len - 2) is the checksum
             // For debugging
-            assert(frame_ptr[i] == '\x02' || frame_ptr[i] == '\x03' || frame_ptr[i] == '\x10');
-            msg_body[msg_idx] = frame_ptr[++i]; // Add value of escaped character, iterating i
+            msg_body[msg_idx] = frame_ptr[++i]; // iterate i to add value of escaped character
         }
         frame_checksum += int(msg_body[msg_idx++]); // Add checksum value
     }
 
+    frame_checksum = ONE_BYTE_MAX - frame_checksum;
+
     // If checksum passes, pass msg, otherwise drop it
-    if ((ONE_BYTE_MAX - frame_checksum) == frame_ptr[frame_len - 1]) {
+    if (frame_checksum == frame_ptr[frame_len - 2]) {
+        std::cout << "PhysicalLayer::PassFrame(): Passed Checksum, passing up!\n";
+
         // Send message up to Data Link Layer, without the STX, Checksum, or ETX
         PSend(UART_PHYSICAL_LAYER_MB, DATA_LINK_LAYER_MB, (void *)msg_body, msg_idx);
     }
     // Not an error state, but unlikely enough to warrant a warning to user
-    else std::cout << "PhysicalLayer::PassFrame(): WARNING -> DROPPING FRAME DUE TO INVALID CHECKSUM\n";
+    else {
+        std::cout << "PhysicalLayer::PassFrame(): WARNING -> DROPPING FRAME DUE TO INVALID CHECKSUM >>" << HEX(frame_checksum) << "<< >>" << HEX(frame_ptr[frame_len - 2]) << "<<\n";
+    }
 }
 
 void PhysicalLayer::PacketMailboxLoop() {
     // Bind PhysicalLayer queue
-    PBind(PACKET_PHYSICAL_LAYER_MB, ONE_CHAR); // Default mailbox size of 16
+    if (!PBind(PACKET_PHYSICAL_LAYER_MB, BIG_LETTER)) { // Default mailbox size of 16
+        std::cout << "PhysicalLayer::PacketMailboxLoop(): WARNING Mailbox failed to bind!\n";
+    }
+    else std::cout << "PhysicalLayer::PacketMailboxLoop(): Mailbox bound\n";
 
     static uint8_t src_q;
     static uint32_t mailbox_msg_len;
@@ -115,6 +170,8 @@ void PhysicalLayer::PacketMailboxLoop() {
         // Error state checking for testing
         assert(mailbox_msg_len < 256);
         assert(src_q == DATA_LINK_LAYER_MB); // Frame should always be coming from DLL
+
+        std::cout << "PhysicalLayer::PacketMailboxLoop(): Packet from Data Link Layer, sending out UART1\n";
 
         // Output Packet
             // This function handles adding the control characters, any necessary
@@ -135,10 +192,6 @@ PhysicalLayer::PhysicalLayer() {
     Brief: Destructor for the PhysicalLayer class
 */
 PhysicalLayer::~PhysicalLayer() {
-}
-
-void PhysicalLayer::SingletonGrab() {
-    ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
 }
 
 /*

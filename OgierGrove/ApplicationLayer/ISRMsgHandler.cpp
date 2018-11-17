@@ -100,7 +100,6 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
             if (uart1_output_idle_) {
                 first_char = uart1_output_data_buffer_->Get();
                 uart1_output_idle_ = false;
-                std::cout << "WHY?\n";
                 UART0DriverInstance_->JumpStartOutput1(first_char);
             }
 
@@ -129,7 +128,7 @@ void ISRMsgHandler::QueueOutputPacket(char* packet, uint16_t len) {
         checksum += uint8_t(packet[i]);
 
         // TODO: Ask about this efficiency versus one large if statement
-        // Adds excape characters for UART1 frames
+        // Adds escape characters for UART1 frames
         switch (int(packet[i])) {
             // If the character is an escape character, output 0x10 and save the character for next TX
             case '\x02':
@@ -145,7 +144,7 @@ void ISRMsgHandler::QueueOutputPacket(char* packet, uint16_t len) {
     // Calculate final checksum and add (Escaping if necessary)
     checksum = (ONE_BYTE_MAX - checksum);
     if (checksum == '\x02' || checksum == '\x03' || checksum == '\x10') uart1_output_data_buffer_->Add('\x10');
-    uart1_output_data_buffer_->Add(255 - checksum); // Add checksum (Including 1s compliment)
+    uart1_output_data_buffer_->Add(checksum);
 
     uart1_output_data_buffer_->Add('\x03'); // Add stop CTRL
 

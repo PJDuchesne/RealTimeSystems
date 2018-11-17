@@ -18,6 +18,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 */
 
 #include "TrainLibrary.h"
+
 #include <OSLayer/Includes/RingBuffer.h>
 #include <ApplicationLayer/Includes/ISRMsgHandler.h>
 
@@ -30,8 +31,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Macros to perform modulus 8 increments and decrements
 #define MOD8PLUS1(x) (x = (x + 1) % 8)
 #define MOD8MINUS1(x) (x = (--x >= 0 ? x : 7))
-
-class ISRMsgHandler;
 
 class DataLinkLayer {
     private:
@@ -60,14 +59,11 @@ class DataLinkLayer {
 
         uint8_t PacketLengthFromCode(uint8_t msg_code);
 
-        ISRMsgHandler *ISRMsgHandlerInstance_;
-
     public:
         void MailboxLoop();
 
         DataLinkLayer();
         ~DataLinkLayer();
-        void SingletonGrab();
         void CentralLoop();
         static DataLinkLayer* GetDataLinkLayer();
 };

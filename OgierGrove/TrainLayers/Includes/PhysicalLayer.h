@@ -25,14 +25,14 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #define ONE_BYTE_MAX 255
 
-#define UART1_OUTPUT_DATA_BUFFER_SIZE 100
-
+// TODO: Delete, for debugging
 class ISRMsgHandler;
 
 class PhysicalLayer {
     private:
         static PhysicalLayer* PhysicalLayerInstance_;
 
+        // TODO: Delete, for debugging
         ISRMsgHandler *ISRMsgHandlerInstance_;
 
         void PassFrame(unsigned char* frame_ptr, uint8_t frame_len);
@@ -43,7 +43,6 @@ class PhysicalLayer {
 
         PhysicalLayer();
         ~PhysicalLayer();
-        void SingletonGrab();
         void CentralLoop();
         static PhysicalLayer* GetPhysicalLayer();
 };

@@ -252,7 +252,7 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
         OSInstance->DeleteCurrentPCB();
 
         // Store current PSP
-        // requested_mailbox->owner_pcb->stack_ptr = get_PSP();
+        // requested_mailbox->owner_pcb->stack_ptr = get_PSP(); // TODO: Delete
         current_pcb->stack_ptr = get_PSP();
 
         // Set PSP to next process
@@ -268,14 +268,15 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
     Output: <Return Value>: Code to indicate failure/success
     Brief: Kernel side call to bind a specific mailbox.
 */
-kernel_responses_t KBind(kcallargs_t *kcaptr) {
+bool KBind(kcallargs_t *kcaptr) {
     // Get requested mailbox
-    mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q);
+    // mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q); // TODO: Delete
+    mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->req_q);
 
     // Check if it is in use
     if (requested_mailbox->currently_owned == true) return FAILURE_KR;
 
     // Buy a mailbox!
-    return (kernel_responses_t) PostOfficeInstance->BuyMailbox(kcaptr->req_q, kcaptr->q_size,
+    return PostOfficeInstance->BuyMailbox(kcaptr->req_q, kcaptr->q_size,
                                                  OSInstance->GetCurrentPCB(), kcaptr->mailbox_size);
 }

@@ -194,6 +194,7 @@ void UART0Driver::UART1Handler() {
     static char uart_data;
     static char output_char;
 
+    // TODO: Cleanup all the debugging printouts in this function
     static unsigned char testArray[100] = {0};
     static unsigned char outputTestArray[100] = {0};
 
@@ -202,7 +203,7 @@ void UART0Driver::UART1Handler() {
 
     if (first_time) {
         UARTArguments.src_q = KERNEL_MB;
-        UARTArguments.dst_q = ISR_MSG_HANDLER_MB;
+        UARTArguments.dst_q = UART_PHYSICAL_LAYER_MB;
         UARTArguments.msg_len = 1;
         UARTArguments.msg_ptr = &uart_data;
         first_time = false;
@@ -213,13 +214,12 @@ void UART0Driver::UART1Handler() {
     {
         // Queue the incoming msg
         uart_data = UART1_DR_R;
-        // std::cout << "UART1Handler() RX >>" << int(uart_data) << "<<\n";
 
         testArray[i] = uart_data;
         i++;
 
         // TODO: Pass to different queue
-        // KSend(&UARTArguments);
+        KSend(&UARTArguments);
 
         /* Clear interrupt */
         UART1_ICR_R |= UART_INT_RX;
@@ -237,10 +237,12 @@ void UART0Driver::UART1Handler() {
 
             // Debugging printout:
             std::cout << "UART1Handler() TX Results >> ";
+            std::cout << HEX('\x02'); // This is assumed for debugging purposes
             for (int x = 0; x < i2; x++) {
-                std::cout << int(outputTestArray[x]) << " ";
+                std::cout << HEX(outputTestArray[x]);
             }
             std::cout << "<<\n";
+
             i2 = 0;
         }
         // Else, the buffer has more to print
@@ -252,16 +254,19 @@ void UART0Driver::UART1Handler() {
         }
     }
 
-    if (i >= 2 && (testArray[i-1] == 3 && testArray[i-2] != 16)) {
+    // TODO: Delete old debugging printout
+    if (i >= 2 && (testArray[i - 1] == '\x03' && testArray[i - 2] != '\x10')) {
         std::cout << "UART1Handler() RX Results >> ";
         for (int x = 0; x < i; x++) {
-            std::cout << int(testArray[x]) << " ";
+            std::cout << HEX(testArray[x]);
+            // std::cout << int(testArray[x]) << " "; // TODO: Delete
         }
         std::cout << "<<\n";
         i = 0;
     }
 
-    if (i == 100) i = 0;
+    // TODO: Delete Ensure max debugging frame length
+    assert(i < 100);
 
     // int testEnd = 25;
     // if (i == testEnd) {
@@ -270,9 +275,7 @@ void UART0Driver::UART1Handler() {
     //         std::cout << int(testArray[x]) << " ";
     //     }
     //     std::cout << "<<\n";
-
-    //     while (1) { }
-    // }
+    
 }
 
 /*

@@ -82,13 +82,27 @@ void OperatingSystem::Inialize() {
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
             break;
         case 7: // Trains!
+            // Add Monitor and RevereString as lithmus test (For testing)
             RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
-            RegProc(&TestSwitches,  125, P_THREE, "TestSwitches");
+
+            // Add test function
+            // RegProc(&TestSwitches,  125, P_THREE, "TestSwitches");
+            RegProc(&TestLayers, 126, P_THREE, "TestLayers");
+
+            // // TODO: Put layers (And Monitor?) at a higher priority!
 
             // Add physical layer loops
             RegProc(&PhysicalLayerUARTLoopEntry,   200, P_THREE, "PhysicalLayerUARTLoop");
             RegProc(&PhysicalLayerPacketLoopEntry, 201, P_THREE, "PhysicalLayerPacketLoop");
+
+            // Add data link layer loop
+            RegProc(&DataLinkLayerLoopEntry, 202, P_THREE, "DataLinkLayerLoop");
+
+            // Add Train Command loop (Application Layer)
+            RegProc(&TrainCommandApplicationLoopEntry, 202, P_THREE, "DataLinkLayerLoop");
+
+            break;
         default:
             idle_needed_flag = false;
             RegProc(&IdleProcess, 1, P_ONE, "IdleProcess");
@@ -175,7 +189,7 @@ void OperatingSystem::InitStackFrame(stack_frame_t* sf) {
 */
 void OperatingSystem::KickStart() {
     set_PSP(GetNextPCB()->stack_ptr);
-    // set_PSP(GetNextPCB()->stack_ptr);
+    // set_PSP(GetNextPCB()->stack_ptr); // TODO: Delete
     SVC();
 }
 
@@ -186,7 +200,7 @@ void OperatingSystem::KickStart() {
 */
 pcb_t* OperatingSystem::GetCurrentPCB() {
     return current_pcb_;
-    // return TaskScheduler_->GetCurrentPCB();
+    // return TaskScheduler_->GetCurrentPCB(); // TODO: Delete
 }
 
 /*

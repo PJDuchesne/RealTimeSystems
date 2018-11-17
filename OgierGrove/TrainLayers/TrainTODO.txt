@@ -9,3 +9,6 @@ Train TODO List
 
 --> "Should Really Be Done"
 - Make a new mailbox size, 16 to handle all the train messages (Because they will never be bigger than that)
+- Move ISRMessageHandler to ISRLayer
+- Physical layer should restart message grabbing if an unescaped 0x02 is read
+- Rename UART driver

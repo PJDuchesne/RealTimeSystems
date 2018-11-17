@@ -99,6 +99,9 @@ bool PRecv(uint8_t& src_q, uint8_t dst_q, void* msg_ptr, uint32_t& msg_len, bool
         src_q = KernelArgs.src_q;
         msg_len = KernelArgs.msg_len;
     }
+    else {
+        std::cout << "Precv returning with a failure?\n";
+    }
 
     return (KernelArgs.rtnvalue >= SUCCESS_KR);
 }
@@ -119,5 +122,5 @@ bool PBind(uint8_t req_q, letter_size_t size, uint8_t mailbox_size) {
     assignR7((uint32_t) &KernelArgs);
     SVC();
 
-    return (KernelArgs.rtnvalue >= SUCCESS_KR);
+    return (KernelArgs.rtnvalue);
 }

@@ -1,6 +1,3 @@
-#ifndef KernelCalls_H
-#define KernelCalls_H
-
 /*
 __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____        
  _\/\\\/////////\\\__\/////\\\///__\/\\\////////\\\__       
@@ -11,29 +8,26 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
       _\/\\\___________/\\\___\/\\\_____\/\\\_______/\\\__  
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
--> Name:  KernelCalls.h
--> Date: Nov 4, 2018  (Created)
+-> Name:  TrainLibrary.cpp
+-> Date: Nov 17, 2018  (Created)
 -> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
 
-#include "OSLibrary.h"
-#include "OperatingSystem.h"
-#include "PostOffice.h"
+#include "Includes/TrainLibrary.h"
 
-// Forward declarations
-class OperatingSystem;
-class PostOffice;
+uint8_t MsgLengthFromCode(uint8_t msg_code) {
+    switch (msg_code) {
+        case '\xA8':
+            return 1;
+        case '\xA2':
+            return 2;
+        case '\xC0':
+        case '\xE0':
+            return 3;
+        default:
+            std::cout << "'TrainLibrary'::MsgLengthFromCode(): ERROR, Invalid Message code\n";
+            while(1) {}
+    }
+}
 
-static OperatingSystem* OSInstance;
-static PostOffice* PostOfficeInstance;
-
-void KSingletonGrab();
-
-void KNice(priority_t new_priority);
-void KTerminateProcess();
-kernel_responses_t KSend(kcallargs_t *kcaptr);
-kernel_responses_t KRecv(kcallargs_t *kcaptr);
-bool KBind(kcallargs_t *kcaptr);
-
-#endif /* KernelCalls_H */
