@@ -24,7 +24,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 void Custom_Fault_ISR() {
     std::cout << "\n\n**** Custom_Fault_ISR - ENTERING INFINITY **** \n\n\n";
 
-    // Enter an infinite loop (That can be exited by debuffer)
+    // Enter an infinite loop (That can be exited by debugger)
     // bool end_first_loop = false;
     // while(1) 
     // {

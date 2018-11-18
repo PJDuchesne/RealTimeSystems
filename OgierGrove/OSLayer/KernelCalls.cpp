@@ -121,35 +121,76 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
 
     // If the receiver is currently blocked, then wake it up and directly pass messages
     if (requested_mailbox->currently_blocked) {
-        // Wake up PCB by adding to correct queue
-        OSInstance->QueuePCB(requested_mailbox->owner_pcb);
-
-        // Update mailbox flag on this mailbox
-        requested_mailbox->currently_blocked = false;
-
+        #if DEBUGGING_TRAIN >= 1
+        OSInstance->SetKernelDebugFlag(6, true);
+        #endif
         // Manually copy message to destination!
         requested_mailbox->kcaptr->msg_len = actual_msg_len;
         requested_mailbox->kcaptr->src_q = kcaptr->src_q;
 
+        #if DEBUGGING_TRAIN >= 1
+        OSInstance->SetKernelDebugFlag(6, false);
+        #endif
+
+        #if DEBUGGING_TRAIN >= 1
+        OSInstance->SetKernelDebugFlag(8, true);
+        #endif
+
+        assert(requested_mailbox->kcaptr->kcode == RECV);
+
         switch(requested_mailbox->letter_size) {
             case ZERO_CHAR: // Not forgotten, just empty. This will (Probably) be optimized away
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(9, true);
+                #endif
                 break;
             case ONE_CHAR:
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(10, true);
+                #endif
                 if (actual_msg_len) {
                     ((char *)(requested_mailbox->kcaptr->msg_ptr))[0] = ((char *)(kcaptr->msg_ptr))[0];
                 }
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(10, false);
+                #endif
                 break;
             case BIG_LETTER:
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(11, true);
+                OSInstance->SetKernelDebugFlag(12, true);
+                OSInstance->SetKernelDebugFlag(16, actual_msg_len);
+                OSInstance->SetKernelVoidPtr(0, requested_mailbox->kcaptr->msg_ptr);
+                OSInstance->SetKernelVoidPtr(1, kcaptr->msg_ptr);
+                OSInstance->SetKernelVoidPtr(2, (void *)kcaptr);
+                OSInstance->SetKernelDebugFlag(12, false);
+                #endif
                 memcpy(requested_mailbox->kcaptr->msg_ptr, kcaptr->msg_ptr, actual_msg_len);
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(11, false);
+                #endif
                 break;
             default:
                 std::cout << "[KSend] INVALID LETTER_SIZE\n";
                 while (1) {}
                 break;
         }
+
+        // Update mailbox flag on this mailbox
+        requested_mailbox->currently_blocked = false;
+
+        // Wake up PCB by adding to correct queue
+        OSInstance->QueuePCB(requested_mailbox->owner_pcb);
+
+        #if DEBUGGING_TRAIN >= 1
+        OSInstance->SetKernelDebugFlag(8, false);
+        #endif
     }
     // Else, pass message into the correct buffer
     else {
+        #if DEBUGGING_TRAIN >= 1
+        OSInstance->SetKernelDebugFlag(7, true);
+        #endif
         switch (requested_mailbox->letter_size) {
             case ZERO_CHAR:
                 if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return FAILURE_KR;
@@ -170,6 +211,9 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
                 while (1) {}
                 break;
         }
+        #if DEBUGGING_TRAIN >= 1
+        OSInstance->SetKernelDebugFlag(7, false);
+        #endif
     }
     return SUCCESS_KR;
 }
@@ -192,7 +236,7 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
     if (requested_mailbox->currently_owned == false) return FAILURE_KR;
 
     // Check if this is your mailbox! (Unless the mailbox is not associated with a mailbox)
-    if (requested_mailbox->owner_pcb && current_pcb != requested_mailbox->owner_pcb) return FAILURE_KR;
+    if ((requested_mailbox->owner_pcb) && (current_pcb != requested_mailbox->owner_pcb)) return FAILURE_KR;
 
     // Fetch mail! (Using different structures)
     empty_msg_t recv_msg0;
@@ -244,12 +288,26 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
 
     // If required, put message to sleep
     if (put_to_sleep) {
+        // TODO: Delete this silly assertion
+        assert(requested_mailbox->currently_blocked == false);
         // Update mailbox state
         requested_mailbox->currently_blocked = true;
         requested_mailbox->kcaptr = kcaptr;
 
+        #if DEBUGGING_TRAIN >= 1
+        if(requested_mailbox->owner_pcb->pid == 202) {
+            OSInstance->SetKernelVoidPtr(3, (void *) requested_mailbox->kcaptr);
+        }
+        else if (requested_mailbox->owner_pcb->pid == 203) {
+            OSInstance->SetKernelVoidPtr(4, (void *) requested_mailbox->kcaptr);
+        }
+        assert(requested_mailbox->kcaptr->kcode == RECV);
+        #endif
+
         // Deattach PCB
         OSInstance->DeleteCurrentPCB();
+
+        // Registers were already saved coming into the SVC call
 
         // Store current PSP
         // requested_mailbox->owner_pcb->stack_ptr = get_PSP(); // TODO: Delete
@@ -257,6 +315,8 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
 
         // Set PSP to next process
         set_PSP(OSInstance->GetNextPCB()->stack_ptr);
+
+        // Registers will be popped leaving the SVC call
     }
 
     return SUCCESS_KR;

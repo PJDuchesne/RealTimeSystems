@@ -99,7 +99,7 @@ void OperatingSystem::Inialize() {
             RegProc(&DataLinkLayerLoopEntry, 202, P_THREE, "DataLinkLayerLoop");
 
             // Add Train Command loop (Application Layer)
-            RegProc(&TrainCommandApplicationLoopEntry, 202, P_THREE, "DataLinkLayerLoop");
+            RegProc(&TrainCommandApplicationLoopEntry, 203, P_THREE, "DataLinkLayerLoop");
 
             break;
         default:
@@ -227,7 +227,9 @@ void OperatingSystem::DeleteCurrentPCB() {
            and start the next process in queue.
 */
 void OperatingSystem::QuantumTick() {
+    #if DEBUGGING_TRAIN >= 1
     DEBUGGING_quantum_flag_ = 1;
+    #endif
     // Fetch CurrentPCB for function
     // pcb_t* CurrentPCB = TaskScheduler_->GetCurrentPCB();
 
@@ -242,7 +244,9 @@ void OperatingSystem::QuantumTick() {
     set_PSP(GetNextPCB()->stack_ptr);
     // 4: Restore_Registers
     restore_registers();
+    #if DEBUGGING_TRAIN >= 1
     DEBUGGING_quantum_flag_ = 0;
+    #endif
 }
 
 /*
@@ -274,3 +278,27 @@ OperatingSystem* OperatingSystem::GetOperatingSystem() {
     if (!OperatingSystemInstance_) OperatingSystemInstance_ = new OperatingSystem;
     return OperatingSystemInstance_;
 }
+
+#if DEBUGGING_TRAIN >= 1
+#define ALL 255
+void OperatingSystem::SetKernelDebugFlag(uint8_t flag_num, uint32_t raise_flag) {
+    if (flag_num == ALL) for(int i = 0; i < 16; i++) flag_array[i] = raise_flag;
+    else if (flag_num >= 16) { // 16-24 reserved for storing uint32_t values
+        assert(flag_num < 24);
+        flag_array[flag_num] = raise_flag;
+    }
+    else { // 0-15 reserved for storing booleans
+        assert(raise_flag <= 1);
+        flag_array[flag_num] = raise_flag;
+    }
+}
+
+void OperatingSystem::SetKernelVoidPtr(uint8_t flag_num, void* void_ptr) {
+    if (flag_num == ALL) for(int i = 0; i < 8; i++) void_ptr_array[i] = 0;
+    else {
+        assert(flag_num < 8);
+        void_ptr_array[flag_num] = void_ptr;
+    }
+}
+
+#endif

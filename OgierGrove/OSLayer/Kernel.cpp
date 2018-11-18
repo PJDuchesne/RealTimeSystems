@@ -137,27 +137,68 @@ extern "C" void SVCHandler(struct stack_frame *argptr)
         assigning the value of R7 (arptr -> r7) to kcaptr
         */
 
+        #if DEBUGGING_TRAIN >= 1
+        OSInstance->SetKernelDebugFlag(ALL, false);
+        // OSInstance->SetKernelVoidPtr(ALL, 0);
+        #endif
+
         kcaptr = (struct kcallargs *) argptr -> r7;
         switch(kcaptr -> kcode)
         {
             case GETID:
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(0, true);
+                #endif
                 kcaptr->rtnvalue = OSInstance->GetCurrentPCB()->pid;
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(0, false);
+                #endif
                 break;
             case NICE:
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(1, true);
+                #endif
                 KNice(kcaptr->priority);
                 break;
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(1, false);
+                #endif
             case TERMINATE:
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(2, true);
+                #endif
                 KTerminateProcess();
                 break;
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(2, false);
+                #endif
             case SEND:
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(3, true);
+                #endif
                 kcaptr->rtnvalue = (uint32_t) KSend(kcaptr);
                 break;
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(3, false);
+                #endif
             case RECV:
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(4, true);
+                #endif
                 kcaptr->rtnvalue = (uint32_t) KRecv(kcaptr);
                 break;
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(4, false);
+                #endif
             case BIND:
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(5, true);
+                #endif
                 kcaptr->rtnvalue = (uint32_t) KBind(kcaptr);
                 break;
+                #if DEBUGGING_TRAIN >= 1
+                OSInstance->SetKernelDebugFlag(5, false);
+                #endif
             default:
                 std::cout << "[SVCHandler] INVALID KERNEL CODE\n";
                 while (1) {}

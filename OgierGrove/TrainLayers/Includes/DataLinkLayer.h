@@ -44,8 +44,15 @@ typedef struct DataLinkLayer_flags {
             uint8_t SendACK_flag : 1;
             uint8_t SendNACK_flag : 1;
             uint8_t MakePacket_flag : 1;
+            uint8_t RecvLoop_flag : 1;
+            uint8_t MainLoop0_flag : 1;
+            uint8_t MainLoop1_flag : 1;
+            uint8_t MainLoop2_flag : 1;
+            uint8_t MainLoop3_flag : 1;
+            uint8_t MainLoop4_flag : 1;
+            uint8_t MainLoop5_flag : 1;
         };
-        uint8_t all;
+        uint16_t all;
     };
 } DataLinkLayer_flags_t;
 #endif
@@ -95,6 +102,13 @@ class DataLinkLayer {
         volatile uint8_t SendACK_flag;
         volatile uint8_t SendNACK_flag;
         volatile uint8_t MakePacket_flag;
+        volatile uint8_t RecvLoop_flag; 
+        volatile uint8_t MainLoop0_flag;
+        volatile uint8_t MainLoop1_flag;
+        volatile uint8_t MainLoop2_flag;
+        volatile uint8_t MainLoop3_flag;
+        volatile uint8_t MainLoop4_flag;
+        volatile uint8_t MainLoop5_flag;
         #endif
 };
 

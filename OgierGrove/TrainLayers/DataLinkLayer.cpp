@@ -16,6 +16,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/DataLinkLayer.h"
 
+// TODO: Delete?
 #include <ISRLayer/Includes/GlobalConfig.h>
 #include <OSLayer/Includes/OperatingSystem.h>
 
@@ -54,18 +55,47 @@ void DataLinkLayer::MailboxLoop() {
     SendACK_flag         = 0;
     SendNACK_flag        = 0;
     MakePacket_flag      = 0;
+    RecvLoop_flag        = 0;
+    MainLoop0_flag       = 0;
+    MainLoop1_flag       = 0;
+    MainLoop2_flag       = 0;
+    MainLoop3_flag       = 0;
+    MainLoop4_flag       = 0;
+    MainLoop5_flag       = 0;
+    #endif
+
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags_.MainLoop0_flag = 1;
+    MainLoop0_flag = 1;
     #endif
 
     while (1) {
+        #if DEBUGGING_TRAIN >= 1
+        debugging_flags_.RecvLoop_flag = 1;
+        RecvLoop_flag = 1;
+        #endif
+
         // Blocking message request
-        PRecv(src_q, DATA_LINK_LAYER_MB, &msg_body, mailbox_msg_len);
+        if (!PRecv(src_q, DATA_LINK_LAYER_MB, &msg_body, mailbox_msg_len)) {
+            std::cout << "DataLinkLayer::MailboxLoop(): WARNING! PRecv resulted in failure!\n";
+        }
         
+        #if DEBUGGING_TRAIN >= 1
+        debugging_flags_.RecvLoop_flag = 0;
+        RecvLoop_flag = 0;
+        #endif
+
         // Error state checking for testing
         assert(mailbox_msg_len < 256);
 
         switch(src_q) {
             // If from the physical layer, handle each packet type separately
             case UART_PHYSICAL_LAYER_MB:
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags_.MainLoop1_flag = 1;
+                MainLoop1_flag = 1;
+                #endif
+
                 // Cast message to the correct format
                 recv_packet_ptr = (packet_t *)msg_body;
 
@@ -75,6 +105,10 @@ void DataLinkLayer::MailboxLoop() {
 
                 switch(recv_packet_ptr->control_block.type) {
                     case DATA_PT:
+                        #if DEBUGGING_TRAIN >= 1
+                        debugging_flags_.MainLoop2_flag = 1;
+                        MainLoop2_flag = 1;
+                        #endif
                         #if DEBUGGING_TRAIN == 1
                         std::cout << "DATA << >> NS:" << HEX(recv_packet_ptr->control_block.ns) << 
                                           "<< >> NR:" << HEX(recv_packet_ptr->control_block.nr) << "<<\n";
@@ -92,8 +126,16 @@ void DataLinkLayer::MailboxLoop() {
                             SendACK();
                         }
                         else SendNACK();
+                        #if DEBUGGING_TRAIN >= 1
+                        debugging_flags_.MainLoop2_flag = 0;
+                        MainLoop2_flag = 0;
+                        #endif
                         break;
                     case ACK_PT:
+                        #if DEBUGGING_TRAIN >= 1
+                        debugging_flags_.MainLoop3_flag = 1;
+                        MainLoop3_flag = 1;
+                        #endif
                         #if DEBUGGING_TRAIN == 1
                         std::cout << "ACK << >> NS:" << HEX(recv_packet_ptr->control_block.ns) <<
                                          "<< >> NR:" << HEX(recv_packet_ptr->control_block.nr) << "<<\n";
@@ -101,8 +143,16 @@ void DataLinkLayer::MailboxLoop() {
 
                         assert(mailbox_msg_len == 1 || mailbox_msg_len == 2); // Apparently the length field is present but zero?
                         HandleACK(recv_packet_ptr->control_block.nr);
+                        #if DEBUGGING_TRAIN >= 1
+                        debugging_flags_.MainLoop3_flag = 0;
+                        MainLoop3_flag = 0;
+                        #endif
                         break;
                     case NACK_PT:
+                        #if DEBUGGING_TRAIN >= 1
+                        debugging_flags_.MainLoop4_flag = 1;
+                        MainLoop4_flag = 1;
+                        #endif
                         #if DEBUGGING_TRAIN == 1
                         std::cout << "NACK << >> NS:" << HEX(recv_packet_ptr->control_block.ns) <<
                                           "<< >> NR:" << HEX(recv_packet_ptr->control_block.nr) << "<<\n";
@@ -110,11 +160,21 @@ void DataLinkLayer::MailboxLoop() {
 
                         assert(mailbox_msg_len == 1 || mailbox_msg_len == 2); // Apparently the length field is present but zero?
                         HandleNACK(recv_packet_ptr->control_block.nr);
+                        #if DEBUGGING_TRAIN >= 1
+                        debugging_flags_.MainLoop4_flag = 0;
+                        MainLoop4_flag = 0;
+                        #endif
                         break;
                     default:
+                        std::cout << "  DataLinkLayer::MailboxLoop(): ERROR: INVALID PHYSICAL LAYER TYPE\n";
+                        while(1) {}
                         // TODO: Error case
                         break;
                 }
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags_.MainLoop1_flag = 0;
+                MainLoop1_flag = 0;
+                #endif
                 break;
             /* TODO: Time server && associated timeouts
             // If from the time server, a message has possibly timed out and needs to be handled
@@ -129,6 +189,10 @@ void DataLinkLayer::MailboxLoop() {
             */
             // Else it is from the application layer and should be sent down to the Physical Layer
             default:
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags_.MainLoop5_flag = 1;
+                MainLoop5_flag = 1;
+                #endif
                 #if DEBUGGING_TRAIN == 1
                 std::cout << "  DataLinkLayer::MailboxLoop(): Msg from Application Layer, packeting and sending to Physical layer\n";
                 #endif
@@ -156,9 +220,18 @@ void DataLinkLayer::MailboxLoop() {
                     // TODO: Not an error state, but shouldn't really happen so this is here for testing
                     else std::cout << "  DataLinkLayer::MailboxLoop(): WARNING, DATA BUFFER FULL AND PACKET LOST\n";
                 }
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags_.MainLoop5_flag = 0;
+                MainLoop5_flag = 0;
+                #endif
                 break;
         }
     }
+
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags_.MainLoop0_flag = 0;
+    MainLoop0_flag = 0;
+    #endif
 }
 
 // Send message up to application layer
@@ -263,7 +336,7 @@ void DataLinkLayer::HandleNACK(uint8_t train_nr) {
     HandleNACK_flag = 1;
     #endif
 
-    assert(train_nr >= 0 && train_nr <= MAX_DLL_WAITING_PACKETS);
+    assert(train_nr <= MAX_DLL_WAITING_PACKETS);
 
     // Check that the message is in the outgoing_message array
     assert(outgoing_messages_[train_nr].control_block.type == DATA_PT);

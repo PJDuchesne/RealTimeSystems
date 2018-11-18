@@ -55,8 +55,14 @@ class OperatingSystem {
         void Inialize();
 
         void DiagnosticsDisplay(std::string &display_output);
-        
+       
+        #if DEBUGGING_TRAIN >= 1
+        void SetKernelDebugFlag(uint8_t flag_num, uint32_t raise_flag);
+        void SetKernelVoidPtr(uint8_t flag_num, void* void_ptr);
         volatile uint8_t DEBUGGING_quantum_flag_; // TODO: Delete (Used to debug OS)
+        volatile uint8_t flag_array[24];
+        volatile void* void_ptr_array[8];
+        #endif
 
         static OperatingSystem* GetOperatingSystem();
 };
