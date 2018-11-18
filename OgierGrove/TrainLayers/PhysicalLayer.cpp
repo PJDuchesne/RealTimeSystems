@@ -46,15 +46,20 @@ void PhysicalLayer::UARTMailboxLoop() {
     while (1) {
         // Blocking message request
         PRecv(src_q, UART_PHYSICAL_LAYER_MB, &msg_body, mailbox_msg_len);
-        
+
+        // TODO: Delete debugging statement
+        // std::cout << "    PhysicalLayer::UARTMailboxLoop(): CHAR>>" << HEX(msg_body) << "<<\n";
+
         // Error state checking for testing
         assert(mailbox_msg_len == 1);
         assert(frame_len < MAX_FRAME_SIZE);
 
-        // Add msg to internal frame array 
+        // Ignore all characters until a 0x02 is sent to start the frame
+        if(frame_len == 0 && msg_body != '\x02') continue;
+
         incoming_frame[frame_len] = msg_body;
 
-        if (frame_len >= 1 && incoming_frame[frame_len - 1] != '\x10') {
+        if(frame_len >= 1 && incoming_frame[frame_len - 1] != '\x10') {
             switch (msg_body) {
                 // Unescaped 0x03 found, signalling the end of the frame
                 case '\x03':
@@ -63,14 +68,16 @@ void PhysicalLayer::UARTMailboxLoop() {
                     // Reset frame
                     frame_len = 0;
                     break;
-                // Unescaped 0x02 found (That wasn't the first char), must restart the frame with this first character
+                // Unescaped 0x02 found (That wasn't the first char), must restart 
+                // the frame with this first character
                 case '\x02':
-                    // TODO: Delete debugging info
-                    std::cout << "PhysicalLayer::UARTMailboxLoop(): WARNING: Unescaped 0x02 found: >>";
+                    #if DEBUGGING_TRAIN == 1
+                    std::cout << "    PhysicalLayer::UARTMailboxLoop(): WARNING: Unescaped 0x02 found: >>";
                     for (int i = 0; i <= frame_len; i++) {
                         std::cout << HEX(incoming_frame[i]);
                     }
                     std::cout << "<<\n";
+                    #endif
 
                     // Perform reset
                     incoming_frame[0] = msg_body;
@@ -101,16 +108,17 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
 
     int msg_idx = 0;
 
-    // TODO: Remove debugging printout
-    std::cout << "PhysicalLayer::PassFrame: Frame >>";
+    #if DEBUGGING_TRAIN == 1
+    std::cout << "    PhysicalLayer::PassFrame: Frame from UART1, passing to DLL >>";
     for (int i = 0; i < frame_len; i++) {
         std::cout << HEX(frame_ptr[i]);
     }
     std::cout << "<<\n";
+    #endif
 
     // Ensure frame starts with STX (0x02) and ends with ETX (0x03)
     // Note: These checks should be taken care of in the previous function. TODO: Remove
-    assert(frame_len >= 4); // NACKs and ACKS are at least length 4, DATA should be 6. More with escape characters
+    assert(frame_len >= 5); // NACKs and ACKS are at least length 4 (Actually 5), DATA should be 6. More with escape characters
     assert(frame_ptr[0]             == '\x02');
     assert(frame_ptr[frame_len - 1] == '\x03');
 
@@ -140,14 +148,16 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
 
     // If checksum passes, pass msg, otherwise drop it
     if (frame_checksum == frame_ptr[frame_len - 2]) {
-        std::cout << "PhysicalLayer::PassFrame(): Passed Checksum, passing up!\n";
+        #if DEBUGGING_TRAIN == 1
+        std::cout << "    PhysicalLayer::PassFrame(): Passed Checksum, passing up!\n";
+        #endif
 
         // Send message up to Data Link Layer, without the STX, Checksum, or ETX
         PSend(UART_PHYSICAL_LAYER_MB, DATA_LINK_LAYER_MB, (void *)msg_body, msg_idx);
     }
     // Not an error state, but unlikely enough to warrant a warning to user
     else {
-        std::cout << "PhysicalLayer::PassFrame(): WARNING -> DROPPING FRAME DUE TO INVALID CHECKSUM >>" << HEX(frame_checksum) << "<< >>" << HEX(frame_ptr[frame_len - 2]) << "<<\n";
+        std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Invalid Checksum, dropping frame >>" << HEX(frame_checksum) << "<< >>" << HEX(frame_ptr[frame_len - 2]) << "<<\n";
     }
 }
 
@@ -171,7 +181,17 @@ void PhysicalLayer::PacketMailboxLoop() {
         assert(mailbox_msg_len < 256);
         assert(src_q == DATA_LINK_LAYER_MB); // Frame should always be coming from DLL
 
-        std::cout << "PhysicalLayer::PacketMailboxLoop(): Packet from Data Link Layer, sending out UART1\n";
+        #if DEBUGGING_TRAIN == 1
+        std::cout << "    PhysicalLayer::PacketMailboxLoop: Frame from DLL, passing to UART1 >>";
+        for (int i = 0; i < mailbox_msg_len; i++) {
+            std::cout << HEX(msg_body[i]);
+        }
+        std::cout << "<<\n";
+        #endif
+
+        #if DEBUGGING_TRAIN == 1
+        std::cout << "    PhysicalLayer::PacketMailboxLoop(): Packet from Data Link Layer, sending out UART1\n";
+        #endif
 
         // Output Packet
             // This function handles adding the control characters, any necessary

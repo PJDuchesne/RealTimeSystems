@@ -32,6 +32,24 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define MOD8PLUS1(x) (x = (x + 1) % 8)
 #define MOD8MINUS1(x) (x = (--x >= 0 ? x : 7))
 
+#if DEBUGGING_TRAIN >= 1
+typedef struct DataLinkLayer_flags {
+    union {
+        struct
+        {
+            uint8_t SendMessageUp_flag : 1;
+            uint8_t SendPacketDown_flag : 1;
+            uint8_t HandleACK_flag : 1;
+            uint8_t HandleNACK_flag : 1;
+            uint8_t SendACK_flag : 1;
+            uint8_t SendNACK_flag : 1;
+            uint8_t MakePacket_flag : 1;
+        };
+        uint8_t all;
+    };
+} DataLinkLayer_flags_t;
+#endif
+
 class DataLinkLayer {
     private:
         static DataLinkLayer* DataLinkLayerInstance_;
@@ -66,6 +84,18 @@ class DataLinkLayer {
         ~DataLinkLayer();
         void CentralLoop();
         static DataLinkLayer* GetDataLinkLayer();
+
+        #if DEBUGGING_TRAIN >= 1
+        volatile DataLinkLayer_flags_t debugging_flags_;
+        // Debugging flags
+        volatile uint8_t SendMessageUp_flag;
+        volatile uint8_t SendPacketDown_flag;
+        volatile uint8_t HandleACK_flag;
+        volatile uint8_t HandleNACK_flag;
+        volatile uint8_t SendACK_flag;
+        volatile uint8_t SendNACK_flag;
+        volatile uint8_t MakePacket_flag;
+        #endif
 };
 
 #endif /* DataLinkLayer_H */

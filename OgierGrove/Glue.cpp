@@ -14,9 +14,19 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+#include <ISRLayer/Includes/CustomFaultISR.h>
 #include <ISRLayer/Includes/SysTickDriver.h>
 #include <ISRLayer/Includes/UART0Driver.h>
 #include <OSLayer/Includes/Kernel.h>
+
+/*
+    Function: Custom_Fault_ISR_C
+    Brief: Dummy function to be called from C code to access its C++ equivalent for custom
+           fault ISR
+*/
+extern "C" void Custom_Fault_ISR_C(void) {
+  Custom_Fault_ISR();
+}
 
 /*
     Function: UART0_ISR_C

@@ -51,8 +51,9 @@ void TrainCommandApplication::MailboxLoop() {
         }
         else {
             // Handle message coming from another application
+            #if DEBUGGING_TRAIN == 1
             std::cout << "TrainCommandApplication::MailboxLoop(): Application Layer Msg, Sending Down to DLL\n";
-
+            #endif
 
             HandleAppRequest(msg_body, mailbox_msg_len);
         }
@@ -64,11 +65,47 @@ void TrainCommandApplication::HandleDLLMessage(char* request, uint8_t length) {
     // For now, just print message contents to screen for debugging
     assert(length >= 1 && length <= 3);
 
+    switch (request[0]) {
+        case '\xA0':
+            #if DEBUGGING_TRAIN == 1
+            std::cout << "TrainCommandApplication::HandleDLLMessage(): Hall Sensor Triggered Msg >> Sensor: " << int(request[1]) << "<<\n";
+            #endif
+
+            // Send a reply to reset the sensor
+            SendSensorAcknowledge(int(request[1]), TRAIN_APPLICATION_LAYER_MB);
+
+            // TODO: Tell interested parties (GUI and TrainController)
+
+            break;
+        case '\xAA':
+            #if DEBUGGING_TRAIN == 1
+            std::cout << "TrainCommandApplication::HandleDLLMessage(): Hall Sensor Queue Reset Acknowledgement Msg\n";
+            #endif
+            break;
+        case '\xC2':
+            #if DEBUGGING_TRAIN == 1
+            std::cout << "TrainCommandApplication::HandleDLLMessage(): Train Speed/Dir Acknowledgement Msg\n";
+            #endif
+            break;
+        case '\xE2':
+            #if DEBUGGING_TRAIN == 1
+            std::cout << "TrainCommandApplication::HandleDLLMessage(): Throw-Switch Acknowledgement Msg\n";
+            #endif
+            break;
+        default:
+            std::cout << "TrainCommandApplication::HandleDLLMessage(): ERROR: Invalid COMMAND >>" << HEX(request[0]) << "<<\n";
+            while (1) {}
+            break;
+    }
+
+    #if DEBUGGING_TRAIN == 1
     std::cout << "TrainCommandApplication::HandleDLLMessage(): Msg >> ";
     for(int i = 0; i < length; i++) {
         std::cout << HEX(request[i]);
     }
     std::cout << "<<\n";
+    #endif
+
 }
 
 // Pass Message down to DLL layer

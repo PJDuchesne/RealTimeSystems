@@ -87,7 +87,6 @@ void OperatingSystem::Inialize() {
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
 
             // Add test function
-            // RegProc(&TestSwitches,  125, P_THREE, "TestSwitches");
             RegProc(&TestLayers, 126, P_THREE, "TestLayers");
 
             // // TODO: Put layers (And Monitor?) at a higher priority!
@@ -228,6 +227,7 @@ void OperatingSystem::DeleteCurrentPCB() {
            and start the next process in queue.
 */
 void OperatingSystem::QuantumTick() {
+    DEBUGGING_quantum_flag_ = 1;
     // Fetch CurrentPCB for function
     // pcb_t* CurrentPCB = TaskScheduler_->GetCurrentPCB();
 
@@ -242,6 +242,7 @@ void OperatingSystem::QuantumTick() {
     set_PSP(GetNextPCB()->stack_ptr);
     // 4: Restore_Registers
     restore_registers();
+    DEBUGGING_quantum_flag_ = 0;
 }
 
 /*

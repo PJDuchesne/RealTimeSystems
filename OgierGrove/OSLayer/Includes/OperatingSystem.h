@@ -44,6 +44,7 @@ class OperatingSystem {
         void RegProc(process_t entry_point, uint32_t pid, priority_t priority, std::string name);
         void InitStackFrame(stack_frame_t* new_sf);
         void KickStart();
+
     public:
         OperatingSystem();
         void QuantumTick();
@@ -54,6 +55,8 @@ class OperatingSystem {
         void Inialize();
 
         void DiagnosticsDisplay(std::string &display_output);
+        
+        volatile uint8_t DEBUGGING_quantum_flag_; // TODO: Delete (Used to debug OS)
 
         static OperatingSystem* GetOperatingSystem();
 };

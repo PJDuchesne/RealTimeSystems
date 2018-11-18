@@ -117,11 +117,9 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
 void ISRMsgHandler::QueueOutputPacket(char* packet, uint16_t len) {
     char first_char;
 
-    std::cout << "ISRMsgHandler::QueueOutputPacket(char)\n";
-
     uint8_t checksum = 0;
 
-    std::cout << "ISRMsgHandler::QueueOutputPacket(char): Outputting on UART1\n";
+    // std::cout << "      ISRMsgHandler::QueueOutputPacket(char): Outputting on UART1\n";
 
     uart1_output_data_buffer_->Add('\x02'); // Add start CTRL
     for (int i = 0; i < len; i++) {

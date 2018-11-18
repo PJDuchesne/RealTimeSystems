@@ -20,82 +20,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <ISRLayer/Includes/GlobalConfig.h>
 #include <OSLayer/Includes/OperatingSystem.h>
 
-void TestSwitches() {
-    // Test mailbox is 200
-    // PBind(200, ZERO_CHAR); // TODO: Why does this crash??
-
-    std::cout << "TestSwitches(): Starting\n";
-    // Make a packet
-
-    // TODO: use constructor
-    control_t control_block;
-    control_block.nr = 0;
-    control_block.ns = 0;
-    control_block.type = DATA_PT;
-
-    // Or just do this
-    // switchFrame[0] = control(0, 0, DATA_PT); // Control
-
-    // Make frame
-    unsigned char switchFrame[5];
-    switchFrame[0] = control_block.all; // Control
-    switchFrame[1] = 3;                 // Length
-
-    // Switches
-    // switchFrame[2] = '\xe0';            // Payload
-    // switchFrame[3] = '\xff';            // ""
-    // switchFrame[4] = '\x00';            // "" -> Straight
-    // switchFrame[4] = '\x01';            // "" -> Diverted
-
-    // Train Speed
-    switchFrame[2] = '\xc0';          // Payload
-    switchFrame[3] = '\x02';          // Train #2
-    switchFrame[4] = '\x0F';         // "" -> CW, speed 8
-
-    int i = 0;
-    bool flag = false;
-
-    while (1) {
-        // Delay
-        // Toggle
-
-        // Train 1
-        ISRMsgHandler::GetISRMsgHandler()->QueueOutputPacket((char *)switchFrame, 5);
-
-        // // // train 2
-        // switchFrame[3] = '\x02';   // Train #1
-        // switchFrame[4] = '\x08';         // "" -> CW, speed 8
-
-        // control_block.ns++;
-        // switchFrame[0] = control_block.all; // Control
-        // ISRMsgHandler::GetISRMsgHandler()->QueueOutputPacket((char *)switchFrame, 5);
-
-
-
-        // switchFrame[0] = control_block.all; // Control
-        // if (flag) {
-        //     // switchFrame[4] = '\x00';            // "" -> Straight
-        //     ISRMsgHandler::GetISRMsgHandler()->QueueOutputPacket((char *)switchFrame, 5);
-        //     flag = false;
-        // }
-        // else {
-        //     // switchFrame[4] = '\x01';                // "" -> Diverted
-        //     ISRMsgHandler::GetISRMsgHandler()->QueueOutputPacket((char *)switchFrame, 5);
-        //     flag = true;
-        // }
-
-        control_block.ns++;
-
-        break;
-
-        i = 0;
-        while (i++ < 10000000) {
-
-        }
-    }
-
-    while (1) {}
-}
+#define SHORT_DELAY      1000000
+#define LESS_SHORT_DELAY 3000000
 
 // Tests layers!
 void TestLayers() {
@@ -103,23 +29,32 @@ void TestLayers() {
     // Bind a mailbox
     PBind(TEST_PROCESS_MB, ONE_CHAR);
 
-    // int i = 0;
-    // while(i++ < 100000) {}
+    // For delay
+    int i_DELAY;
+    DELAY(SHORT_DELAY)
 
-    // // For now, manual testing!
+    // for(int i = 0; i < 3; i++) {
+    //     TrainCommandApplication::GetTrainCommandApplication()->SendSwitchCommand(6, DIVERTED, TEST_PROCESS_MB);
+    //     DELAY(SHORT_DELAY)
+    //     TrainCommandApplication::GetTrainCommandApplication()->SendSwitchCommand(6, STRAIGHT, TEST_PROCESS_MB);
+    //     DELAY(SHORT_DELAY)
+    // }
+
     TrainCommandApplication::GetTrainCommandApplication()->SendSwitchCommand(ALL, DIVERTED, TEST_PROCESS_MB);
 
-    int i_DELAY;
+    for(int i = 0; i < 5; i++) {
+        TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CCW, TEST_PROCESS_MB);
+        DELAY(LESS_SHORT_DELAY)
+        TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CW, TEST_PROCESS_MB);
+        DELAY(LESS_SHORT_DELAY)
+    }
+
+    // // For now, manual testing!
+    // TrainCommandApplication::GetTrainCommandApplication()->SendSwitchCommand(ALL, DIVERTED, TEST_PROCESS_MB);
 
     // No semi-colon needed! Woot woot
-    DELAY(1000000)
-    TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CCW, TEST_PROCESS_MB);
-    // DELAY(1000000)
-    // TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CW, TEST_PROCESS_MB);
-    // DELAY(1000000)
+
     // TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CCW, TEST_PROCESS_MB);
-    // DELAY(1000000)
-    // TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CW, TEST_PROCESS_MB);
 
     while(1) {}
 }

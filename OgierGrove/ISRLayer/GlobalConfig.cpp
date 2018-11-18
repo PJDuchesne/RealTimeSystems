@@ -14,7 +14,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include <ISRLayer/Includes/GlobalConfig.h>
+#include "Includes/GlobalConfig.h"
 
 /*
     Function: InterruptMasterEnable
@@ -48,4 +48,17 @@ void SingletonSetup() {
     Monitor::GetMonitor()->SingletonGrab();
     CommandCenter::GetCommandCenter()->SingletonGrab();
     TimeHandler::GetTimeHandler()->SingletonGrab();
+}
+
+/*
+    Function: CustomFaultISR
+    Brief: Used to debug the operating system by accessing singletons and steping through their states
+*/
+void CustomFaultISR() {
+    std::cout << "\n\n**** FaultISR - ENTERING INFINITY **** \n\n\n";
+
+    while(1) 
+    {
+
+    }
 }

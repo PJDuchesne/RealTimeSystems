@@ -50,6 +50,7 @@ extern void _c_int00(void);
 extern uint32_t __STACK_TOP;
 
 // Extern C++ Functions
+extern void Custom_Fault_ISR_C();
 extern void UART0_ISR_C();
 extern void UART1_ISR_C();
 extern void SysTick_ISR_C();
@@ -76,7 +77,7 @@ void (* const g_pfnVectors[])(void) =
                                             // The initial stack pointer
     ResetISR,                               // The reset handler
     NmiSR,                                  // The NMI handler
-    FaultISR,                               // The hard fault handler
+    Custom_Fault_ISR_C,                     // The hard fault handler
     IntDefaultHandler,                      // The MPU fault handler
     IntDefaultHandler,                      // The bus fault handler
     IntDefaultHandler,                      // The usage fault handler
@@ -243,6 +244,8 @@ NmiSR(void)
     {
     }
 }
+
+//#include "stdint.h"
 
 //*****************************************************************************
 //

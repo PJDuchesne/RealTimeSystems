@@ -51,4 +51,6 @@ void InterruptEnable(unsigned long InterruptIndex);
 
 void SingletonSetup();
 
+void CustomFaultISR();
+
 #endif /* GlobalConfig_H */

@@ -42,9 +42,9 @@ enum train_layer_mailboxes {
 };
 
 typedef enum packet_type {
-    DATA_PT = 0,
-    ACK_PT  = 1,
-    NACK_PT = 2,
+    DATA_PT   = 0,
+    ACK_PT    = 1,
+    NACK_PT   = 2,
     UNUSED_PT = 3 // Actually used internally as a NULL value of packets
 } packet_type_t;
 

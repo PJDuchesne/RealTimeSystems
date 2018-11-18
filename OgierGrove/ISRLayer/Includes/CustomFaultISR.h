@@ -1,5 +1,5 @@
-#ifndef TrainProcesses_H
-#define TrainProcesses_H
+#ifndef CustomFaultISR_H
+#define CustomFaultISR_H
 
 /*
 __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____        
@@ -11,30 +11,18 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
       _\/\\\___________/\\\___\/\\\_____\/\\\_______/\\\__  
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
--> Name:  TrainProcesses.h
--> Date: Nov 14, 2018  (Created)
+-> Name: CustomFaultISR.h
+-> Date: Nov 17, 2018  (Created)
 -> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
 
-#include "TrainLibrary.h"
+#include <iostream>
+#include <string>
 
-// Layers
-#include "DataLinkLayer.h"
-#include "PhysicalLayer.h"
-#include "TrainCommandApplication.h"
+#include <OSLayer/Includes/OperatingSystem.h>
+#include <TrainLayers/Includes/DataLinkLayer.h>
 
-// Testing functions
-void TestLayers();   // Utilizes all three layers to test functionality
+void Custom_Fault_ISR();
 
-// Physical layer loops
-void PhysicalLayerUARTLoopEntry();
-void PhysicalLayerPacketLoopEntry();
-
-// Data link layer loop
-void DataLinkLayerLoopEntry();
-
-// Train Application layer loop
-void TrainCommandApplicationLoopEntry();
-
-#endif /* TrainProcesses_H */
+#endif /* CustomFaultISR_H */
