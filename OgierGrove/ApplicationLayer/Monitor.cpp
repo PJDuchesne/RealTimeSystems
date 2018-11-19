@@ -50,11 +50,25 @@ void Monitor::CheckMessageHandler() {
     uint8_t src_q;
     uint32_t msg_len;
     static char msg_body[256];
+    std::string train_msg = "";
+    std::stringstream sstream;
 
     // If there is a message, print it
     if (PRecv(src_q, MONITOR_MB, &msg_body, msg_len, false)) {
-        msg_body[msg_len] = '\0';
-        PrintMsg(("\n[MSG FROM: " + std::to_string(src_q) + "] >>" + std::string(msg_body) + "<<"+NEW_LINE));
+        if (src_q < 200) {
+            msg_body[msg_len] = '\0';
+            PrintMsg(("\n[MSG FROM: " + std::to_string(src_q) + "] >>" + std::string(msg_body) + "<<" + NEW_LINE));
+        }
+        else {
+            train_msg = "\n[MSG FROM: " + std::to_string(src_q) + "] >> ";
+            sstream << "\n[MSG FROM: " << std::to_string(src_q) << "] >> ";
+            // for (int i = 0; i < msg_len; i++) train_msg += (std::to_string(msg_body[i]) + " ");
+            for (int i = 0; i < msg_len; i++) sstream << HEX(msg_body[i]) << " ";
+            // train_msg += ("<<" + NEW_LINE);
+            sstream << "<<" << NEW_LINE;
+            // PrintMsg(train_msg + "<<" + NEW_LINE);
+            PrintMsg(sstream.str());
+        }
 
         // Then reprint output buffer!
         RePrintOutputBuffer();

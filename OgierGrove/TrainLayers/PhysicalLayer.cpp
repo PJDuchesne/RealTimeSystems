@@ -43,6 +43,19 @@ void PhysicalLayer::UARTMailboxLoop() {
     static unsigned char incoming_frame[MAX_FRAME_SIZE];
     static uint8_t frame_len = 0;
 
+    // Hijacking function for testing without the trainset
+    #if DEBUGGING_TRAIN >= 1
+    int i_DELAY = 0;
+    
+    while (1) {
+        // Short delay
+        DELAY(1000000/4)
+
+        // Send a dummy packet to test system
+        FakePacket();
+    }
+    #endif
+
     while (1) {
         // Blocking message request
         PRecv(src_q, UART_PHYSICAL_LAYER_MB, &msg_body, mailbox_msg_len);
@@ -152,8 +165,16 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
         std::cout << "    PhysicalLayer::PassFrame(): Passed Checksum, passing up!\n";
         #endif
 
+        #if DEBUGGING_TRAIN >= 1
+        if (!PSend(UART_PHYSICAL_LAYER_MB, MONITOR_MB, (void *)msg_body, msg_idx)) {
+            std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Packet failed to send\n";
+        }
+        #endif
+
         // Send message up to Data Link Layer, without the STX, Checksum, or ETX
-        PSend(UART_PHYSICAL_LAYER_MB, DATA_LINK_LAYER_MB, (void *)msg_body, msg_idx);
+        if (!PSend(UART_PHYSICAL_LAYER_MB, DATA_LINK_LAYER_MB, (void *)msg_body, msg_idx)) {
+            std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Packet failed to send 2\n";
+        }
     }
     // Not an error state, but unlikely enough to warrant a warning to user
     else {
@@ -198,6 +219,55 @@ void PhysicalLayer::PacketMailboxLoop() {
             // escape characters, and the checksum
         ISRMsgHandlerInstance_->QueueOutputPacket(msg_body, mailbox_msg_len);
     }
+}
+
+void PhysicalLayer::FakePacket() {
+    static unsigned char fake_frame[16];
+    static bool first_time = true;
+    static control_t control_block;
+    static uint8_t frame_length = 10;
+
+    static uint8_t prev_total = 198;
+
+    // std::cout << "PhysicalLayer::FakePacket(): FAKING A PACKET!\n";
+
+    // Set up fields that don't change
+    if(first_time) {
+        fake_frame[0] = '\x02'; // STX
+
+        control_block.type = DATA_PT;
+        control_block.nr = 0;
+        control_block.ns = 0;
+
+        // Always escape control block, just because
+        fake_frame[1] = '\x10';
+
+        fake_frame[2] = control_block.all;
+
+        fake_frame[3] = '\x10'; // Escape the length
+        fake_frame[4] = '\x03'; // Length of 2
+
+        fake_frame[5] = '\xC2'; // CMD
+        fake_frame[6] = '\x01'; // Train #1
+        fake_frame[7] = '\x00'; // Sucess
+
+        fake_frame[8] = '\x39'; // Checksum (255 - (3 + 194 + 1)) = 57 -> 0x39
+
+        fake_frame[9] = '\x03'; // ETX
+
+        first_time = false;
+    }
+    else {
+        // Update control block
+        MOD8PLUS1(control_block.ns);
+        fake_frame[2] = control_block.all;
+
+        // Update checksum
+        fake_frame[8] = (255 - (prev_total + control_block.all));
+    }
+
+    // Send frame
+    PassFrame(fake_frame, frame_length);
 }
 
 /*

@@ -375,6 +375,10 @@ void DataLinkLayer::SendACK() {
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, &control_block, 1);
 
     #if DEBUGGING_TRAIN >= 1
+    PSend(DATA_LINK_LAYER_MB, MONITOR_MB, &control_block, 1);
+    #endif
+
+    #if DEBUGGING_TRAIN >= 1
     debugging_flags_.SendACK_flag = 0;
     SendACK_flag = 0;
     #endif

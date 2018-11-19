@@ -28,10 +28,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #define WINDOW_SIZE 2 // "A window size of 2 is quite common"
 
-// Macros to perform modulus 8 increments and decrements
-#define MOD8PLUS1(x) (x = (x + 1) % 8)
-#define MOD8MINUS1(x) (x = (--x >= 0 ? x : 7))
-
 #if DEBUGGING_TRAIN >= 1
 typedef struct DataLinkLayer_flags {
     union {

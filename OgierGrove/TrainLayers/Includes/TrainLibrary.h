@@ -33,6 +33,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #define ALL 255 // Used to acknowledge all sensor resets or throw all switches
 
+// Macros to perform modulus 8 increments and decrements
+#define MOD8PLUS1(x) (x = (x + 1) % 8)
+#define MOD8MINUS1(x) (x = (--x >= 0 ? x : 7))
+
 enum train_layer_mailboxes {
     UART_PHYSICAL_LAYER_MB     = 200,
     PACKET_PHYSICAL_LAYER_MB   = 201,

@@ -41,6 +41,8 @@ class PhysicalLayer {
         void UARTMailboxLoop();
         void PacketMailboxLoop();
 
+        void FakePacket(); // For debugging
+
         PhysicalLayer();
         ~PhysicalLayer();
         void CentralLoop();
