@@ -44,17 +44,17 @@ void PhysicalLayer::UARTMailboxLoop() {
     static uint8_t frame_len = 0;
 
     // Hijacking function for testing without the trainset
-    #if DEBUGGING_TRAIN >= 1
-    int i_DELAY = 0;
+    // #if DEBUGGING_TRAIN >= 1
+    // int i_DELAY = 0;
     
-    while (1) {
-        // Short delay
-        DELAY(1000000/4)
+    // while (1) {
+    //     // Short delay
+    //     DELAY(1000000/4)
 
-        // Send a dummy packet to test system
-        FakePacket();
-    }
-    #endif
+    //     // Send a dummy packet to test system
+    //     FakePacket();
+    // }
+    // #endif
 
     while (1) {
         // Blocking message request

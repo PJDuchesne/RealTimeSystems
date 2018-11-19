@@ -176,11 +176,11 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
                 break;
         }
 
-        // Update mailbox flag on this mailbox
-        requested_mailbox->currently_blocked = false;
-
         // Wake up PCB by adding to correct queue
         OSInstance->QueuePCB(requested_mailbox->owner_pcb);
+
+        // Update mailbox flag on this mailbox
+        requested_mailbox->currently_blocked = false;
 
         #if DEBUGGING_TRAIN >= 1
         OSInstance->SetKernelDebugFlag(8, false);
@@ -245,51 +245,55 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
 
     bool put_to_sleep = false;
     switch (requested_mailbox->letter_size) {
-    case ZERO_CHAR:
-        if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
-            if (kcaptr->enable_sleep) put_to_sleep = true;
-            else return NO_MSG_KR;
-        } 
-        else {
-            recv_msg0 = ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
-            kcaptr->msg_len = recv_msg0.msg_size;
-            kcaptr->src_q = recv_msg0.msg_src;
-        }
-        break;
-    case ONE_CHAR:
-        if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
-            if (kcaptr->enable_sleep) put_to_sleep = true;
-            else return NO_MSG_KR;
-        } 
-        else {
-            recv_msg1 = ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
-            kcaptr->msg_len = recv_msg1.msg_size;
-            kcaptr->src_q = recv_msg1.msg_src;
-            ((char *)kcaptr->msg_ptr)[0] = recv_msg1.msg[0];
-        }
-        break;
-    case BIG_LETTER:
-        if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
-            if (kcaptr->enable_sleep) put_to_sleep = true;
-            else return NO_MSG_KR;
-        } 
-        else {
-            recv_msg256 = ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
-            kcaptr->msg_len = recv_msg256.msg_size;
-            kcaptr->src_q = recv_msg256.msg_src;
-            memcpy(kcaptr->msg_ptr, recv_msg256.msg, recv_msg256.msg_size);
-        }
-        break;
-    default:
-        std::cout << "[KRecv] INVALID LETTER_SIZE\n";
-        while (1) {}
-        break;
+        case ZERO_CHAR:
+            if (((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
+                if (kcaptr->enable_sleep) put_to_sleep = true;
+                else return NO_MSG_KR;
+            } 
+            else {
+                recv_msg0 = ((RingBuffer<empty_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
+                kcaptr->msg_len = recv_msg0.msg_size;
+                kcaptr->src_q = recv_msg0.msg_src;
+            }
+            break;
+        case ONE_CHAR:
+            if (((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
+                if (kcaptr->enable_sleep) put_to_sleep = true;
+                else return NO_MSG_KR;
+            } 
+            else {
+                recv_msg1 = ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
+                kcaptr->msg_len = recv_msg1.msg_size;
+                kcaptr->src_q = recv_msg1.msg_src;
+                ((char *)kcaptr->msg_ptr)[0] = recv_msg1.msg[0];
+            }
+            break;
+        case BIG_LETTER:
+            if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
+                if (kcaptr->enable_sleep) put_to_sleep = true;
+                else return NO_MSG_KR;
+            } 
+            else {
+                recv_msg256 = ((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Get();
+                kcaptr->msg_len = recv_msg256.msg_size;
+                kcaptr->src_q = recv_msg256.msg_src;
+                memcpy(kcaptr->msg_ptr, recv_msg256.msg, recv_msg256.msg_size);
+            }
+            break;
+        default:
+            std::cout << "[KRecv] INVALID LETTER_SIZE\n";
+            while (1) {}
+            break;
     }
 
     // If required, put message to sleep
     if (put_to_sleep) {
         // TODO: Delete this silly assertion
         assert(requested_mailbox->currently_blocked == false);
+
+        // Deattach PCB
+        OSInstance->DeleteCurrentPCB();
+
         // Update mailbox state
         requested_mailbox->currently_blocked = true;
         requested_mailbox->kcaptr = kcaptr;
@@ -304,19 +308,17 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
         assert(requested_mailbox->kcaptr->kcode == RECV);
         #endif
 
-        // Deattach PCB
-        OSInstance->DeleteCurrentPCB();
+        // Switch processes to next process
 
-        // Registers were already saved coming into the SVC call
+        // 1) Registers were already saved coming into the SVC call
 
-        // Store current PSP
-        // requested_mailbox->owner_pcb->stack_ptr = get_PSP(); // TODO: Delete
+        // 2) Store current PSP
         current_pcb->stack_ptr = get_PSP();
 
-        // Set PSP to next process
+        // 3) Set PSP to next process
         set_PSP(OSInstance->GetNextPCB()->stack_ptr);
 
-        // Registers will be popped leaving the SVC call
+        // 4) Registers will be popped when leaving the SVC call
     }
 
     return SUCCESS_KR;

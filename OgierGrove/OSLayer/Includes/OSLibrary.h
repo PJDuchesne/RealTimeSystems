@@ -39,7 +39,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define PSP_RETURN 0xFFFFFFFD    //LR value: exception return using PSP as SP
 #define THUMB_MODE 0x01000000
 
-#define STACKSIZE   1024
+#define STACKSIZE   2048
 
 #define INVALID_NUM UINT32_MAX
 

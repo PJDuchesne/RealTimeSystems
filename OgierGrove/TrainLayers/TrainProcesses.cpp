@@ -43,9 +43,9 @@ void TestLayers() {
     TrainCommandApplication::GetTrainCommandApplication()->SendSwitchCommand(ALL, DIVERTED, TEST_PROCESS_MB);
 
     for(int i = 0; i < 5; i++) {
-        TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CCW, TEST_PROCESS_MB);
+        TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 5, CCW, TEST_PROCESS_MB);
         DELAY(LESS_SHORT_DELAY)
-        TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CW, TEST_PROCESS_MB);
+        TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 5, CW, TEST_PROCESS_MB);
         DELAY(LESS_SHORT_DELAY)
     }
 

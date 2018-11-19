@@ -369,7 +369,7 @@ void DataLinkLayer::SendACK() {
     static control_t control_block;
 
     control_block.type = ACK_PT;
-    control_block.ns = tiva_ns_;
+    control_block.ns = 0;
     control_block.nr = tiva_nr_;
 
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, &control_block, 1);
@@ -399,10 +399,14 @@ void DataLinkLayer::SendNACK() {
     static control_t control_block;
 
     control_block.type = NACK_PT;
-    control_block.ns = tiva_ns_;
+    control_block.ns = 0;
     control_block.nr = tiva_nr_;
 
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, &control_block, 1);
+
+    #if DEBUGGING_TRAIN >= 1
+    PSend(DATA_LINK_LAYER_MB, MONITOR_MB, &control_block, 1);
+    #endif
 
     #if DEBUGGING_TRAIN >= 1
     debugging_flags_.SendNACK_flag = 0;
