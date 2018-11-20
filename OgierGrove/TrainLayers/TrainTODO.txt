@@ -7,6 +7,13 @@ Train TODO List
 	- Train display
 	- Train sending commands with routing tables and such
 
+--> More current list
+- Add new time process
+- Add message timeout functionality
+- Write GUI process (24x80 screen)
+- Tie GUI process to Monitor? (Maybe not actually)
+- Add routing protocol for 1 train
+
 --> "Should Really Be Done"
 - Make a new mailbox size, 16 to handle all the train messages (Because they will never be bigger than that)
 - Move ISRMessageHandler to ISRLayer

@@ -42,6 +42,7 @@ enum train_layer_mailboxes {
     PACKET_PHYSICAL_LAYER_MB   = 201,
     DATA_LINK_LAYER_MB         = 202,
     TRAIN_APPLICATION_LAYER_MB = 203,
+    TRAIN_TIME_SERVER_MB       = 204,
     TEST_PROCESS_MB = 210 // For future testing
 };
 

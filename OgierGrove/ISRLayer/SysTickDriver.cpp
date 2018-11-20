@@ -76,21 +76,29 @@ SysTickDriver::SysTickDriver() {
 void SysTickDriver::SysTickHandler() {
     static uint8_t CentiSecondCounter = 0;
 
-    static kcallargs_t SysTickArguments;
+    static kcallargs_t SysTickArguments_Monitor, SysTickArguments_Train;
     static bool first_time = true;
 
     if (first_time) {
-        SysTickArguments.src_q = KERNEL_MB;
-        SysTickArguments.dst_q = ISR_MSG_HANDLER_MB;
-        SysTickArguments.msg_len = 0;
+        SysTickArguments_Monitor.src_q = KERNEL_MB;
+        SysTickArguments_Monitor.dst_q = ISR_MSG_HANDLER_MB;
+        SysTickArguments_Monitor.msg_len = 0;
+
+        SysTickArguments_Train.src_q = KERNEL_MB;
+        SysTickArguments_Train.dst_q = TRAIN_TIME_SERVER_MB;
+        SysTickArguments_Train.msg_len = 0;
+
         first_time = false;
     }
 
     // Queue message for time application
     if (CentiSecondCounter++ >= CENTI_TO_DECI_SECONDS) {
-        KSend(&SysTickArguments);
+        KSend(&SysTickArguments_Monitor);
         CentiSecondCounter = 0;
     }
+
+    // Also send to Train Time Server
+    KSend(&SysTickArguments_Train);
 
     // Pass to OS to change process
     OperatingSystemInstance_->QuantumTick();
