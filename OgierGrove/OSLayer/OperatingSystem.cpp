@@ -16,6 +16,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/OperatingSystem.h"
 
+#if DEBUGGING_TRAIN >= 1
+#include <ISRLayer/Includes/CustomFaultISR.h>
+#endif
+
 // Singleton Instance
 OperatingSystem *OperatingSystem::OperatingSystemInstance_ = 0;
 
@@ -110,6 +114,11 @@ void OperatingSystem::Inialize() {
 
     if (idle_needed_flag) RegProc(&EndlessProcess, 1, P_ONE, "IdleProcess");
 
+    #if DEBUGGING_TRAIN >= 1
+    StackDebug();
+    // Custom_Fault_ISR();
+    #endif
+
     // Pass control to first process
     KickStart();
 }
@@ -130,7 +139,7 @@ void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t pr
     new_pcb->stack_start = new uint32_t[STACKSIZE]; 
 
     // Add stack pointer
-    new_pcb->stack_ptr = (uint32_t)(new_pcb->stack_start+STACKSIZE*sizeof(uint32_t) - sizeof(stack_frame_t));
+    new_pcb->stack_ptr = ((uint32_t)new_pcb->stack_start + STACKSIZE*sizeof(uint32_t) - sizeof(stack_frame_t));
 
     // Add pid and name
     new_pcb->pid = pid;
@@ -157,6 +166,12 @@ void OperatingSystem::RegProc(process_t entry_point, uint32_t pid, priority_t pr
 
     // Add to PCBList queue
     QueuePCB(new_pcb);
+
+    #if DEBUGGING_TRAIN >= 1
+
+    debugging_pcbs[pcb_idx++] = new_pcb;
+
+    #endif
 }
 
 /*
@@ -240,6 +255,9 @@ void OperatingSystem::QuantumTick() {
     save_registers();
     // 2: Set Stack Pointer on current PCB
     current_pcb_->stack_ptr = get_PSP();
+
+    assert(current_pcb_->stack_ptr > (uint32_t)current_pcb_->stack_start); // Else there has been a stack overflow
+
     // 3: Get new process PCB and set stack pointer from it
     set_PSP(GetNextPCB()->stack_ptr);
     // 4: Restore_Registers
@@ -301,4 +319,15 @@ void OperatingSystem::SetKernelVoidPtr(uint8_t flag_num, void* void_ptr) {
     }
 }
 
+#if DEBUGGING_TRAIN >= 1
+
+
+#endif
+void OperatingSystem::StackDebug() {
+    for (int i = 0; i < pcb_idx; i++) {
+        pcb_stack_sizes[i] = (debugging_pcbs[i]->stack_ptr - (uint32_t)debugging_pcbs[i]->stack_start);
+    }
+
+    pcb_stack_sizes[19] = STACKSIZE*sizeof(uint32_t);
+}
 #endif

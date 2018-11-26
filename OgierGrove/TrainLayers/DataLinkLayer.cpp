@@ -26,14 +26,14 @@ DataLinkLayer *DataLinkLayer::DataLinkLayerInstance_ = 0;
 // Note: The pre-infinite loop of this acts as an initialization sequence
 void DataLinkLayer::MailboxLoop() {
     // Bind PhysicalLayer queue
-    if (PBind(DATA_LINK_LAYER_MB, BIG_LETTER) == false) { // Default mailbox size of 16
+    if (PBind(DATA_LINK_LAYER_MB, SMALL_LETTER) == false) { // Default mailbox size of 16
         std::cout << "DataLinkLayer::MailboxLoop(): WARNING Mailbox failed to bind\n";
     }
     else std::cout << "DataLinkLayer::MailboxLoop(): Mailbox bound\n";
 
     uint8_t src_q;
     uint32_t mailbox_msg_len;
-    char msg_body[256];
+    char msg_body[SMALL_LETTER];
 
     // initialize to 0
     num_packets_in_limbo_ = 0;
@@ -86,7 +86,7 @@ void DataLinkLayer::MailboxLoop() {
         #endif
 
         // Error state checking for testing
-        assert(mailbox_msg_len < 256);
+        assert(mailbox_msg_len < SMALL_LETTER);
 
         switch(src_q) {
             // If from the physical layer, handle each packet type separately
@@ -246,7 +246,7 @@ void DataLinkLayer::SendMessageUp(packet_t* packet) {
     assert(packet->length >= 1 && packet->length <= 3);
 
     // Strip out message itself and send up to the application layer
-    static char msg_body[256];
+    static char msg_body[SMALL_LETTER];
 
     switch(packet->length) {
         // Note: The lack of break statements is intentional for a waterfall effect
@@ -279,6 +279,7 @@ void DataLinkLayer::SendPacketDown(packet_t* packet) {
     #endif
 
     // Add packet to outgoing_messages_ buffer
+    assert(packet->length + 2 <= MAX_PACKET_SIZE); // Check that memcopy isn't going to clobber other data
     memcpy(&outgoing_messages_[tiva_ns_], packet, packet->length + 2);
 
     // This assumes that num_packets_in_limbo_ was checked for bounds before calling this function 

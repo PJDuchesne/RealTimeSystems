@@ -117,7 +117,7 @@ void PhysicalLayer::UARTMailboxLoop() {
             removing any escape characters
 */
 void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
-    static uint8_t msg_body[256];
+    static uint8_t msg_body[SMALL_LETTER];
 
     int msg_idx = 0;
 
@@ -184,14 +184,14 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
 
 void PhysicalLayer::PacketMailboxLoop() {
     // Bind PhysicalLayer queue
-    if (!PBind(PACKET_PHYSICAL_LAYER_MB, BIG_LETTER)) { // Default mailbox size of 16
+    if (!PBind(PACKET_PHYSICAL_LAYER_MB, SMALL_LETTER)) { // Default mailbox size of 16
         std::cout << "PhysicalLayer::PacketMailboxLoop(): WARNING Mailbox failed to bind!\n";
     }
     else std::cout << "PhysicalLayer::PacketMailboxLoop(): Mailbox bound\n";
 
     static uint8_t src_q;
     static uint32_t mailbox_msg_len;
-    static char msg_body[256];
+    static char msg_body[SMALL_LETTER];
     static uint8_t frame_len = 0;
 
     while (1) {
@@ -199,7 +199,7 @@ void PhysicalLayer::PacketMailboxLoop() {
         PRecv(src_q, PACKET_PHYSICAL_LAYER_MB, &msg_body, mailbox_msg_len);
         
         // Error state checking for testing
-        assert(mailbox_msg_len < 256);
+        assert(mailbox_msg_len < SMALL_LETTER);
         assert(src_q == DATA_LINK_LAYER_MB); // Frame should always be coming from DLL
 
         #if DEBUGGING_TRAIN == 1

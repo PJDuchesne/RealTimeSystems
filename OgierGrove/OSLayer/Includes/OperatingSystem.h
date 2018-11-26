@@ -62,6 +62,10 @@ class OperatingSystem {
         volatile uint8_t DEBUGGING_quantum_flag_; // TODO: Delete (Used to debug OS)
         volatile uint8_t flag_array[24];
         volatile void* void_ptr_array[8];
+        volatile pcb_t* debugging_pcbs[20] = {0};
+        volatile uint32_t pcb_stack_sizes[20] = {0};
+        volatile int pcb_idx = 0;
+        void StackDebug();
         #endif
 
         static OperatingSystem* GetOperatingSystem();

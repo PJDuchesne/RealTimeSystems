@@ -59,6 +59,9 @@ bool PostOffice::BuyMailbox(uint8_t mailbox_no, letter_size_t letter_size, pcb_t
         case ONE_CHAR:
             tmp = (void *)(new RingBuffer<one_char_msg_t>(mailbox_size));
             break;
+        case SMALL_LETTER:
+            tmp = (void *)(new RingBuffer<small_letter_msg_t>(mailbox_size));
+            break;
         case BIG_LETTER:
             tmp = (void *)(new RingBuffer<big_letter_msg>(mailbox_size));
             break;
@@ -92,8 +95,11 @@ bool PostOffice::SellMailbox(uint8_t mailbox_no, pcb_t* current_pcb) {
         case ONE_CHAR:
             delete (RingBuffer<one_char_msg_t> *)(relevant_mailbox->mailbox_ptr);
             break;
+        case SMALL_LETTER:
+            delete (RingBuffer<small_letter_msg_t> *)(relevant_mailbox->mailbox_ptr);
+            break;
         case BIG_LETTER:
-            delete (RingBuffer<big_letter_msg> *)(relevant_mailbox->mailbox_ptr);
+            delete (RingBuffer<big_letter_msg_t> *)(relevant_mailbox->mailbox_ptr);
             break;
         default:
             std::cout << "[SellMailbox] INVALID LETTER_SIZE\n";

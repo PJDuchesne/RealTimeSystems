@@ -35,6 +35,8 @@ void Custom_Fault_ISR() {
     OperatingSystem* OperatingSystemInstance = OperatingSystem::GetOperatingSystem();
     DataLinkLayer* DataLinkLayerInstance = DataLinkLayer::GetDataLinkLayer();
 
+    OperatingSystemInstance->StackDebug();
+
     std::cout << "Crashed with on Process   >>" << OperatingSystemInstance->GetCurrentPCB()->name << "<<\n";
     std::cout << "Crashed with quantum_flag >>" << int(OperatingSystemInstance->DEBUGGING_quantum_flag_) << "<<\n";
 

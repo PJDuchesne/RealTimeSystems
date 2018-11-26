@@ -28,21 +28,21 @@ TrainCommandApplication *TrainCommandApplication::TrainCommandApplicationInstanc
 */
 void TrainCommandApplication::MailboxLoop() {
     // Bind TrainCommandApplication queue
-    if (!PBind(TRAIN_APPLICATION_LAYER_MB, BIG_LETTER)) { // Default mailbox size of 16
+    if (!PBind(TRAIN_APPLICATION_LAYER_MB, SMALL_LETTER)) { // Default mailbox size of 16
         std::cout << "TrainCommandApplication::MailboxLoop(): WARNING Mailbox failed to bind\n";
     }
     else std::cout << "TrainCommandApplication::MailboxLoop(): Mailbox bound\n";
 
     uint8_t src_q;
     uint32_t mailbox_msg_len = 7;
-    char msg_body[256];
+    char msg_body[SMALL_LETTER];
 
     while (1) {
         // Blocking message request
         PRecv(src_q, TRAIN_APPLICATION_LAYER_MB, &msg_body, mailbox_msg_len);
         
         // Error state checking for testing
-        assert(mailbox_msg_len < 256);
+        assert(mailbox_msg_len < SMALL_LETTER);
 
         // Handle mailbox depending on SRC
         if (src_q == DATA_LINK_LAYER_MB) {

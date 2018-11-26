@@ -31,6 +31,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #define UART_PHYSICAL_LAYER_MB_SIZE 100
 
+#define MAX_PACKET_SIZE 5
+
 #define ALL 255 // Used to acknowledge all sensor resets or throw all switches
 
 // Macros to perform modulus 8 increments and decrements
@@ -55,10 +57,6 @@ typedef enum packet_type {
 
 typedef struct control 
 {
-    // TODO: Constructor for useful initilizations
-    // control(uint8_t nr, uint8_t ns, packet_type_t type) : nr(nr),
-    //                                                   ns(ns),
-    //                                                   type(type) {}
     union {
         struct {
             uint8_t nr : 3;
@@ -67,21 +65,20 @@ typedef struct control
         };
         uint8_t all;
     };
-    // TODO: Add constructor
 } control_t;
 
 typedef struct train_msg {
     packet_type_t code;
     uint8_t arg1;
     uint8_t arg2;
-} train_msg_t;
+} train_msg_t; // 3 bytes
 
 typedef struct packet {
-    control_t control_block;
-    uint8_t length;
+    control_t control_block; // 1 byte
+    uint8_t length; // 1 byte
     // TODO: Is this necessary?
     // Anonymous union for direct access
-    union {
+    union { // 3 bytes
         train_msg_t msg;
         struct 
         {
@@ -90,7 +87,7 @@ typedef struct packet {
             uint8_t arg2;
         };
     };
-} packet_t;
+} packet_t; // 5 bytes
 
 typedef struct train_request {
 

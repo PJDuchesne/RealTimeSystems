@@ -39,7 +39,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define PSP_RETURN 0xFFFFFFFD    //LR value: exception return using PSP as SP
 #define THUMB_MODE 0x01000000
 
-#define STACKSIZE   2048
+#define STACKSIZE   512
+// #define STACKSIZE   2048
 
 #define INVALID_NUM UINT32_MAX
 
@@ -106,9 +107,10 @@ typedef struct pcb
 
 // Size of the mailboxes
 typedef enum letter_size {
-    ZERO_CHAR  = 0,
-    ONE_CHAR   = 1,
-    BIG_LETTER = 256,
+    ZERO_CHAR    = 0,
+    ONE_CHAR     = 1,
+    SMALL_LETTER = 16,
+    BIG_LETTER   = 256,
 } letter_size_t;
 
 // Letter sizes
@@ -123,6 +125,13 @@ typedef struct one_char_msg { // ONE_CHAR
     uint8_t msg_src = 0;
     char msg[ONE_CHAR];
 } one_char_msg_t;
+
+
+typedef struct small_letter_msg { // BIG_LETTER
+    uint8_t msg_size;
+    uint8_t msg_src;
+    char msg[SMALL_LETTER];
+} small_letter_msg_t;
 
 typedef struct big_letter_msg { // BIG_LETTER
     uint8_t msg_size;

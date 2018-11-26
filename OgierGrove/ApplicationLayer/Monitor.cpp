@@ -50,8 +50,9 @@ void Monitor::CheckMessageHandler() {
     uint8_t src_q;
     uint32_t msg_len;
     static char msg_body[256];
-    std::string train_msg = "";
     std::stringstream sstream;
+    bool ctrl_block = false;
+    control_t tmp_control;
 
     // If there is a message, print it
     if (PRecv(src_q, MONITOR_MB, &msg_body, msg_len, false)) {
@@ -60,14 +61,60 @@ void Monitor::CheckMessageHandler() {
             PrintMsg(("\n[MSG FROM: " + std::to_string(src_q) + "] >>" + std::string(msg_body) + "<<" + NEW_LINE));
         }
         else {
-            train_msg = "\n[MSG FROM: " + std::to_string(src_q) + "] >> ";
-            sstream << "\n[MSG FROM: " << std::to_string(src_q) << "] >> ";
-            // for (int i = 0; i < msg_len; i++) train_msg += (std::to_string(msg_body[i]) + " ");
-            for (int i = 0; i < msg_len; i++) sstream << HEX(msg_body[i]) << " ";
-            // train_msg += ("<<" + NEW_LINE);
-            sstream << "<<" << NEW_LINE;
-            // PrintMsg(train_msg + "<<" + NEW_LINE);
+            // Handle train layer debugging printouts
+            switch(src_q) {
+                case UART_PHYSICAL_LAYER_MB:
+                    sstream << "\n[UPL]";
+                    ctrl_block = true;
+                    // Displays packets being passing to the DLL from the trainset itself
+                    break;
+                case PACKET_PHYSICAL_LAYER_MB:
+                    sstream << "\n[PPL]";
+                    break;
+                case DATA_LINK_LAYER_MB:
+                    sstream << "\n[DDL]";
+                    // Displays packets being sent from the DLL layer down
+                    ctrl_block = true;
+                    break;
+                case TRAIN_APPLICATION_LAYER_MB:
+                    sstream << "\n[TAL]";
+                    break;
+                default:
+                    std::cout << "[CheckMessageHandler()] Warning! Unhandled trainset msg received >>" << src_q << "<<\n";
+                    break;
+            }
+
+            // Output expanded control block logic
+            if (ctrl_block) {
+                tmp_control.all = msg_body[0];
+
+                switch(tmp_control.type) {
+                    case DATA_PT:
+                        sstream << " >> DATA <<";
+                        break;
+                    case ACK_PT:
+                        sstream << " >>  ACK <<";
+                        break;
+                    case NACK_PT:
+                        sstream << " >> NACK <<";
+                        break;
+                    default:
+                        std::cout << "[CheckMessageHandler()] Warning! Unhandled trainset msg type >>" << tmp_control.type << "<<\n";
+                        break;
+                }
+                sstream << " >>NS: " << int(tmp_control.ns) << " << >>NR: " << int(tmp_control.nr) << " <<";
+            }
+
+            sstream << " >>";
+            for (int i = 0; i < msg_len; i++) sstream << HEX(msg_body[i]);
+            sstream << " <<" << NEW_LINE;
+
             PrintMsg(sstream.str());
+
+            // sstream << "\n[MSG FROM: " << std::to_string(src_q) << "] >> ";
+            // for (int i = 0; i < msg_len; i++) sstream << HEX(msg_body[i]);
+            // sstream << "<<" << NEW_LINE;
+            // PrintMsg(sstream.str());
         }
 
         // Then reprint output buffer!

@@ -91,7 +91,7 @@ void KTerminateProcess() {
     Output: <Return Value>: Code to indicate failure/success
     Brief: Kernel side call to send a message to a specific mailbox. This takes into account
            the possible RingBuffer sizes and casts appropriately. This also handles blocked
-           processes by waking them up and directly transfering the message to the process.
+           processes by waking them up and directly transferring the message to the process.
 */
 kernel_responses_t KSend(kcallargs_t *kcaptr) {
     // Get requested mailbox
@@ -155,7 +155,12 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
                 OSInstance->SetKernelDebugFlag(10, false);
                 #endif
                 break;
+
+            case SMALL_LETTER: // Performs the same memcpy
+                assert(actual_msg_len < 16);
+                memcpy(requested_mailbox->kcaptr->msg_ptr, kcaptr->msg_ptr, actual_msg_len);
             case BIG_LETTER:
+                assert(actual_msg_len < 256);
                 #if DEBUGGING_TRAIN >= 1
                 OSInstance->SetKernelDebugFlag(11, true);
                 OSInstance->SetKernelDebugFlag(12, true);
@@ -201,6 +206,11 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
                 if (actual_msg_len) (input_msg.msg)[0] = ((char*)(kcaptr->msg_ptr))[0];
                 ((RingBuffer<one_char_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
                 break;
+            case SMALL_LETTER:
+                if (((RingBuffer<small_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return FAILURE_KR;
+                memcpy(input_msg.msg, kcaptr->msg_ptr, actual_msg_len);
+                ((RingBuffer<small_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Add(&input_msg);
+                break;
             case BIG_LETTER:
                 if (((RingBuffer<big_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Full()) return FAILURE_KR;
                 memcpy(input_msg.msg, kcaptr->msg_ptr, actual_msg_len);
@@ -239,9 +249,10 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
     if ((requested_mailbox->owner_pcb) && (current_pcb != requested_mailbox->owner_pcb)) return FAILURE_KR;
 
     // Fetch mail! (Using different structures)
-    empty_msg_t recv_msg0;
-    one_char_msg_t recv_msg1;
-    big_letter_msg_t recv_msg256;
+    static empty_msg_t recv_msg0;
+    static one_char_msg_t recv_msg1;
+    static small_letter_msg_t recv_msg16;
+    static big_letter_msg_t recv_msg256;
 
     bool put_to_sleep = false;
     switch (requested_mailbox->letter_size) {
@@ -266,6 +277,18 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
                 kcaptr->msg_len = recv_msg1.msg_size;
                 kcaptr->src_q = recv_msg1.msg_src;
                 ((char *)kcaptr->msg_ptr)[0] = recv_msg1.msg[0];
+            }
+            break;
+        case SMALL_LETTER:
+            if (((RingBuffer<small_letter_msg_t>*)(requested_mailbox->mailbox_ptr))->Empty()) {
+                if (kcaptr->enable_sleep) put_to_sleep = true;
+                else return NO_MSG_KR;
+            } 
+            else {
+                recv_msg16 = ((RingBuffer<small_letter_msg>*)(requested_mailbox->mailbox_ptr))->Get();
+                kcaptr->msg_len = recv_msg16.msg_size;
+                kcaptr->src_q = recv_msg16.msg_src;
+                memcpy(kcaptr->msg_ptr, recv_msg16.msg, recv_msg16.msg_size);
             }
             break;
         case BIG_LETTER:
