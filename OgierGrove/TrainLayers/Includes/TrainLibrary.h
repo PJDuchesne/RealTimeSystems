@@ -67,6 +67,12 @@ typedef struct control
     };
 } control_t;
 
+typedef struct ack_control
+{
+    control_t control;
+    uint8_t empty;
+} ack_control_t;
+
 typedef struct train_msg {
     packet_type_t code;
     uint8_t arg1;

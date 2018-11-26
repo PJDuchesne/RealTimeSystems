@@ -90,19 +90,19 @@ void Monitor::CheckMessageHandler() {
 
                 switch(tmp_control.type) {
                     case DATA_PT:
-                        sstream << " >> DATA <<";
+                        sstream << " >> DATA << >> NS: " << int(tmp_control.ns) << " << >> NR: " << int(tmp_control.nr) << " <<";
                         break;
                     case ACK_PT:
-                        sstream << " >>  ACK <<";
+                        sstream << " >>  ACK <<             >> NR: " << int(tmp_control.nr) << " <<";
                         break;
                     case NACK_PT:
-                        sstream << " >> NACK <<";
+                        sstream << " >> NACK <<             >> NR: " << int(tmp_control.nr) << " <<";
                         break;
                     default:
                         std::cout << "[CheckMessageHandler()] Warning! Unhandled trainset msg type >>" << tmp_control.type << "<<\n";
                         break;
                 }
-                sstream << " >>NS: " << int(tmp_control.ns) << " << >>NR: " << int(tmp_control.nr) << " <<";
+                // sstream << " >>NS: " << int(tmp_control.ns) << " << >>NR: " << int(tmp_control.nr) << " <<";
             }
 
             sstream << " >>";
