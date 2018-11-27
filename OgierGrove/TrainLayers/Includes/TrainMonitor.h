@@ -50,16 +50,15 @@ class TrainMonitor {
         void PrintDefaultScreen();
         void PrintCup(int row, int col);
 
-        void InitializeScreen();
-
     public:
         TrainMonitor();
         ~TrainMonitor();
         void SingletonGrab();
         void CentralLoop();
-        void PrintMsg(std::string msg);
+        void InitializeScreen();
         void VisuallySetHallSensor(uint8_t sensor_num, bool status);
         void VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir);
+
         static TrainMonitor* GetTrainMonitor();
 };
 

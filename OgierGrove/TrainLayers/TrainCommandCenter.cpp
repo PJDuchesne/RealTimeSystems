@@ -31,36 +31,43 @@ void TrainCommandCenter::TrainCommand(std::string args) { // Two arguments
     uint8_t train_speed   = SafeStoi(TokenizedArgs_[1]);
     uint8_t train_dir_int = SafeStoi(TokenizedArgs_[2]);
 
-    if (train_num == 0 || train_num > 2 || train_speed > 15 || train_dir_int > 1) {
+    if ((train_num == 0 || train_num > 2) || train_speed > 15 || train_dir_int > 1) {
         SendErrorMsg("[TrainCommandCenter::TrainCommand] Error! Malformed Command (due to numbers)!\n");
         return;
     }
 
     train_direction_t train_dir = (train_dir_int ? CCW : CW);
 
-    SendTrainCommand(train_num, train_speed, train_dir);
+    // SendTrainCommand(train_num, train_speed, train_dir);
 }
 
 void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
     int tmp_code = TokenizeArguments(args);
-    if (tmp_code == -1 || tmp_code != 2) SendErrorMsg("[TrainCommandCenter::SwitchCommand] Error! Malformed Command (due to number of args)!\n");
+    if (tmp_code == -1 || tmp_code != 2) {
+        SendErrorMsg("[TrainCommandCenter::SwitchCommand] Error! Malformed Command (due to number of args)!\n");
+        return;
+    }
 
     uint8_t switch_num     = SafeStoi(TokenizedArgs_[0]);
     uint8_t switch_dir_int = SafeStoi(TokenizedArgs_[1]);
 
-    if ((switch_num > 6 && switch_num != 255) || switch_dir_int > 1) {
+    if (((switch_num == 0 || switch_num > 6) && switch_num != 255) || switch_dir_int > 1) {
         SendErrorMsg("[TrainCommandCenter::SwitchCommand] Error! Malformed Command (due to numbers)!\n");
         return;
     }
 
     switch_direction_t switch_dir = (switch_dir_int ? DIVERTED : STRAIGHT);
 
+    TrainMonitorInstance_->VisuallySetSwitch(switch_num, switch_dir); // TODO: Move this into the response code
     SendSwitchCommand(switch_num, switch_dir);
 }
 
 void TrainCommandCenter::SensorCommand(std::string arg) {
     int tmp_code = TokenizeArguments(arg);
-    if (tmp_code == -1 || tmp_code != 1) SendErrorMsg("[TrainCommandCenter::SensorCommand] Error! Malformed Command (due to number of args)!\n");
+    if (tmp_code == -1 || tmp_code != 1) {
+        SendErrorMsg("[TrainCommandCenter::SensorCommand] Error! Malformed Command (due to number of args)!\n");
+        return;
+    }
 
     uint8_t sensor_num = SafeStoi(TokenizedArgs_[0]);
 
@@ -72,13 +79,23 @@ void TrainCommandCenter::SensorCommand(std::string arg) {
     SendSensorAcknowledge(sensor_num);
 }
 
-void TrainCommandCenter::QueueCommand(std::string arg) {
+void TrainCommandCenter::QueueResetCommand(std::string arg) {
     if (arg != "") {
-        SendErrorMsg("[TrainCommandCenter::QueueCommand] Error! Queue Command does not take arguments\n");
+        SendErrorMsg("[TrainCommandCenter::QueueResetCommand] Error! Queue Command does not take arguments\n");
         return;
     }
 
     SendSensorQueueReset();
+}
+
+void TrainCommandCenter::RefreshCommand(std::string arg) {
+    if (arg != "") {
+        SendErrorMsg("[TrainCommandCenter::QueueResetCommand] Error! Refresh Command does not take arguments\n");
+        return;
+    }
+
+    // Slightly different than just InitializeScreen
+    TrainMonitorInstance_->InitializeScreen();
 }
 
 void TrainCommandCenter::SendErrorMsg(std::string msg) {
@@ -100,7 +117,7 @@ int TrainCommandCenter::TokenizeArguments(std::string &arg) {
         else TokenizedArgs_[token_idx] += arg[i];
     }
 
-    return token_idx;
+    return token_idx + 1; // Return number of arguments
 }
 
 // Construct a message to command a train and send to TrainCommand mailbox
@@ -185,7 +202,8 @@ TrainCommandCenter::TrainCommandCenter() {
     FunctionTable[0] = &TrainCommandCenter::TrainCommand;
     FunctionTable[1] = &TrainCommandCenter::SwitchCommand;
     FunctionTable[2] = &TrainCommandCenter::SensorCommand;
-    FunctionTable[3] = &TrainCommandCenter::QueueCommand;
+    FunctionTable[3] = &TrainCommandCenter::QueueResetCommand;
+    FunctionTable[4] = &TrainCommandCenter::RefreshCommand;
 }
 
 /*
@@ -195,7 +213,6 @@ TrainCommandCenter::TrainCommandCenter() {
 */
 void TrainCommandCenter::SingletonGrab() {
     TrainMonitorInstance_ = TrainMonitor::GetTrainMonitor();
-    OSInstance_           = OperatingSystem::GetOperatingSystem();
 }
 
 /*

@@ -69,6 +69,8 @@ TrainMonitor::~TrainMonitor() {
 void TrainMonitor::SingletonGrab() {
     ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
     TrainCommandCenterInstance_ = TrainCommandCenter::GetTrainCommandCenter();
+
+    TrainCommandCenterInstance_->SingletonGrab();    
 }
 
 /*
@@ -85,16 +87,13 @@ void TrainMonitor::CentralLoop() {
     // Initialize screen with GUI
     InitializeScreen();
 
+    VisuallySetHallSensor(255, true);
+
     // Loop Forever
     while(1)
     {
         CheckMessageHandler();
     }
-}
-
-// TODO: This needs to go through a CUP command to the proper location handler
-void TrainMonitor::PrintMsg(std::string msg) {
-    ISRMsgHandlerInstance_->QueueOutputMsg(msg, UART0);
 }
 
 void TrainMonitor::InputUARTChar(char input_char) {
@@ -117,7 +116,6 @@ void TrainMonitor::InputUARTChar(char input_char) {
         // Clear flag for future use
         CupReset_ = false;
     }
-
 
     // VT-100 Input Code handling: If in escape mode, skip next two characters
     //      Escape mode is denoted by escape_mode equalling 0 or 1
@@ -190,6 +188,7 @@ void TrainMonitor::PrintDefaultScreen() {
     ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
 
     for(int i = 0; i < NUM_SCREEN_ROWS; i++) {
+        PrintCup(i + 1, 0);
         ISRMsgHandlerInstance_->QueueOutputMsg(TrainScreen[i] + "\r", UART0);
     }
 }
@@ -201,6 +200,9 @@ void TrainMonitor::PrintCup(int row, int col) {
 }
 
 void TrainMonitor::InitializeScreen() {
+    ISRMsgHandlerInstance_->QueueOutputMsg(CLEAR_SCREEN, UART0);
+    ISRMsgHandlerInstance_->QueueOutputMsg(CLEAR_SCREEN, UART0);
+
     // Print default screen
     PrintDefaultScreen();
 
@@ -298,6 +300,7 @@ void TrainMonitor::VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir)
                 switch (i) {
                     case 1:
                     case 2:
+                    case 4:
                     case 5:
                         ISRMsgHandlerInstance_->QueueOutputMsg("//", UART0);
                         break;
@@ -334,11 +337,13 @@ void TrainMonitor::VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir)
                 case 1:
                 case 2:
                 case 4:
-                    ISRMsgHandlerInstance_->QueueOutputMsg("//", UART0);
-                case 3:
                 case 5:
+                    ISRMsgHandlerInstance_->QueueOutputMsg("//", UART0);
+                    break;
+                case 3:
                 case 6:
                     ISRMsgHandlerInstance_->QueueOutputMsg("\\\\", UART0);
+                    break;
                 default: // No possible error state
                     break;
             }

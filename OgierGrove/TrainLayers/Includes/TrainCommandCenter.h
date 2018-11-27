@@ -19,14 +19,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "TrainMonitor.h"
 
-#include <OSLayer/Includes/OperatingSystem.h>
 #include <ISRLayer/Includes/GlobalMailboxes.h> // TODO: Might cause a dependency loop
 #include "TrainLibrary.h"
 
-#define MAX_NUM_TRAIN_TOKENS      2
-#define MAX_NUM_TRAIN_ARGUMENTS   2
-
-#define NUM_VALID_TRAIN_COMMANDS  4
+#define MAX_NUM_TRAIN_TOKENS      3
+#define MAX_NUM_TRAIN_ARGUMENTS   3
 
 // Number of arguments for each command
 #define NUM_TRAIN_ARGS    3
@@ -37,37 +34,39 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define NUM_SCREEN_ROWS   24
 
 const std::string TrainScreen[NUM_SCREEN_ROWS] = {
-  "################################################################################\n",
-  "#                                                                              #\n",
-  "#                       20                             19                      #\n",
-  "#                     ==##=============================##==                    #\n",
-  "#              14    //    13       12      11       10   \\\\     9             #\n",
-  "#            ==##====---===##=======##---===##=======##==---=====##==          #\n",
-  "#          //       S1                 // S2              S3        \\\\         #\n",
-  "#         //           ====##=======##==                             \\\\        #\n",
-  "#     15 ##                24       23                                ## 8     #\n",
-  "#        ||                                                           ||       #\n",
-  "#        ||      Train 1: Spd, Dir                                    ||       #\n",
-  "#        ||      Train 2: Spd, Dir                                    ||       #\n",
-  "#     16 ##                                 21       22               ## 7     #\n",
-  "#         \\\\                              ==##=======##====          //        #\n",
-  "#          \\\\       S6     2      3   S5 //  4       5    S4        //         #\n",
-  "#            ==##====---===##=======##===---##=======##==---=====##==          #\n",
-  "#              1     \\\\                                   //      6            #\n",
-  "#  Hall   ##          ==##=============================##==                    #\n",
-  "#  Switch -- or //      17                             18                      #\n",
-  "#______________________________________________________________________________#\n",
-  "#                                                                              #\n",
-  "#  >                                                                           #\n",
-  "#                                                                              #\n",
+  "################################################################################",
+  "#                                                                              #",
+  "#                       20                             19                      #",
+  "#                     ==##=============================##==                    #",
+  "#              14    //    13       12      11       10   \\\\     9             #",
+  "#            ==##====---===##=======##---===##=======##==---=====##==          #",
+  "#          //       S1                 // S2              S3        \\\\         #",
+  "#         //           ====##=======##==                             \\\\        #",
+  "#     15 ##                24       23                                ## 8     #",
+  "#        ||                                                           ||       #",
+  "#        ||      Train 1: Spd, Dir                                    ||       #",
+  "#        ||      Train 2: Spd, Dir                                    ||       #",
+  "#     16 ##                                 21       22               ## 7     #",
+  "#         \\\\                              ==##=======##====          //        #",
+  "#          \\\\       S6     2      3   S5 //  4       5    S4        //         #",
+  "#            ==##====---===##=======##===---##=======##==---=====##==          #",
+  "#              1     \\\\                                   //      6            #",
+  "#  Hall   ##          ==##=============================##==                    #",
+  "#  Switch -- or //      17                             18                      #",
+  "#______________________________________________________________________________#",
+  "#                                                                              #",
+  "#  >                                                                           #",
+  "#                                                                              #",
   "################################################################################"
 };
 
+#define NUM_VALID_TRAIN_COMMANDS  5
 const std::string valid_train_commands[NUM_VALID_TRAIN_COMMANDS] = {
   "TRAIN",
   "SWITCH",
   "SENSOR",
-  "QUEUE",
+  "QUEUERESET",
+  "REFRESH"
 };
 
 // To match tables below
@@ -170,9 +169,10 @@ const uint8_t switch_locations[MAX_NUM_SWITCHES + 1][2][2] {
 #define CMD_PROMPT_START_ROW    22
 #define CMD_PROMPT_START_COLUMN 6
 
+#define CLEAR_SCREEN     "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+
 // Forward Declarations
 class TrainMonitor;
-class OperatingSystem;
 
 class TrainCommandCenter {
     private:
@@ -181,7 +181,6 @@ class TrainCommandCenter {
         FunctionPtr FunctionTable[NUM_VALID_TRAIN_COMMANDS];
 
         TrainMonitor *TrainMonitorInstance_;
-        OperatingSystem *OSInstance_;
 
         bool cup_reset;
 
@@ -191,7 +190,8 @@ class TrainCommandCenter {
         void TrainCommand(std::string args);
         void SwitchCommand(std::string args);
         void SensorCommand(std::string arg);
-        void QueueCommand(std::string arg);
+        void QueueResetCommand(std::string arg);
+        void RefreshCommand(std::string arg);
 
         // Packet Sending Functions for Each Command
         void SendTrainCommand(uint8_t train_num, uint8_t speed, train_direction_t direction, uint8_t src_q = MONITOR_MB);
