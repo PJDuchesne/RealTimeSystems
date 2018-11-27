@@ -109,6 +109,46 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
     }
 }
 
+void ISRMsgHandler::QueueOutputMsg(std::stringstream& sstream, uint8_t uart_num) {
+    QueueOutputMsg(sstream.str(), uart_num);
+}
+
+void ISRMsgHandler::QueueOutputMsg(char* msg, uint8_t msg_len, uint8_t uart_num) {
+    char first_char;
+
+    // TODO: Make this table driven
+    switch (uart_num) {
+        case 0:
+            for (int i = 0; i < msg_len; i++) {
+                uart0_output_data_buffer_->Add(msg[i]);
+            }
+
+            // Jumpstart output if necessary
+            if (uart0_output_idle_) {
+                first_char = uart0_output_data_buffer_->Get();
+                uart0_output_idle_ = false;
+                UART0DriverInstance_->JumpStartOutput0(first_char);
+            }
+
+            break;
+        case 1:
+            for (int i = 0; i < msg_len; i++) {
+                uart1_output_data_buffer_->Add(msg[i]);
+            }
+
+            // Jumpstart output if necessary
+            if (uart1_output_idle_) {
+                first_char = uart1_output_data_buffer_->Get();
+                uart1_output_idle_ = false;
+                UART0DriverInstance_->JumpStartOutput1(first_char);
+            }
+
+            break;
+        default:
+            // TODO: Error Msg here
+    }
+}
+
 /*
     Function: QueueOutputPacket
     Input:  msg: Message to queue into the output UART1 character queue

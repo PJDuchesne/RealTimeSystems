@@ -317,6 +317,8 @@ void DataLinkLayer::HandleACK(uint8_t train_nr) {
         num_packets_in_limbo_--; // Could be within the for loop itself, but that's ugly
     }
 
+    // TODO: Put the below check into a new loop
+
     // Check if any other messages are waiting to be sent
     if (!packet_buffer_->Empty()) {
         packet = packet_buffer_->Get(); // TODO: Avoid this copying? Idk how right now

@@ -120,6 +120,15 @@ void CommandCenter::ReverseCommand(std::string arg) {
     delete[] char_array;
 }
 
+// TODO: Fix or delete this. This is currently a mess
+void CommandCenter::TrainYardCommand(std::string arg) {
+    // Make a new monitor process
+    OSInstance_->RegProc(&TrainMonitorLoopEntry, 220, P_THREE, "TrainMonitor");
+    
+    // End this process
+    PTerminateProcess(); 
+}
+
 /*
     Function: ToUpper
     Input:  str: String to make upper case 
@@ -274,6 +283,7 @@ CommandCenter::CommandCenter() {
     FunctionTable[2] = &CommandCenter::AlarmCommand;
     FunctionTable[3] = &CommandCenter::DiagCommand;
     FunctionTable[4] = &CommandCenter::ReverseCommand;
+    FunctionTable[5] = &CommandCenter::TrainYardCommand;
 }
 
 /*

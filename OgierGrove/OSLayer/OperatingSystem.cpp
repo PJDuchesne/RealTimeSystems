@@ -87,7 +87,9 @@ void OperatingSystem::Inialize() {
             break;
         case 7: // Trains!
             // Add Monitor and RevereString as lithmus test (For testing)
-            RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
+            // RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
+            RegProc(&TrainMonitorLoopEntry, 220, P_THREE, "TrainMonitor");
+
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
 
             // Add test function

@@ -23,6 +23,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "DataLinkLayer.h"
 #include "PhysicalLayer.h"
 #include "TrainCommandApplication.h"
+#include "TrainMonitor.h"
 
 // Testing functions
 void TestLayers();   // Utilizes all three layers to test functionality
@@ -36,5 +37,8 @@ void DataLinkLayerLoopEntry();
 
 // Train Application layer loop
 void TrainCommandApplicationLoopEntry();
+
+// Train Monitor Layer loop
+void TrainMonitorLoopEntry();
 
 #endif /* TrainProcesses_H */

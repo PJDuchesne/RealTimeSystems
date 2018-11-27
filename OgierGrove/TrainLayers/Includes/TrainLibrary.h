@@ -95,10 +95,6 @@ typedef struct packet {
     };
 } packet_t; // 5 bytes
 
-typedef struct train_request {
-
-} train_request_t;
-
 uint8_t MsgLengthFromCode(uint8_t msg_code);
 
 typedef enum train_direction {

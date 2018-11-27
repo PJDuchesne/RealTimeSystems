@@ -19,7 +19,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Singleton Instance
 TimeServer *TimeServer::TimeServerInstance_ = 0;
 
-
 /*
     Function: TimeServer
     Brief: Constructor for the TimeServer class. Initailizes current time, alarm, and 

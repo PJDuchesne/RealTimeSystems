@@ -41,12 +41,12 @@ class OperatingSystem {
         PostOffice* PostOfficeInstance_;
         pcb_t* current_pcb_;
 
-        void RegProc(process_t entry_point, uint32_t pid, priority_t priority, std::string name);
         void InitStackFrame(stack_frame_t* new_sf);
         void KickStart();
 
     public:
         OperatingSystem();
+        void RegProc(process_t entry_point, uint32_t pid, priority_t priority, std::string name);
         void QuantumTick();
         void QueuePCB(pcb_t* new_pcb);
         pcb_t* GetCurrentPCB();

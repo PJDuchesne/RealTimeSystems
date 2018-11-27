@@ -29,6 +29,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <ApplicationLayer/Includes/CommandCenter.h>
 #include <ApplicationLayer/Includes/TimeHandler.h>
 
+#include "GlobalMailboxes.h"
+
 #define NVIC_EN0_R (*((volatile unsigned long *)0xE000E100)) // Interrupt  0-31 Set Enable Register
 #define NVIC_EN1_R (*((volatile unsigned long *)0xE000E104)) // Interrupt 32-54 Set Enable Register
 
@@ -36,15 +38,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define INT_VEC_UART1   6  // UART1 Rx and Tx interrupt index (decimal)
 
 #define ISR_QUEUE_SIZE 100
-#define UART0_OUTPUT_DATA_BUFFER_SIZE 250
+#define UART0_OUTPUT_DATA_BUFFER_SIZE 1000
 #define UART1_OUTPUT_DATA_BUFFER_SIZE 100
-
-enum public_mailboxes {
-	KERNEL_MB, 			     // 0
-	MONITOR_MB, 		     // 1
-	ISR_MSG_HANDLER_MB,  // 2
-  REVERSE_MSG_MB,      // 3
-};
 
 void InterruptMasterEnable();
 void InterruptEnable(unsigned long InterruptIndex);

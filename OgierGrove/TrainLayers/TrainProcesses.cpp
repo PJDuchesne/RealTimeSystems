@@ -80,4 +80,9 @@ void TrainCommandApplicationLoopEntry() {
     TrainCommandApplication::GetTrainCommandApplication()->MailboxLoop();
 }
 
+void TrainMonitorLoopEntry() {
+    ISRMsgHandler::GetISRMsgHandler();
+    TrainMonitor::GetTrainMonitor()->CentralLoop();
+}
+
 
