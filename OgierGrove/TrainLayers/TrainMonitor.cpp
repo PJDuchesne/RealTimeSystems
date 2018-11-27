@@ -82,12 +82,10 @@ void TrainMonitor::CentralLoop() {
 
     // Bind TrainMonitor queue
     PBind(ISR_MSG_HANDLER_MB, ONE_CHAR, ISR_QUEUE_SIZE);
-    PBind(MONITOR_MB, BIG_LETTER);
+    PBind(TRAIN_MONITOR_MB, BIG_LETTER, EMPTY_MAILBOX); // Empty return mailbox
 
     // Initialize screen with GUI
     InitializeScreen();
-
-    VisuallySetHallSensor(255, true);
 
     // Loop Forever
     while(1)
@@ -354,6 +352,19 @@ void TrainMonitor::VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir)
     else {
         // TODO: Error state
     }
+
+    CupReset_ = true;
+}
+
+#define STATUS_ROW 3
+#define STATUS_COL 5
+void TrainMonitor::UpdateCommandStatus(color_t color) {
+    PrintCup(STATUS_ROW, STATUS_COL);
+
+    std::stringstream sstream;
+    sstream << VT_100_BR_COLORS[color] << "CMD" << VT_100_RESET;
+
+    ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
 
     CupReset_ = true;
 }

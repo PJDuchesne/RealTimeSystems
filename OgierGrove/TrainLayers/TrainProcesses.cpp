@@ -34,27 +34,27 @@ void TestLayers() {
     DELAY(SHORT_DELAY)
 
     // for(int i = 0; i < 3; i++) {
-    //     TrainCommandApplication::GetTrainCommandApplication()->SendSwitchCommand(6, DIVERTED, TEST_PROCESS_MB);
+    //     TrainCommandCenter::GetTrainCommandCenter()->SendSwitchCommand(6, DIVERTED, TEST_PROCESS_MB);
     //     DELAY(SHORT_DELAY)
-    //     TrainCommandApplication::GetTrainCommandApplication()->SendSwitchCommand(6, STRAIGHT, TEST_PROCESS_MB);
+    //     TrainCommandCenter::GetTrainCommandCenter()->SendSwitchCommand(6, STRAIGHT, TEST_PROCESS_MB);
     //     DELAY(SHORT_DELAY)
     // }
 
-    TrainCommandApplication::GetTrainCommandApplication()->SendSwitchCommand(ALL, DIVERTED, TEST_PROCESS_MB);
+    TrainCommandCenter::GetTrainCommandCenter()->SendSwitchCommand(ALL, DIVERTED, TEST_PROCESS_MB);
 
     for(int i = 0; i < 5; i++) {
-        TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CCW, TEST_PROCESS_MB);
+        TrainCommandCenter::GetTrainCommandCenter()->SendTrainCommand(2, 4, CCW, TEST_PROCESS_MB);
         DELAY(LESS_SHORT_DELAY)
-        TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CW, TEST_PROCESS_MB);
+        TrainCommandCenter::GetTrainCommandCenter()->SendTrainCommand(2, 4, CW, TEST_PROCESS_MB);
         DELAY(LESS_SHORT_DELAY)
     }
 
     // // For now, manual testing!
-    // TrainCommandApplication::GetTrainCommandApplication()->SendSwitchCommand(ALL, DIVERTED, TEST_PROCESS_MB);
+    // TrainCommandCenter::GetTrainCommandCenter()->SendSwitchCommand(ALL, DIVERTED, TEST_PROCESS_MB);
 
     // No semi-colon needed! Woot woot
 
-    // TrainCommandApplication::GetTrainCommandApplication()->SendTrainCommand(2, 15, CCW, TEST_PROCESS_MB);
+    // TrainCommandCenter::GetTrainCommandCenter()->SendTrainCommand(2, 15, CCW, TEST_PROCESS_MB);
 
     while(1) {}
 }

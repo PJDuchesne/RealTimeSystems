@@ -86,9 +86,9 @@ void OperatingSystem::Inialize() {
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
             break;
         case 7: // Trains!
-            // Add Monitor and RevereString as lithmus test (For testing)
-            // RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
-            RegProc(&TrainMonitorLoopEntry, 220, P_THREE, "TrainMonitor");
+            // Add Monitor (and RevereString as lithmus test (For testing))
+            RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
+            // RegProc(&TrainMonitorLoopEntry, 220, P_THREE, "TrainMonitor");
 
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
 
@@ -103,6 +103,9 @@ void OperatingSystem::Inialize() {
 
             // Add data link layer loop
             RegProc(&DataLinkLayerLoopEntry, 202, P_THREE, "DataLinkLayerLoop");
+
+            // Add new time server to perform DLL timeouts
+            // RegProc(&Foobar, etc.);
 
             // Add Train Command loop (Application Layer)
             RegProc(&TrainCommandApplicationLoopEntry, 203, P_THREE, "DataLinkLayerLoop");

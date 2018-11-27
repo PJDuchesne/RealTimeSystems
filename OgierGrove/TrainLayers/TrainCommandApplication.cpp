@@ -33,6 +33,8 @@ void TrainCommandApplication::MailboxLoop() {
     }
     else std::cout << "TrainCommandApplication::MailboxLoop(): Mailbox bound\n";
 
+    SingletonGrab();
+
     uint8_t src_q;
     uint32_t mailbox_msg_len = 7;
     char msg_body[SMALL_LETTER];
@@ -72,7 +74,7 @@ void TrainCommandApplication::HandleDLLMessage(char* request, uint8_t length) {
             #endif
 
             // Send a reply to reset the sensor
-            SendSensorAcknowledge(int(request[1]), TRAIN_APPLICATION_LAYER_MB);
+            TrainCommandCenterInstance_->SendSensorAcknowledge(int(request[1]), TRAIN_APPLICATION_LAYER_MB);
 
             // TODO: Tell interested parties (GUI and TrainController)
 
@@ -119,56 +121,6 @@ void TrainCommandApplication::HandleAppRequest(char* request, uint8_t length) {
     PSend(TRAIN_APPLICATION_LAYER_MB, DATA_LINK_LAYER_MB, (void *)request, length);
 }
 
-// Construct a message to acknowledge sensors and send to TrainCommand mailbox
-void TrainCommandApplication::SendSensorAcknowledge(uint8_t sensor_number, uint8_t src_q) {
-    static char msg_body[2];
-
-    msg_body[0] = '\xA2';
-    msg_body[1] = sensor_number;
-
-    if (!PSend(src_q, TRAIN_APPLICATION_LAYER_MB, msg_body, 2)) {
-        std::cout << "TrainCommandApplication::SendSensorAcknowledge(): Warning! PSend Failed\n";
-    }
-}
-
-// Construct a message to reset sensor queue and send to TrainCommand mailbox
-void TrainCommandApplication::SendSensorQueueReset(uint8_t src_q) {
-    static char msg_body[1];
-
-    msg_body[0] = '\xA8';
-
-    if (!PSend(src_q, TRAIN_APPLICATION_LAYER_MB, msg_body, 1)) {
-        std::cout << "TrainCommandApplication::SendSensorQueueReset(): Warning! PSend Failed\n";
-    }
-}
-
-// Construct a message to command a train and send to TrainCommand mailbox
-void TrainCommandApplication::SendTrainCommand(uint8_t train_num, uint8_t speed, train_direction_t direction, uint8_t src_q) {
-    static char msg_body[3];
-
-    msg_body[0] = '\xC0';
-    msg_body[1] = train_num;
-    ((train_settings_t *)(&msg_body[2]))->speed = speed;
-    ((train_settings_t *)(&msg_body[2]))->direction = direction;
-
-    if (!PSend(src_q, TRAIN_APPLICATION_LAYER_MB, msg_body, 3)) {
-        std::cout << "TrainCommandApplication::SendTrainCommand(): Warning! PSend Failed\n";
-    }
-}
-
-// Construct a message to throw switch(es) and send to TrainCommand mailbox
-void TrainCommandApplication::SendSwitchCommand(uint8_t switch_num, switch_direction_t direction, uint8_t src_q) {
-    static char msg_body[3];
-
-    msg_body[0] = '\xE0';
-    msg_body[1] = switch_num;
-    msg_body[2] = direction;
-
-    if (!PSend(src_q, TRAIN_APPLICATION_LAYER_MB, msg_body, 3)) {
-        std::cout << "TrainCommandApplication::SendSwitchCommand(): Warning! PSend Failed\n";
-    }
-}
-
 /*
     Function: TrainCommandApplication
     Brief: Constructor for the TrainCommandApplication class
@@ -184,6 +136,7 @@ TrainCommandApplication::~TrainCommandApplication() {
 }
 
 void TrainCommandApplication::SingletonGrab() {
+    TrainCommandCenterInstance_ = TrainCommandCenter::GetTrainCommandCenter();
 }
 
 /*

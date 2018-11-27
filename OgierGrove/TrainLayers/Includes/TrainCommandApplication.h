@@ -20,21 +20,21 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "TrainLibrary.h"
 #include <ApplicationLayer/Includes/ISRMsgHandler.h>
 
+#include "TrainCommandCenter.h"
+
+// Forward Declaration
+class TrainCommandCenter;
+
 class TrainCommandApplication {
     private:
         static TrainCommandApplication* TrainCommandApplicationInstance_;
+
+        TrainCommandCenter* TrainCommandCenterInstance_;
 
         void HandleDLLMessage(char* request, uint8_t length);
         void HandleAppRequest(char* request, uint8_t length);
     public:
         void MailboxLoop();
-
-        // Public API for other processes to create and send 
-        // messages to the TrainCommand Mailbox
-        void SendSensorAcknowledge(uint8_t sensor_number, uint8_t src_q);
-        void SendSensorQueueReset(uint8_t src_q);
-        void SendTrainCommand(uint8_t train_num, uint8_t speed, train_direction_t direction, uint8_t src_q);
-        void SendSwitchCommand(uint8_t switch_num, switch_direction_t direction, uint8_t src_q);
 
         TrainCommandApplication();
         ~TrainCommandApplication();

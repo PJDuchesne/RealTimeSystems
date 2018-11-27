@@ -24,3 +24,4 @@ Train TODO List
 --> List of lies so far
 - BAUD rate was 9600, now fixed to be 115200
 - ACKs and NACKs *do* have a length field, it's just always 0
+- Switch Direction is inverted. 0 --> Diverted, 1 --> Straight

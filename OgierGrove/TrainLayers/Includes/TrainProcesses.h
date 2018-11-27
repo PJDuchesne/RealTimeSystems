@@ -23,6 +23,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "DataLinkLayer.h"
 #include "PhysicalLayer.h"
 #include "TrainCommandApplication.h"
+#include "TrainCommandCenter.h"
 #include "TrainMonitor.h"
 
 // Testing functions

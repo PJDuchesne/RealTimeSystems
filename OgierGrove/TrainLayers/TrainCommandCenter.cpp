@@ -19,7 +19,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Singleton Instance
 TrainCommandCenter *TrainCommandCenter::TrainCommandCenterInstance_ = 0;
 
-
 void TrainCommandCenter::TrainCommand(std::string args) { // Two arguments
     int tmp_code = TokenizeArguments(args);
     if (tmp_code == -1 || tmp_code != 3) {
@@ -29,16 +28,22 @@ void TrainCommandCenter::TrainCommand(std::string args) { // Two arguments
 
     uint8_t train_num     = SafeStoi(TokenizedArgs_[0]);
     uint8_t train_speed   = SafeStoi(TokenizedArgs_[1]);
-    uint8_t train_dir_int = SafeStoi(TokenizedArgs_[2]);
 
-    if ((train_num == 0 || train_num > 2) || train_speed > 15 || train_dir_int > 1) {
+    if ((train_num == 0 || train_num > 2) || train_speed > 15) {
         SendErrorMsg("[TrainCommandCenter::TrainCommand] Error! Malformed Command (due to numbers)!\n");
         return;
     }
 
-    train_direction_t train_dir = (train_dir_int ? CCW : CW);
+    train_direction_t train_dir;
+    if (TokenizedArgs_[2] == "CW") train_dir = CW;
+    else if (TokenizedArgs_[2] == "CCW") train_dir = CCW;
+    else {
+        SendErrorMsg("[TrainCommandCenter::TrainCommand] Error! Malformed Command (due to direction)!\n");
+        return;
+    }
 
-    // SendTrainCommand(train_num, train_speed, train_dir);
+    TrainMonitorInstance_->UpdateCommandStatus(GREEN);
+    SendTrainCommand(train_num, train_speed, train_dir);
 }
 
 void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
@@ -48,17 +53,23 @@ void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
         return;
     }
 
-    uint8_t switch_num     = SafeStoi(TokenizedArgs_[0]);
-    uint8_t switch_dir_int = SafeStoi(TokenizedArgs_[1]);
+    uint8_t switch_num = SafeStoi(TokenizedArgs_[0]);
 
-    if (((switch_num == 0 || switch_num > 6) && switch_num != 255) || switch_dir_int > 1) {
+    if ((switch_num == 0 || switch_num > 6) && switch_num != 255) {
         SendErrorMsg("[TrainCommandCenter::SwitchCommand] Error! Malformed Command (due to numbers)!\n");
         return;
     }
 
-    switch_direction_t switch_dir = (switch_dir_int ? DIVERTED : STRAIGHT);
+    switch_direction_t switch_dir;
+    if (TokenizedArgs_[1] == "DIV") switch_dir = DIVERTED;
+    else if (TokenizedArgs_[1] == "STR") switch_dir = STRAIGHT;
+    else {
+        SendErrorMsg("[TrainCommandCenter::SwitchCommand] Error! Malformed Command (due to direction)!\n");
+        return;
+    }
 
     TrainMonitorInstance_->VisuallySetSwitch(switch_num, switch_dir); // TODO: Move this into the response code
+    TrainMonitorInstance_->UpdateCommandStatus(GREEN);
     SendSwitchCommand(switch_num, switch_dir);
 }
 
@@ -75,7 +86,8 @@ void TrainCommandCenter::SensorCommand(std::string arg) {
         SendErrorMsg("[TrainCommandCenter::SensorCommand] Error! Malformed Command (due to numbers)!\n");
         return;
     }
-
+    
+    TrainMonitorInstance_->UpdateCommandStatus(GREEN);
     SendSensorAcknowledge(sensor_num);
 }
 
@@ -85,6 +97,7 @@ void TrainCommandCenter::QueueResetCommand(std::string arg) {
         return;
     }
 
+    TrainMonitorInstance_->UpdateCommandStatus(GREEN);
     SendSensorQueueReset();
 }
 
@@ -94,12 +107,12 @@ void TrainCommandCenter::RefreshCommand(std::string arg) {
         return;
     }
 
-    // Slightly different than just InitializeScreen
+    TrainMonitorInstance_->UpdateCommandStatus(GREEN);
     TrainMonitorInstance_->InitializeScreen();
 }
 
 void TrainCommandCenter::SendErrorMsg(std::string msg) {
-
+    TrainMonitorInstance_->UpdateCommandStatus(RED);
 }
 
 int TrainCommandCenter::TokenizeArguments(std::string &arg) {

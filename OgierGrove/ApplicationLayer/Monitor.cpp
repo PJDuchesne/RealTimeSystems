@@ -29,11 +29,11 @@ void Monitor::CheckMessageHandler() {
     static char data = char();
 
     // Check the ISR message queue and handle the result
-    // NOTE: This is a blocking process, but will trigger at ~10Hz
+    // NOTE: This is a blocking process, but will trigger at the rate of Systick
     ISRMsgHandlerInstance_->GetFromISRQueue(type, data);
     switch (type) {
         case NONE:
-            // Meaning the queue is empty
+            // Meaning the queue is empty -> No longer used now that blocking msg handling is working
             break;
         case UART:
             HandleUART(data);

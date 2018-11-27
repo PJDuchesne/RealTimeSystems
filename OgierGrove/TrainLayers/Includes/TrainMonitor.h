@@ -59,6 +59,8 @@ class TrainMonitor {
         void VisuallySetHallSensor(uint8_t sensor_num, bool status);
         void VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir);
 
+        void UpdateCommandStatus(color_t color);
+
         static TrainMonitor* GetTrainMonitor();
 };
 
