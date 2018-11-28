@@ -42,7 +42,7 @@ void TrainCommandCenter::TrainCommand(std::string args) { // Two arguments
         return;
     }
 
-    TrainMonitorInstance_->UpdateCommandStatus(GREEN);
+    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(GREEN);
     SendTrainCommand(train_num, train_speed, train_dir);
 }
 
@@ -68,8 +68,8 @@ void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
         return;
     }
 
-    TrainMonitorInstance_->VisuallySetSwitch(switch_num, switch_dir); // TODO: Move this into the response code
-    TrainMonitorInstance_->UpdateCommandStatus(GREEN);
+    if (TrainMonitorInstance_) TrainMonitorInstance_->VisuallySetSwitch(switch_num, switch_dir); // TODO: Move this into the response code
+    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(GREEN);
     SendSwitchCommand(switch_num, switch_dir);
 }
 
@@ -87,7 +87,7 @@ void TrainCommandCenter::SensorCommand(std::string arg) {
         return;
     }
     
-    TrainMonitorInstance_->UpdateCommandStatus(GREEN);
+    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(GREEN);
     SendSensorAcknowledge(sensor_num);
 }
 
@@ -97,7 +97,7 @@ void TrainCommandCenter::QueueResetCommand(std::string arg) {
         return;
     }
 
-    TrainMonitorInstance_->UpdateCommandStatus(GREEN);
+    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(GREEN);
     SendSensorQueueReset();
 }
 
@@ -107,12 +107,12 @@ void TrainCommandCenter::RefreshCommand(std::string arg) {
         return;
     }
 
-    TrainMonitorInstance_->UpdateCommandStatus(GREEN);
-    TrainMonitorInstance_->InitializeScreen();
+    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(GREEN);
+    if (TrainMonitorInstance_) TrainMonitorInstance_->InitializeScreen();
 }
 
 void TrainCommandCenter::SendErrorMsg(std::string msg) {
-    TrainMonitorInstance_->UpdateCommandStatus(RED);
+    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(RED);
 }
 
 int TrainCommandCenter::TokenizeArguments(std::string &arg) {

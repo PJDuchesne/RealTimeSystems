@@ -28,6 +28,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <ApplicationLayer/Includes/Monitor.h>
 #include <ApplicationLayer/Includes/CommandCenter.h>
 #include <ApplicationLayer/Includes/TimeHandler.h>
+#include <TrainLayers/Includes/TrainMonitor.h>
 
 #include "GlobalMailboxes.h"
 

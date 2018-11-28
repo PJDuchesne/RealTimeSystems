@@ -45,7 +45,8 @@ void SingletonSetup() {
     UART0Driver::GetUART0Driver()->SingletonGrab();
     SysTickDriver::GetSysTickDriver()->SingletonGrab();
     ISRMsgHandler::GetISRMsgHandler()->SingletonGrab();
-    Monitor::GetMonitor()->SingletonGrab();
+    Monitor::GetMonitor()->SingletonGrab(); // TODO: Remove this when the new monitor is fully used.
+    TrainMonitor::GetTrainMonitor()->SingletonGrab();
     CommandCenter::GetCommandCenter()->SingletonGrab();
     TimeHandler::GetTimeHandler()->SingletonGrab();
 }

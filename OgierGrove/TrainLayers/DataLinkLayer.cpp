@@ -288,6 +288,9 @@ void DataLinkLayer::SendPacketDown(packet_t* packet) {
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, (void *)packet, packet->length + 2);
 
     #if DEBUGGING_TRAIN >= 1
+    
+    PSend(DATA_LINK_LAYER_MB, MONITOR_MB, (void *)packet, packet->length + 2);
+
     debugging_flags_.SendPacketDown_flag = 0;
     SendPacketDown_flag = 0;
     #endif

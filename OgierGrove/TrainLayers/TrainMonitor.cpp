@@ -78,7 +78,7 @@ void TrainMonitor::SingletonGrab() {
     Brief: 
 */
 void TrainMonitor::CentralLoop() {
-    SingletonGrab();
+    // SingletonGrab(); // Done in startup code now.
 
     // Bind TrainMonitor queue
     PBind(ISR_MSG_HANDLER_MB, ONE_CHAR, ISR_QUEUE_SIZE);

@@ -109,10 +109,6 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
     }
 }
 
-void ISRMsgHandler::QueueOutputMsg(std::stringstream& sstream, uint8_t uart_num) {
-    QueueOutputMsg(sstream.str(), uart_num);
-}
-
 void ISRMsgHandler::QueueOutputMsg(char* msg, uint8_t msg_len, uint8_t uart_num) {
     char first_char;
 

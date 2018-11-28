@@ -1,0 +1,79 @@
+RoutingTableMockup
+
+#define NUM_SENSORS    24
+
+#define CW   0
+#define STAY 4 // TODO: Find a more elegant solution?
+#define CCW  8
+
+#define CW__ CW
+#define CCW_ CCW
+
+// NOTE: Sensor 0 does not exist and is simply there to facilitate their lack of 0 index
+
+// TAKE 1
+
+// Above middle, prefer CCW in stalemates
+// Below middle, prefer CW  in statemates
+
+                            /* ROW (FROM)    COLUMN (TO) */
+const uint8_t routing_table[NUM_SENSORS + 1][NUM_SENSORS + 1] {
+/ FROM  TO>  0     1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16    17    18    19    20    21    22    23    24
+/* 0  */    {STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY},
+/* 1  */    {STAY, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CCW_, CCW_, ____, ____, CCW_, CCW_, ____, ____},
+/* 2  */    {STAY, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 3  */    {STAY, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 4  */    {STAY, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 5  */    {STAY, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 6  */    {STAY, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 7  */    {STAY, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 8  */    {STAY, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 9  */    {STAY, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 10 */    {STAY, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 11 */    {STAY, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 12 */    {STAY, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 13 */    {STAY, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 14 */    {STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 15 */    {STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 16 */    {STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, ____, ____, ____, ____, ____, ____, ____, ____},
+/* 17 */    {STAY, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____, ____, ____, ____, ____, ____, ____},
+/* 18 */    {STAY, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____, ____, ____, ____, ____, ____},
+/* 19 */    {STAY, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____, ____, ____, ____, ____},
+/* 20 */    {STAY, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____, ____, ____, ____},
+/* 21 */    {STAY, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____, ____, ____},
+/* 22 */    {STAY, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____, ____},
+/* 23 */    {STAY, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____},
+/* 24 */    {STAY, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY}
+}
+
+#define CW__ CW
+#define CCW_ CCW
+
+// TAKE 2
+
+// Above middle, prefer CCW in stalemates
+// Below middle, prefer CW  in statemates
+
+const uint8_t routing_table[NUM_SENSORS + 1][NUM_SENSORS + 1] {
+/ FROM  TO>  0     1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16    17    18    19   
+/* 0  */    {STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, ____, ____, ____, ____},
+/* 1  */    {CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, ____, ____, ____, ____},
+/* 2  */    {CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, ____, ____, ____, ____},
+/* 3  */    {CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, ____, ____, ____, ____},
+/* 4  */    {CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, ____, ____, ____, ____},
+/* 5  */    {CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, ____, ____, ____, ____},
+/* 6  */    {CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, ____, ____, ____, ____},
+/* 7  */    {CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____},
+/* 8  */    {CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____},
+/* 9  */    {CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____},
+/* 10 */    {CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____},
+/* 11 */    {CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____},
+/* 12 */    {CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, ____, ____, ____, ____},
+/* 13 */    {CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, ____, ____, ____, ____},
+/* 14 */    {CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, ____, ____, ____, ____},
+/* 15 */    {CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, ____, ____, ____, ____},
+/* 16 */    {____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____, ____, ____},
+/* 17 */    {____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____, ____},
+/* 18 */    {____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____},
+/* 19 */    {____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY},
+}
