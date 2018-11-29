@@ -40,15 +40,15 @@ void TestLayers() {
     //     DELAY(SHORT_DELAY)
     // }
 
-    TrainCommandCenter::GetTrainCommandCenter()->SendSensorQueueReset(TEST_PROCESS_MB);
+    // TrainCommandCenter::GetTrainCommandCenter()->SendSensorQueueReset(TEST_PROCESS_MB);
 
-    DELAY(LESS_SHORT_DELAY)
+    // DELAY(LESS_SHORT_DELAY)
 
-    TrainCommandCenter::GetTrainCommandCenter()->SendSwitchCommand(ALL, STRAIGHT, TEST_PROCESS_MB);
+    // TrainCommandCenter::GetTrainCommandCenter()->SendSwitchCommand(ALL, STRAIGHT, TEST_PROCESS_MB);
 
-    DELAY(LESS_SHORT_DELAY)
+    // DELAY(LESS_SHORT_DELAY)
 
-    TrainCommandCenter::GetTrainCommandCenter()->SendTrainCommand(2, 4, CCW, TEST_PROCESS_MB);
+    TrainCommandCenter::GetTrainCommandCenter()->SendTrainCommand(2, 15, CW, TEST_PROCESS_MB);
 
     // for(int i = 0; i < 5; i++) {
     //     TrainCommandCenter::GetTrainCommandCenter()->SendTrainCommand(2, 4, CCW, TEST_PROCESS_MB);

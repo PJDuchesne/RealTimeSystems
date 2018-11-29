@@ -82,19 +82,38 @@ typedef struct train_msg {
 } train_msg_t; // 3 bytes
 
 typedef struct packet {
-    control_t control_block; // 1 byte
-    uint8_t length; // 1 byte
-    // TODO: Is this necessary?
-    // Anonymous union for direct access
-    union { // 3 bytes
-        train_msg_t msg;
+    union {
         struct 
         {
-            packet_type_t code;
-            uint8_t arg1;
-            uint8_t arg2;
+            control_t control_block; // 1 byte
+            uint8_t length; // 1 byte
+            // TODO: Is this necessary?
+            // Anonymous union for direct access
+            union { // 3 bytes
+                train_msg_t msg;
+                struct 
+                {
+                    packet_type_t code;
+                    uint8_t arg1;
+                    uint8_t arg2;
+                };
+            };
         };
+        uint8_t tmp_array[5]; // For debugging
     };
+    // control_t control_block; // 1 byte
+    // uint8_t length; // 1 byte
+    // // TODO: Is this necessary?
+    // // Anonymous union for direct access
+    // union { // 3 bytes
+    //     train_msg_t msg;
+    //     struct 
+    //     {
+    //         packet_type_t code;
+    //         uint8_t arg1;
+    //         uint8_t arg2;
+    //     };
+    // };
 } packet_t; // 5 bytes
 
 typedef struct train_alarm {
@@ -156,15 +175,6 @@ const std::string TrainScreen[NUM_SCREEN_ROWS] = {
   "#  >                                                                           #",
   "#                                                                              #",
   "################################################################################"
-};
-
-#define NUM_VALID_TRAIN_COMMANDS  5
-const std::string valid_train_commands[NUM_VALID_TRAIN_COMMANDS] = {
-  "TRAIN",
-  "SWITCH",
-  "SENSOR",
-  "QUEUERESET",
-  "REFRESH"
 };
 
 // To match tables below

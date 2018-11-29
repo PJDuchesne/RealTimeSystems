@@ -42,7 +42,7 @@ void Monitor::CheckMessageHandler() {
             HandleSYSTICK();
             break;
         default:
-            std::cout << "[CheckMessageHandler()] SWITCH TABLE ERROR: >>" << type << "<<\n";
+            std::cout << "[Monitor::CheckMessageHandler()] SWITCH TABLE ERROR: >>" << type << "<<\n";
             break;
     }
 
@@ -80,7 +80,7 @@ void Monitor::CheckMessageHandler() {
                     sstream << "\n[TAL]";
                     break;
                 default:
-                    std::cout << "[CheckMessageHandler()] Warning! Unhandled trainset msg received >>" << src_q << "<<\n";
+                    std::cout << "[Monitor::CheckMessageHandler()] Warning! Unhandled trainset msg received >>" << src_q << "<<\n";
                     break;
             }
 
@@ -99,7 +99,7 @@ void Monitor::CheckMessageHandler() {
                         sstream << " > NACK ||          NR: " << int(tmp_control.nr);
                         break;
                     default:
-                        std::cout << "[CheckMessageHandler()] Warning! Unhandled trainset msg type >>" << tmp_control.type << "<<\n";
+                        std::cout << "[Monitor::CheckMessageHandler()] Warning! Unhandled trainset msg type >>" << tmp_control.type << "<<\n";
                         break;
                 }
                 // sstream << " >>NS: " << int(tmp_control.ns) << " << >>NR: " << int(tmp_control.nr) << " <<";

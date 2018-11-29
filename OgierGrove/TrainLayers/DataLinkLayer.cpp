@@ -74,7 +74,7 @@ void DataLinkLayer::MailboxLoop() {
                             // Increment NR as message has been sent up
                             MOD8PLUS1(tiva_nr_);
                             // Check for piggybacking ACKS
-                            HandleACK(recv_packet_ptr->control_block.ns); // TODO: TEST THIS WORKS
+                            HandleACK(recv_packet_ptr->control_block.nr); // TODO: TEST THIS WORKS
                             // ACK the packet with the incremented NR
                             SendACK();
                         }
@@ -101,6 +101,8 @@ void DataLinkLayer::MailboxLoop() {
                 assert(mailbox_msg_len == 1);
 
                 recv_packet_ptr = &outgoing_messages_[*((uint8_t *)msg_body)];
+
+                // assert(recv_packet_ptr->control_block.type == DATA_PT);
 
                 // Resend packet
                 PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, (void *)recv_packet_ptr, recv_packet_ptr->length + 2);
@@ -177,12 +179,14 @@ void DataLinkLayer::SendPacketDown(packet_t* packet) {
     // This assumes that num_packets_in_limbo_ was checked for bounds before calling this function 
     num_packets_in_limbo_++;
 
+    assert(packet->control_block.type == DATA_PT);
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, (void *)packet, packet->length + 2);
 
     SetPacketAlarm(packet->control_block.ns);
 
     #if DEBUGGING_TRAIN >= 1
-    PSend(DATA_LINK_LAYER_MB, MONITOR_MB, (void *)packet, packet->length + 2);
+    packet->tmp_array[packet->length + 2] = num_packets_in_limbo_;
+    PSend(DATA_LINK_LAYER_MB, MONITOR_MB, (void *)packet, packet->length + 3);
     #endif
 }
 
@@ -200,8 +204,10 @@ void DataLinkLayer::HandleACK(uint8_t train_nr) {
         // If out of packets, break
         if (num_packets_in_limbo_ == 0) break;
         MOD8MINUS1(train_nr);
+
         // If there are no more packets in this range, break
-        assert(outgoing_messages_[train_nr].control_block.type == UNUSED_PT);
+        if (outgoing_messages_[train_nr].control_block.type == UNUSED_PT) break;
+        // assert(outgoing_messages_[train_nr].control_block.type == UNUSED_PT);
 
         // Clear alarm, lower limbo_num, and clear buffer spot
         InternallyACK(train_nr);
@@ -257,7 +263,7 @@ void DataLinkLayer::SendNACK() {
     static control_t control_block;
 
     control_block.type = NACK_PT;
-    control_block.ns = 0;
+    control_block.ns = 0; // TODO: 0 this. Was changed for testing.
     control_block.nr = tiva_nr_;
 
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, &control_block, 1);
@@ -300,9 +306,12 @@ bool DataLinkLayer::CheckACKRange(uint8_t incoming_nr) {
     uint8_t tmp_ns = tiva_ns_;
     for(uint8_t i = 0; i < WINDOW_SIZE; i++) {
         MOD8MINUS1(tmp_ns);
-        if (incoming_nr == tiva_ns_) return true;
+        if (incoming_nr == tmp_ns) return true;
     }
 
+    std::cout << "DataLinkLayer::CheckACKRange(): FAILURE >>NS: " << (int)tiva_ns_ << "<< >>NR " 
+                                                                  << (int)incoming_nr << "<< >>Limbo: "
+                                                                  << (int)num_packets_in_limbo_ << "<<\n";
     return false;
 }
 

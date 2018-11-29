@@ -19,8 +19,17 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "TrainMonitor.h"
 
-#include <ISRLayer/Includes/GlobalMailboxes.h> // TODO: Might cause a dependency loop
+#include <ISRLayer/Includes/GlobalMailboxes.h>
 #include "TrainLibrary.h"
+
+#define NUM_VALID_TRAIN_COMMANDS  5
+const std::string valid_train_commands[NUM_VALID_TRAIN_COMMANDS] = {
+  "TRAIN",
+  "SWITCH",
+  "SENSOR",
+  "QUEUERESET",
+  "REFRESH"
+};
 
 // Forward Declarations
 class TrainMonitor;

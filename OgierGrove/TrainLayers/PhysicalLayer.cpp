@@ -81,14 +81,6 @@ void PhysicalLayer::UARTMailboxLoop() {
                 // Unescaped 0x02 found (That wasn't the first char), must restart 
                 // the frame with this first character
                 case '\x02':
-                    #if DEBUGGING_TRAIN == 1
-                    std::cout << "    PhysicalLayer::UARTMailboxLoop(): WARNING: Unescaped 0x02 found: >>";
-                    for (int i = 0; i <= frame_len; i++) {
-                        std::cout << HEX(incoming_frame[i]);
-                    }
-                    std::cout << "<<\n";
-                    #endif
-
                     // Perform reset
                     incoming_frame[0] = msg_body;
                     frame_len = 1;
@@ -128,7 +120,7 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
 
     // Ensure frame starts with STX (0x02) and ends with ETX (0x03)
     // Note: These checks should be taken care of in the previous function. TODO: Remove
-    assert(frame_len >= 5); // NACKs and ACKS are at least length 4 (Actually 5), DATA should be 6. More with escape characters
+    assert(frame_len >= 4); // NACKs and ACKS are at least length 4 (Actually 5), DATA should be 6. More with escape characters
     assert(frame_ptr[0]             == '\x02');
     assert(frame_ptr[frame_len - 1] == '\x03');
 
@@ -148,7 +140,6 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
         }
         // If it is an escape character, add the character it is escaping (And ensure it is not escaping the checksum)
         else if (i + 1 != frame_len - 2) { // (i + 1) is the escaped character and (frame_len - 2) is the checksum
-            // For debugging
             msg_body[msg_idx] = frame_ptr[++i]; // iterate i to add value of escaped character
         }
         frame_checksum += int(msg_body[msg_idx++]); // Add checksum value
@@ -173,7 +164,7 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
             std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Packet failed to send to DLL\n";
         }
     }
-    // Not an error state, but unlikely enough to warrant a warning to user
+    // Not an error state, but unlikely enough to warrant a warning
     else {
         std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Invalid Checksum, dropping frame >>" << HEX(frame_checksum) << "<< >>" << HEX(frame_ptr[frame_len - 2]) << "<<\n";
     }

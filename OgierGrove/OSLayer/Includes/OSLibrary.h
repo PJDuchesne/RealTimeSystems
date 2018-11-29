@@ -22,8 +22,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <string>
 #include <sstream>
 
-// Turns debugging printouts on with 1 and off otherwise
-#define DEBUGGING_TRAIN 2
+// Turns debugging printouts on with 1 or 2 and off otherwise (At 0)
+#define DEBUGGING_TRAIN 0
 
 #define MAX_PRIORITY (uint32_t) P_FIVE
 
