@@ -46,8 +46,18 @@ const uint8_t routing_table[NUM_SENSORS + 1][NUM_SENSORS + 1] {
 /* 24 */    {STAY, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY}
 }
 
+// Direction
 #define CW__ CW
 #define CCW_ CCW
+#define IDC_ CCW // TODO: Maybe logic with this?
+
+// Action (NOP, SWITCH STR, SWITCH DIV)
+#define NOP_ 0
+#define STR_ STR
+#define DIV_ DIV
+
+// Switich Num
+// 0 -> Not a real switch
 
 // TAKE 2
 
@@ -55,25 +65,27 @@ const uint8_t routing_table[NUM_SENSORS + 1][NUM_SENSORS + 1] {
 // Below middle, prefer CW  in statemates
 
 const uint8_t routing_table[NUM_SENSORS + 1][NUM_SENSORS + 1] {
-/ FROM  TO>  0     1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16    17    18    19   
-/* 0  */    {STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, ____, ____, ____, ____},
-/* 1  */    {CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, ____, ____, ____, ____},
-/* 2  */    {CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, ____, ____, ____, ____},
-/* 3  */    {CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, ____, ____, ____, ____},
-/* 4  */    {CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, ____, ____, ____, ____},
-/* 5  */    {CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, ____, ____, ____, ____},
-/* 6  */    {CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, ____, ____, ____, ____},
-/* 7  */    {CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____},
-/* 8  */    {CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____},
-/* 9  */    {CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____},
-/* 10 */    {CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____},
-/* 11 */    {CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, CCW_, ____, ____, ____, ____},
-/* 12 */    {CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, CCW_, ____, ____, ____, ____},
-/* 13 */    {CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, CCW_, ____, ____, ____, ____},
-/* 14 */    {CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, CCW_, ____, ____, ____, ____},
-/* 15 */    {CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CCW_, CW__, CW__, CW__, CW__, CW__, CW__, CW__, CW__, STAY, ____, ____, ____, ____},
-/* 16 */    {____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____, ____, ____},
-/* 17 */    {____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____, ____},
-/* 18 */    {____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY, ____},
-/* 19 */    {____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, STAY},
-}
+// FROM  TO>   0                 1                 2                 3                 4                 5                 6                 7                 8                 9                 10                11                12                13                14                15                16                17                18                19   
+/* 0  */    { {STAY, NOP_, 0},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {IDC_, STR_, 6},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, DIV_, 6},  {CCW_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0} },
+/* 1  */    { {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0} },
+/* 2  */    { {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, STR_, 5},  {CCW_, STR_, 5},  {CCW_, STR_, 5},  {CCW_, STR_, 5},  {CCW_, STR_, 5},  {CCW_, STR_, 5},  {CCW_, STR_, 5},  {IDC_, STR_, 5},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, DIV_, 5},  {IDC_, NOP_, 0},  {CW__, NOP_, 0} },
+/* 3  */    { {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0} },
+/* 4  */    { {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0} },
+/* 5  */    { {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0} },
+/* 6  */    { {CW__, STR_, 4},  {CW__, STR_, 4},  {CW__, STR_, 4},  {CW__, STR_, 4},  {CW__, STR_, 4},  {CW__, STR_, 4},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, DIV_, 4},  {CW__, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0} },
+/* 7  */    { {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0} },
+/* 8  */    { {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, STR_, 3},  {CCW_, STR_, 3},  {CCW_, STR_, 3},  {CCW_, STR_, 3},  {CCW_, STR_, 3},  {CCW_, STR_, 3},  {CCW_, STR_, 3},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, DIV_, 3} },
+/* 9  */    { {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, NOP_, 0},  {CW__, NOP_, 0} },
+/* 10 */    { {CCW_, STR_, 2},  {CCW_, STR_, 2},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, STR_, 2},  {CCW_, STR_, 2},  {CCW_, STR_, 2},  {CCW_, STR_, 2},  {CCW_, STR_, 2},  {CW__, NOP_, 0},  {IDC_, NOP_, 0},  {CCW_, DIV_, 2},  {CW__, NOP_, 0} },
+/* 11 */    { {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CCW_, NOP_, 0},  {CW__, NOP_, 0},  {IDC_, NOP_, 0} },
+/* 12 */    { {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, NOP_, 0} },
+/* 13 */    { {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, NOP_, 0} },
+/* 14 */    { {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, STR_, 1},  {CW__, STR_, 1},  {CW__, STR_, 1},  {CW__, STR_, 1},  {CW__, STR_, 1},  {CW__, STR_, 1},  {CW__, STR_, 1},  {CW__, STR_, 1},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, DIV_, 1} },
+/* 15 */    { {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {IDC_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {STAY, NOP_, 0},  {CCW_, NOP_, 0},  {CCW_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0} },
+/* 16 */    { {CW__, DIV_, 6},  {CW__, DIV_, 6},  {CW__, DIV_, 6},  {CW__, DIV_, 6},  {CCW_, DIV_, 4},  {CCW_, DIV_, 4},  {CCW_, DIV_, 4},  {CCW_, DIV_, 4},  {CCW_, DIV_, 4},  {CCW_, DIV_, 4},  {CCW_, DIV_, 4},  {CCW_, DIV_, 4},  {CW__, DIV_, 6},  {CW__, DIV_, 6},  {CW__, DIV_, 6},  {CW__, DIV_, 6},  {STAY, NOP_, 0},  {CW__, DIV_, 6},  {CCW_, DIV_, 4},  {CCW_, DIV_, 4} },
+/* 17 */    { {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5},  {STAY, NOP_, 5},  {CCW_, DIV_, 5},  {CCW_, DIV_, 5} },
+/* 18 */    { {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {CW__, DIV_, 2},  {STAY, NOP_, 2},  {CW__, DIV_, 2} },
+/* 19 */    { {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CW__, DIV_, 3},  {STAY, NOP_, 0} },
+};
+
+// Whenever heading to a switch zone, make the switch straight.
