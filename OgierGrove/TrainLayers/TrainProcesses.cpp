@@ -40,14 +40,22 @@ void TestLayers() {
     //     DELAY(SHORT_DELAY)
     // }
 
-    TrainCommandCenter::GetTrainCommandCenter()->SendSwitchCommand(ALL, DIVERTED, TEST_PROCESS_MB);
+    TrainCommandCenter::GetTrainCommandCenter()->SendSensorQueueReset(TEST_PROCESS_MB);
 
-    for(int i = 0; i < 5; i++) {
-        TrainCommandCenter::GetTrainCommandCenter()->SendTrainCommand(2, 4, CCW, TEST_PROCESS_MB);
-        DELAY(LESS_SHORT_DELAY)
-        TrainCommandCenter::GetTrainCommandCenter()->SendTrainCommand(2, 4, CW, TEST_PROCESS_MB);
-        DELAY(LESS_SHORT_DELAY)
-    }
+    DELAY(LESS_SHORT_DELAY)
+
+    TrainCommandCenter::GetTrainCommandCenter()->SendSwitchCommand(ALL, STRAIGHT, TEST_PROCESS_MB);
+
+    DELAY(LESS_SHORT_DELAY)
+
+    TrainCommandCenter::GetTrainCommandCenter()->SendTrainCommand(2, 4, CCW, TEST_PROCESS_MB);
+
+    // for(int i = 0; i < 5; i++) {
+    //     TrainCommandCenter::GetTrainCommandCenter()->SendTrainCommand(2, 4, CCW, TEST_PROCESS_MB);
+    //     DELAY(LESS_SHORT_DELAY)
+    //     TrainCommandCenter::GetTrainCommandCenter()->SendTrainCommand(2, 4, CW, TEST_PROCESS_MB);
+    //     DELAY(LESS_SHORT_DELAY)
+    // }
 
     // // For now, manual testing!
     // TrainCommandCenter::GetTrainCommandCenter()->SendSwitchCommand(ALL, DIVERTED, TEST_PROCESS_MB);
@@ -60,7 +68,7 @@ void TestLayers() {
 }
 
 void PhysicalLayerUARTLoopEntry() {
-    ISRMsgHandler::GetISRMsgHandler(); // TODO: Why are these here?
+    ISRMsgHandler::GetISRMsgHandler(); // TODO: Put these in one central location, like the kernal startup
     PhysicalLayer::GetPhysicalLayer()->UARTMailboxLoop();
 }
 
@@ -83,6 +91,11 @@ void TrainCommandApplicationLoopEntry() {
 void TrainMonitorLoopEntry() {
     ISRMsgHandler::GetISRMsgHandler();
     TrainMonitor::GetTrainMonitor()->CentralLoop();
+}
+
+void TrainTimeServer() {
+    ISRMsgHandler::GetISRMsgHandler();
+    TimeServer::GetTimeServer()->TrainTimeServerLoop();
 }
 
 

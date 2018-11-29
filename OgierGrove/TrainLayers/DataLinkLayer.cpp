@@ -176,17 +176,24 @@ void DataLinkLayer::MailboxLoop() {
                 MainLoop1_flag = 0;
                 #endif
                 break;
-            /* TODO: Time server && associated timeouts
             // If from the time server, a message has possibly timed out and needs to be handled
-            case TIME_SERVER_MB:
-                // NOTE: Time server should expect two types of messages:
-                    // 1: Request for timer to be set up for mod8 packet number
-                    // 2: Request for timer to be cancelled for mod8 packet number
-                    // Therefore, these replies *should* ALL be for packets that have actually been missed
+            case TRAIN_TIME_SERVER_MB:
+                // Should always just get a single char from the train server
+                assert(mailbox_msg_len == 1);
 
-                // Check which one timed out and resend
+                recv_packet_ptr = &outgoing_messages_[*((uint8_t *)msg_body)];
+
+                // Resend packet
+                PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, (void *)recv_packet_ptr, recv_packet_ptr->length + 2);
+
+                #if DEBUGGING_TRAIN >= 1
+                PSend(DATA_LINK_LAYER_MB, MONITOR_MB, (void *)recv_packet_ptr, recv_packet_ptr->length + 2);
+                #endif
+
+                // Set another alarm to resend it again if necessary
+                SetPacketAlarm(recv_packet_ptr->control_block.ns);
+
                 break;
-            */
             // Else it is from the application layer and should be sent down to the Physical Layer
             default:
                 #if DEBUGGING_TRAIN >= 1
@@ -287,6 +294,8 @@ void DataLinkLayer::SendPacketDown(packet_t* packet) {
 
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, (void *)packet, packet->length + 2);
 
+    SetPacketAlarm(packet->control_block.ns);
+
     #if DEBUGGING_TRAIN >= 1
     
     PSend(DATA_LINK_LAYER_MB, MONITOR_MB, (void *)packet, packet->length + 2);
@@ -306,15 +315,21 @@ void DataLinkLayer::HandleACK(uint8_t train_nr) {
     static packet_t packet;
 
     // Clear any packets in limbo within sliding window size backwards
+    // if (outgoing_messages_[train_nr].control_block.type != DATA_PT) return;
     for (int i = 0; i < WINDOW_SIZE; i++) {
         if (num_packets_in_limbo_ == 0) break;
-        MOD8MINUS1(train_nr); // 
+        MOD8MINUS1(train_nr);
+
+        assert(outgoing_messages_[train_nr].control_block.type == DATA_PT);
 
         // TODO: Figure out why this isn't true in basic tests
         // assert(outgoing_messages_[train_nr].control_block.type == DATA_PT);
 
         // Clear data from table by setting type to UNUSED_PT
         outgoing_messages_[train_nr].control_block.type = UNUSED_PT;
+
+        assert(train_nr < 8);
+        SetPacketAlarm(train_nr, false);
 
         // Update num_packets_in_limbo_ number
         num_packets_in_limbo_--; // Could be within the for loop itself, but that's ugly
@@ -337,6 +352,7 @@ void DataLinkLayer::HandleACK(uint8_t train_nr) {
 // Resend all packets stuck in limbo, starting with the NACK value and continuing until
 // the sliding window is satisfied or until a UNUSED_PT is found
 void DataLinkLayer::HandleNACK(uint8_t train_nr) {
+    MOD8MINUS1(train_nr);
     #if DEBUGGING_TRAIN >= 1
     debugging_flags_.HandleNACK_flag = 1;
     HandleNACK_flag = 1;
@@ -419,6 +435,15 @@ void DataLinkLayer::SendNACK() {
     SendNACK_flag = 0;
     #endif
 }
+
+void DataLinkLayer::SetPacketAlarm(uint8_t alarm_num, bool set_flag) {
+    // Inform time server that this message has been buffered
+    train_alarm_t alarm_msg;
+    alarm_msg.ns = alarm_num;
+    alarm_msg.set_flag = set_flag;
+    PSend(DATA_LINK_LAYER_MB, TRAIN_TIME_SERVER_MB, &alarm_msg, 2);
+}
+
 
 void DataLinkLayer::MakePacket(packet_t &packet, train_msg_t* msg) {
     #if DEBUGGING_TRAIN >= 1

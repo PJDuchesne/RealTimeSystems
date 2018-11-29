@@ -38,7 +38,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 // Macros to perform modulus 8 increments and decrements
 #define MOD8PLUS1(x) (x = (x + 1) % 8)
-#define MOD8MINUS1(x) (x = (--x >= 0 ? x : 7))
+#define MOD8MINUS1(x) (x = (x == 0 ? 7 : x - 1)) // TODO: Make the MINUS one more efficient
 
 enum train_layer_mailboxes {
     UART_PHYSICAL_LAYER_MB     = 200,
@@ -96,6 +96,11 @@ typedef struct packet {
         };
     };
 } packet_t; // 5 bytes
+
+typedef struct train_alarm {
+    uint8_t ns;
+    bool set_flag;
+} train_alarm_t;
 
 uint8_t MsgLengthFromCode(uint8_t msg_code);
 

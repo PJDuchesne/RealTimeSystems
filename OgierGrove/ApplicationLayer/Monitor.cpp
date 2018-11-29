@@ -64,7 +64,7 @@ void Monitor::CheckMessageHandler() {
             // Handle train layer debugging printouts
             switch(src_q) {
                 case UART_PHYSICAL_LAYER_MB:
-                    sstream << "\n[UPL]";
+                    sstream << "\n                        [UPL]";
                     ctrl_block = true;
                     // Displays packets being passing to the DLL from the trainset itself
                     break;
@@ -90,13 +90,13 @@ void Monitor::CheckMessageHandler() {
 
                 switch(tmp_control.type) {
                     case DATA_PT:
-                        sstream << " >> DATA << >> NS: " << int(tmp_control.ns) << " << >> NR: " << int(tmp_control.nr) << " <<";
+                        sstream << " > DATA || NS: " << int(tmp_control.ns) << " || NR: " << int(tmp_control.nr);
                         break;
                     case ACK_PT:
-                        sstream << " >>  ACK <<             >> NR: " << int(tmp_control.nr) << " <<";
+                        sstream << " > ACK  ||          NR: " << int(tmp_control.nr);
                         break;
                     case NACK_PT:
-                        sstream << " >> NACK <<             >> NR: " << int(tmp_control.nr) << " <<";
+                        sstream << " > NACK ||          NR: " << int(tmp_control.nr);
                         break;
                     default:
                         std::cout << "[CheckMessageHandler()] Warning! Unhandled trainset msg type >>" << tmp_control.type << "<<\n";
@@ -105,9 +105,9 @@ void Monitor::CheckMessageHandler() {
                 // sstream << " >>NS: " << int(tmp_control.ns) << " << >>NR: " << int(tmp_control.nr) << " <<";
             }
 
-            sstream << " >>";
+            sstream << " || ";
             for (int i = 0; i < msg_len; i++) sstream << HEX(msg_body[i]);
-            sstream << " <<" << NEW_LINE;
+            sstream << " <" << NEW_LINE;
 
             PrintMsg(sstream.str());
 

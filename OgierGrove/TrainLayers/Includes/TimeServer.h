@@ -19,7 +19,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 // Note: Works with DeciSecond Prevision
 
-#define MSG_TIMEOUT_TIME 1000 // In centisecond precision
+#define MSG_TIMEOUT_TIME 100 // In centisecond precision
 #define MAX_ALARMS 8 // TODO: Tie to MAX_DLL_WAITING_PACKETS from Data Link Layer
 
 #include "TrainLibrary.h"

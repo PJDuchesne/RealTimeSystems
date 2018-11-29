@@ -95,7 +95,7 @@ void OperatingSystem::Inialize() {
             // Add test function
             RegProc(&TestLayers, 126, P_THREE, "TestLayers");
 
-            // // TODO: Put layers (And Monitor?) at a higher priority!
+            // TODO: Put layers (And Monitor?) at a higher priority!
 
             // Add physical layer loops
             RegProc(&PhysicalLayerUARTLoopEntry,   200, P_THREE, "PhysicalLayerUARTLoop");
@@ -104,11 +104,11 @@ void OperatingSystem::Inialize() {
             // Add data link layer loop
             RegProc(&DataLinkLayerLoopEntry, 202, P_THREE, "DataLinkLayerLoop");
 
-            // Add new time server to perform DLL timeouts
-            // RegProc(&Foobar, etc.);
-
             // Add Train Command loop (Application Layer)
             RegProc(&TrainCommandApplicationLoopEntry, 203, P_THREE, "DataLinkLayerLoop");
+
+            // Add new time server to perform DLL timeouts
+            RegProc(&TrainTimeServer, 204, P_THREE, "TrainTimeServer");
 
             break;
         default:

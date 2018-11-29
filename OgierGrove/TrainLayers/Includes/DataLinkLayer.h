@@ -76,6 +76,8 @@ class DataLinkLayer {
         void SendACK();
         void SendNACK();
 
+        void SetPacketAlarm(uint8_t alarm_num, bool set_flag = true);
+
         void MakePacket(packet_t &packet, train_msg_t *msg);
 
         uint8_t PacketLengthFromCode(uint8_t msg_code);

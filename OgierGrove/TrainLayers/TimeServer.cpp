@@ -53,6 +53,7 @@ void TimeServer::TrainTimeServerLoop() {
     if (!PBind(TRAIN_TIME_SERVER_MB, BIG_LETTER)) { // Default mailbox size of 16, which is MAX_ALARMS*2
         std::cout << "TimeServer::Initialize: WARNING Mailbox failed to bind\n";
     }
+    else std::cout << "TimeServer::TrainTimeServerLoop: WARNING Mailbox bound!\n";
 
     static uint8_t src_q;
     static uint32_t mailbox_msg_len;

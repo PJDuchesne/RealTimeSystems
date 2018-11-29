@@ -25,6 +25,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "TrainCommandApplication.h"
 #include "TrainCommandCenter.h"
 #include "TrainMonitor.h"
+#include "TimeServer.h"
 
 // Testing functions
 void TestLayers();   // Utilizes all three layers to test functionality
@@ -41,5 +42,7 @@ void TrainCommandApplicationLoopEntry();
 
 // Train Monitor Layer loop
 void TrainMonitorLoopEntry();
+
+void TrainTimeServer();
 
 #endif /* TrainProcesses_H */

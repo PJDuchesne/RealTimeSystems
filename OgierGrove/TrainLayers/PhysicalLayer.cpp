@@ -60,10 +60,6 @@ void PhysicalLayer::UARTMailboxLoop() {
         // Blocking message request
         PRecv(src_q, UART_PHYSICAL_LAYER_MB, &msg_body, mailbox_msg_len);
 
-        // TODO: Delete debugging statement
-        std::cout << "    PhysicalLayer::UARTMailboxLoop(): CHAR>>" << HEX(msg_body) << "<<\n";
-        PSend(UART_PHYSICAL_LAYER_MB, MONITOR_MB, (void *)msg_body, mailbox_msg_len);
-
         // Error state checking for testing
         assert(mailbox_msg_len == 1);
         assert(frame_len < MAX_FRAME_SIZE);
@@ -168,13 +164,13 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
 
         #if DEBUGGING_TRAIN >= 1
         if (!PSend(UART_PHYSICAL_LAYER_MB, MONITOR_MB, (void *)msg_body, msg_idx)) {
-            std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Packet failed to send\n";
+            std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Packet failed to send to Monitor\n";
         }
         #endif
 
         // Send message up to Data Link Layer, without the STX, Checksum, or ETX
         if (!PSend(UART_PHYSICAL_LAYER_MB, DATA_LINK_LAYER_MB, (void *)msg_body, msg_idx)) {
-            std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Packet failed to send 2\n";
+            std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Packet failed to send to DLL\n";
         }
     }
     // Not an error state, but unlikely enough to warrant a warning to user
