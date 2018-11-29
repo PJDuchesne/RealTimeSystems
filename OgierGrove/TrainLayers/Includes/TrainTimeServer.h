@@ -1,5 +1,5 @@
-#ifndef TimeServer_H
-#define TimeServer_H
+#ifndef TrainTimeServer_H
+#define TrainTimeServer_H
 
 /*
 __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____        
@@ -11,7 +11,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
       _\/\\\___________/\\\___\/\\\_____\/\\\_______/\\\__  
        _\/\\\__________\//\\\\\\\\\______\/\\\\\\\\\\\\/___
         _\///____________\/////////_______\////////////_____
--> Name:  TimeServer.h
+-> Name:  TrainTimeServer.h
 -> Date: Nov 20, 2018  (Created)
 -> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
@@ -31,9 +31,9 @@ typedef struct trainMsgAlarm {
     uint32_t alarm_time;
 } trainMsgAlarm_t;
 
-class TimeServer {
+class TrainTimeServer {
     private:
-        static TimeServer* TimeServerInstance_;
+        static TrainTimeServer* TrainTimeServerInstance_;
 
         // Called owhen MSG is received from SYSTICK
         void TickCentiSec();
@@ -47,11 +47,10 @@ class TimeServer {
         trainMsgAlarm_t trainAlarms[MAX_ALARMS];
 
     public:
-        TimeServer();
+        TrainTimeServer();
         void TrainTimeServerLoop();
 
-
-        static TimeServer* GetTimeServer();
+        static TrainTimeServer* GetTrainTimeServer();
 };
 
-#endif /* TimeServer_H */
+#endif /* TrainTimeServer_H */

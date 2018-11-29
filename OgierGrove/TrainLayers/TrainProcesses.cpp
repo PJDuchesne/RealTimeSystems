@@ -95,7 +95,12 @@ void TrainMonitorLoopEntry() {
 
 void TrainTimeServer() {
     ISRMsgHandler::GetISRMsgHandler();
-    TimeServer::GetTimeServer()->TrainTimeServerLoop();
+    TrainTimeServer::GetTrainTimeServer()->TrainTimeServerLoop();
+}
+
+void TrainControllerLoop() {
+    ISRMsgHandler::GetISRMsgHandler();
+    TrainController::GetTrainController()->TrainControllerLoop();
 }
 
 

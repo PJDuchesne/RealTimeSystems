@@ -40,6 +40,12 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define MOD8PLUS1(x) (x = (x + 1) % 8)
 #define MOD8MINUS1(x) (x = (x == 0 ? 7 : x - 1)) // TODO: Make the MINUS one more efficient
 
+typedef enum controller_msg {
+    STOP_CMD,       // 1 or 2 bytes: 1 for this enum, and 1 (optionally) for the train number (Default to both)
+    TRAIN_CMD,      // 3+ Bytes:     1 for this enum, 1 for train num, and at least 1 more for destination(s)
+    HALL_SENSOR,    // 2 Bytes:      1 for this enum, 1 for sensor number
+} controller_msg_t;
+
 enum train_layer_mailboxes {
     UART_PHYSICAL_LAYER_MB     = 200,
     PACKET_PHYSICAL_LAYER_MB   = 201,
@@ -47,6 +53,7 @@ enum train_layer_mailboxes {
     TRAIN_APPLICATION_LAYER_MB = 203,
     TRAIN_TIME_SERVER_MB       = 204,
     TRAIN_MONITOR_MB           = 205,
+    TRAIN_CONTROLLER_MB        = 206,
     TEST_PROCESS_MB = 210 // For future testing
 };
 
@@ -132,6 +139,9 @@ typedef enum switch_direction {
     DIVERTED = 0,
     STRAIGHT = 1
 } switch_direction_t;
+
+#define DIV DIVERTED
+#define STR STRAIGHT
 
 typedef struct train_settings
 {
