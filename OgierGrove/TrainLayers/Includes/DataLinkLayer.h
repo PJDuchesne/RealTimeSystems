@@ -76,7 +76,10 @@ class DataLinkLayer {
         void SendACK();
         void SendNACK();
 
+        void InternallyACK(uint8_t buffer_idx);
         void SetPacketAlarm(uint8_t alarm_num, bool set_flag = true);
+
+        bool CheckACKRange(uint8_t incoming_nr);
 
         void MakePacket(packet_t &packet, train_msg_t *msg);
 
@@ -90,24 +93,6 @@ class DataLinkLayer {
         void CentralLoop();
         static DataLinkLayer* GetDataLinkLayer();
 
-        #if DEBUGGING_TRAIN >= 1
-        volatile DataLinkLayer_flags_t debugging_flags_;
-        // Debugging flags
-        volatile uint8_t SendMessageUp_flag;
-        volatile uint8_t SendPacketDown_flag;
-        volatile uint8_t HandleACK_flag;
-        volatile uint8_t HandleNACK_flag;
-        volatile uint8_t SendACK_flag;
-        volatile uint8_t SendNACK_flag;
-        volatile uint8_t MakePacket_flag;
-        volatile uint8_t RecvLoop_flag; 
-        volatile uint8_t MainLoop0_flag;
-        volatile uint8_t MainLoop1_flag;
-        volatile uint8_t MainLoop2_flag;
-        volatile uint8_t MainLoop3_flag;
-        volatile uint8_t MainLoop4_flag;
-        volatile uint8_t MainLoop5_flag;
-        #endif
 };
 
 #endif /* DataLinkLayer_H */

@@ -46,124 +46,47 @@ void DataLinkLayer::MailboxLoop() {
     packet_t* recv_packet_ptr;
     packet_t newly_made_packet;
 
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.all = 0;
-    SendMessageUp_flag   = 0;
-    SendPacketDown_flag  = 0;
-    HandleACK_flag       = 0;
-    HandleNACK_flag      = 0;
-    SendACK_flag         = 0;
-    SendNACK_flag        = 0;
-    MakePacket_flag      = 0;
-    RecvLoop_flag        = 0;
-    MainLoop0_flag       = 0;
-    MainLoop1_flag       = 0;
-    MainLoop2_flag       = 0;
-    MainLoop3_flag       = 0;
-    MainLoop4_flag       = 0;
-    MainLoop5_flag       = 0;
-    #endif
-
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.MainLoop0_flag = 1;
-    MainLoop0_flag = 1;
-    #endif
-
     while (1) {
-        #if DEBUGGING_TRAIN >= 1
-        debugging_flags_.RecvLoop_flag = 1;
-        RecvLoop_flag = 1;
-        #endif
 
         // Blocking message request
         if (!PRecv(src_q, DATA_LINK_LAYER_MB, &msg_body, mailbox_msg_len)) {
             std::cout << "DataLinkLayer::MailboxLoop(): WARNING! PRecv resulted in failure!\n";
         }
         
-        #if DEBUGGING_TRAIN >= 1
-        debugging_flags_.RecvLoop_flag = 0;
-        RecvLoop_flag = 0;
-        #endif
-
         // Error state checking for testing
         assert(mailbox_msg_len < SMALL_LETTER);
 
         switch(src_q) {
             // If from the physical layer, handle each packet type separately
             case UART_PHYSICAL_LAYER_MB:
-                #if DEBUGGING_TRAIN >= 1
-                debugging_flags_.MainLoop1_flag = 1;
-                MainLoop1_flag = 1;
-                #endif
-
                 // Cast message to the correct format
                 recv_packet_ptr = (packet_t *)msg_body;
 
-                #if DEBUGGING_TRAIN == 1
-                std::cout << "  DataLinkLayer::MailboxLoop(): Msg from Physical Layer >> Type:";
-                #endif
-
                 switch(recv_packet_ptr->control_block.type) {
                     case DATA_PT:
-                        #if DEBUGGING_TRAIN >= 1
-                        debugging_flags_.MainLoop2_flag = 1;
-                        MainLoop2_flag = 1;
-                        #endif
-                        #if DEBUGGING_TRAIN == 1
-                        std::cout << "DATA << >> NS:" << HEX(recv_packet_ptr->control_block.ns) << 
-                                          "<< >> NR:" << HEX(recv_packet_ptr->control_block.nr) << "<<\n";
-                        #endif
-
                         assert(mailbox_msg_len >= 3 && mailbox_msg_len <= 5);
                         assert(recv_packet_ptr->length <= 3);
+
                         // Ensure ns/nr is correct, drop and send NACK if necessary
                         if (recv_packet_ptr->control_block.ns == tiva_nr_) {
                             // If valid, send packet to application layer
                             SendMessageUp(recv_packet_ptr); // This increments the tiva_nr_
                             // Increment NR as message has been sent up
                             MOD8PLUS1(tiva_nr_);
+                            // Check for piggybacking ACKS
+                            HandleACK(recv_packet_ptr->control_block.ns); // TODO: TEST THIS WORKS
                             // ACK the packet with the incremented NR
                             SendACK();
                         }
                         else SendNACK();
-                        #if DEBUGGING_TRAIN >= 1
-                        debugging_flags_.MainLoop2_flag = 0;
-                        MainLoop2_flag = 0;
-                        #endif
                         break;
                     case ACK_PT:
-                        #if DEBUGGING_TRAIN >= 1
-                        debugging_flags_.MainLoop3_flag = 1;
-                        MainLoop3_flag = 1;
-                        #endif
-                        #if DEBUGGING_TRAIN == 1
-                        std::cout << "ACK << >> NS:" << HEX(recv_packet_ptr->control_block.ns) <<
-                                         "<< >> NR:" << HEX(recv_packet_ptr->control_block.nr) << "<<\n";
-                        #endif
-
                         assert(mailbox_msg_len == 1 || mailbox_msg_len == 2); // Apparently the length field is present but zero?
                         HandleACK(recv_packet_ptr->control_block.nr);
-                        #if DEBUGGING_TRAIN >= 1
-                        debugging_flags_.MainLoop3_flag = 0;
-                        MainLoop3_flag = 0;
-                        #endif
                         break;
                     case NACK_PT:
-                        #if DEBUGGING_TRAIN >= 1
-                        debugging_flags_.MainLoop4_flag = 1;
-                        MainLoop4_flag = 1;
-                        #endif
-                        #if DEBUGGING_TRAIN == 1
-                        std::cout << "NACK << >> NS:" << HEX(recv_packet_ptr->control_block.ns) <<
-                                          "<< >> NR:" << HEX(recv_packet_ptr->control_block.nr) << "<<\n";
-                        #endif
-
                         assert(mailbox_msg_len == 1 || mailbox_msg_len == 2); // Apparently the length field is present but zero?
                         HandleNACK(recv_packet_ptr->control_block.nr);
-                        #if DEBUGGING_TRAIN >= 1
-                        debugging_flags_.MainLoop4_flag = 0;
-                        MainLoop4_flag = 0;
-                        #endif
                         break;
                     default:
                         std::cout << "  DataLinkLayer::MailboxLoop(): ERROR: INVALID PHYSICAL LAYER TYPE\n";
@@ -171,10 +94,6 @@ void DataLinkLayer::MailboxLoop() {
                         // TODO: Error case
                         break;
                 }
-                #if DEBUGGING_TRAIN >= 1
-                debugging_flags_.MainLoop1_flag = 0;
-                MainLoop1_flag = 0;
-                #endif
                 break;
             // If from the time server, a message has possibly timed out and needs to be handled
             case TRAIN_TIME_SERVER_MB:
@@ -196,13 +115,6 @@ void DataLinkLayer::MailboxLoop() {
                 break;
             // Else it is from the application layer and should be sent down to the Physical Layer
             default:
-                #if DEBUGGING_TRAIN >= 1
-                debugging_flags_.MainLoop5_flag = 1;
-                MainLoop5_flag = 1;
-                #endif
-                #if DEBUGGING_TRAIN == 1
-                std::cout << "  DataLinkLayer::MailboxLoop(): Msg from Application Layer, packeting and sending to Physical layer\n";
-                #endif
 
                 // Make packet for sending or buffering
                 assert(mailbox_msg_len < 8);
@@ -227,29 +139,13 @@ void DataLinkLayer::MailboxLoop() {
                     // TODO: Not an error state, but shouldn't really happen so this is here for testing
                     else std::cout << "  DataLinkLayer::MailboxLoop(): WARNING, DATA BUFFER FULL AND PACKET LOST\n";
                 }
-                #if DEBUGGING_TRAIN >= 1
-                debugging_flags_.MainLoop5_flag = 0;
-                MainLoop5_flag = 0;
-                #endif
                 break;
         }
     }
-
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.MainLoop0_flag = 0;
-    MainLoop0_flag = 0;
-    #endif
 }
 
 // Send message up to application layer
 void DataLinkLayer::SendMessageUp(packet_t* packet) {
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.SendMessageUp_flag = 1;
-    SendMessageUp_flag = 1;
-    #endif
-    #if DEBUGGING_TRAIN == 1
-    std::cout << "  DataLinkLayer::SendMessageUp() >>" << int(packet->length) << "<<\n";
-    #endif
     assert(packet->length >= 1 && packet->length <= 3);
 
     // Strip out message itself and send up to the application layer
@@ -264,27 +160,16 @@ void DataLinkLayer::SendMessageUp(packet_t* packet) {
         case 1:
             msg_body[0] = packet->code;
             break;
-
         default:
             break;
 
     }
 
     PSend(DATA_LINK_LAYER_MB, TRAIN_APPLICATION_LAYER_MB, (void *)msg_body, packet->length);
-
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.SendMessageUp_flag = 0;
-    SendMessageUp_flag = 0;
-    #endif
 }
 
 // Send packet down to application layer
 void DataLinkLayer::SendPacketDown(packet_t* packet) {
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.SendPacketDown_flag = 1;
-    SendPacketDown_flag = 1;
-    #endif
-
     // Add packet to outgoing_messages_ buffer
     assert(packet->length + 2 <= MAX_PACKET_SIZE); // Check that memcopy isn't going to clobber other data
     memcpy(&outgoing_messages_[tiva_ns_], packet, packet->length + 2);
@@ -297,66 +182,43 @@ void DataLinkLayer::SendPacketDown(packet_t* packet) {
     SetPacketAlarm(packet->control_block.ns);
 
     #if DEBUGGING_TRAIN >= 1
-    
     PSend(DATA_LINK_LAYER_MB, MONITOR_MB, (void *)packet, packet->length + 2);
-
-    debugging_flags_.SendPacketDown_flag = 0;
-    SendPacketDown_flag = 0;
     #endif
 }
 
 // Clear appropriate message from buffer and update 'num_packets_in_limbo_' number
 void DataLinkLayer::HandleACK(uint8_t train_nr) {
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.HandleACK_flag = 1;
-    HandleACK_flag = 1;
-    #endif
+
+    // All ACKs should be in the range, otherwise the ATMega is ACKting up
+    assert(CheckACKRange(train_nr)); // If found to be outside the range, that's a problem
 
     static packet_t packet;
 
     // Clear any packets in limbo within sliding window size backwards
     // if (outgoing_messages_[train_nr].control_block.type != DATA_PT) return;
     for (int i = 0; i < WINDOW_SIZE; i++) {
+        // If out of packets, break
         if (num_packets_in_limbo_ == 0) break;
         MOD8MINUS1(train_nr);
+        // If there are no more packets in this range, break
+        assert(outgoing_messages_[train_nr].control_block.type == UNUSED_PT);
 
-        assert(outgoing_messages_[train_nr].control_block.type == DATA_PT);
-
-        // TODO: Figure out why this isn't true in basic tests
-        // assert(outgoing_messages_[train_nr].control_block.type == DATA_PT);
-
-        // Clear data from table by setting type to UNUSED_PT
-        outgoing_messages_[train_nr].control_block.type = UNUSED_PT;
-
-        assert(train_nr < 8);
-        SetPacketAlarm(train_nr, false);
-
-        // Update num_packets_in_limbo_ number
-        num_packets_in_limbo_--; // Could be within the for loop itself, but that's ugly
+        // Clear alarm, lower limbo_num, and clear buffer spot
+        InternallyACK(train_nr);
     }
-
-    // TODO: Put the below check into a new loop
 
     // Check if any other messages are waiting to be sent
-    if (!packet_buffer_->Empty()) {
-        packet = packet_buffer_->Get(); // TODO: Avoid this copying? Idk how right now
-        SendPacketDown(&packet);
+    while(num_packets_in_limbo_ < WINDOW_SIZE) {
+        if (packet_buffer_->Empty()) break;
+        packet = packet_buffer_->Get();
+        SendPacketDown(&packet); // This increments num_packets_in_limbo_
     }
-
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.HandleACK_flag = 0;
-    HandleACK_flag = 0;
-    #endif
 }
 
 // Resend all packets stuck in limbo, starting with the NACK value and continuing until
 // the sliding window is satisfied or until a UNUSED_PT is found
 void DataLinkLayer::HandleNACK(uint8_t train_nr) {
     MOD8MINUS1(train_nr);
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.HandleNACK_flag = 1;
-    HandleNACK_flag = 1;
-    #endif
 
     assert(train_nr <= MAX_DLL_WAITING_PACKETS);
 
@@ -370,23 +232,10 @@ void DataLinkLayer::HandleNACK(uint8_t train_nr) {
         if (outgoing_messages_[msg_idx].control_block.type != DATA_PT) break;
         PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, &outgoing_messages_[msg_idx], outgoing_messages_[msg_idx].length + 2);
     }
-
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.HandleNACK_flag = 0;
-    HandleNACK_flag = 0;
-    #endif
 }
 
 // Send an ACK to acknowedge we receieved and accepted their message
 void DataLinkLayer::SendACK() {
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.SendACK_flag = 1;
-    SendACK_flag = 1;
-    #endif
-    #if DEBUGGING_TRAIN == 1
-    std::cout << "  DataLinkLayer::SendACK() >>NS: " << int(tiva_ns_) << "<< >>NR: " << int(tiva_nr_) << "<<\n";
-    #endif
-
     // TODO: Get initializer to set the starting value to NACK_PT
     static control_t control_block;
 
@@ -399,24 +248,11 @@ void DataLinkLayer::SendACK() {
     #if DEBUGGING_TRAIN >= 1
     PSend(DATA_LINK_LAYER_MB, MONITOR_MB, &control_block, 1);
     #endif
-
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.SendACK_flag = 0;
-    SendACK_flag = 0;
-    #endif
 }
 
 // Send a nack to request the message we were expecting,
 // this is called if we get a message we were not expecting (Trainset NS didn't equal TIVA NR)
 void DataLinkLayer::SendNACK() {
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.SendNACK_flag = 1;
-    SendNACK_flag = 1;
-    #endif
-    #if DEBUGGING_TRAIN == 1
-    std::cout << "  DataLinkLayer::SendNACK() >>NS: " << int(tiva_ns_) << "<< >>NR: " << int(tiva_nr_) << "<<\n";
-    #endif
-
     // TODO: Get initializer to set the starting value to NACK_PT
     static control_t control_block;
 
@@ -429,11 +265,23 @@ void DataLinkLayer::SendNACK() {
     #if DEBUGGING_TRAIN >= 1
     PSend(DATA_LINK_LAYER_MB, MONITOR_MB, &control_block, 1);
     #endif
+}
 
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.SendNACK_flag = 0;
-    SendNACK_flag = 0;
-    #endif
+void DataLinkLayer::InternallyACK(uint8_t buffer_idx) {
+    // This should be set, this *should* not be clearing things that are not set
+    assert(outgoing_messages_[buffer_idx].control_block.type == DATA_PT);
+
+    // 1) Clear alarm
+    SetPacketAlarm(buffer_idx, false);
+
+    // 2) Clear buffer at index
+    outgoing_messages_[buffer_idx].control_block.type = UNUSED_PT;
+
+    // 3) Lower Limbo Number
+    num_packets_in_limbo_--;
+
+    // TODO: (Maybe) If num_packets_in_limbo_, could do a hard reset of all packets in the table.
+    // and alarms in timeserver. Very costly, but could prevent issues
 }
 
 void DataLinkLayer::SetPacketAlarm(uint8_t alarm_num, bool set_flag) {
@@ -444,13 +292,21 @@ void DataLinkLayer::SetPacketAlarm(uint8_t alarm_num, bool set_flag) {
     PSend(DATA_LINK_LAYER_MB, TRAIN_TIME_SERVER_MB, &alarm_msg, 2);
 }
 
+bool DataLinkLayer::CheckACKRange(uint8_t incoming_nr) {
+    // Check upper limit
+    if (incoming_nr == tiva_ns_) return true;
+
+    // Check down to lower limit
+    uint8_t tmp_ns = tiva_ns_;
+    for(uint8_t i = 0; i < WINDOW_SIZE; i++) {
+        MOD8MINUS1(tmp_ns);
+        if (incoming_nr == tiva_ns_) return true;
+    }
+
+    return false;
+}
 
 void DataLinkLayer::MakePacket(packet_t &packet, train_msg_t* msg) {
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.MakePacket_flag = 1;
-    MakePacket_flag = 1;
-    #endif
-
     // Set control block
     packet.control_block.type = DATA_PT;
     packet.control_block.nr = tiva_nr_;
@@ -476,13 +332,7 @@ void DataLinkLayer::MakePacket(packet_t &packet, train_msg_t* msg) {
             std::cout << "  DataLinkLayer::MakePacket(): ERROR, Invalid Packet Length\n";
             while(1) {}
             break;
-
     }
-
-    #if DEBUGGING_TRAIN >= 1
-    debugging_flags_.MakePacket_flag = 0;
-    MakePacket_flag = 0;
-    #endif
 }
 
 /*
