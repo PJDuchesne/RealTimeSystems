@@ -103,4 +103,3 @@ void TrainControllerLoop() {
     TrainController::GetTrainController()->TrainControllerLoop();
 }
 
-
