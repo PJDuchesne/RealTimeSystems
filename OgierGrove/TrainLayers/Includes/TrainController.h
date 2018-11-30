@@ -64,7 +64,24 @@ const uint8_t routing_table[NUM_ZONES][NUM_ZONES][3] {
 
 #define MAX_ZONES_PER_TRAIN 2
 
+#define MAX_DIFF_SENSORS 3 
+
+typedef struct sensor_trigger {
+    union {
+        struct
+        {
+            uint8_t sensor_num;
+            uint8_t num_triggers : 4;
+            uint8_t age : 4;
+        };
+        uint16_t reset; // Reset to 0
+    };
+} sensor_trigger_t;
+
 typedef struct train_state {
+    // Current direction the train is moving (CW, STAY, or CCW)
+    train_direction_t dir;
+
     union {
         struct
         {
@@ -79,8 +96,18 @@ typedef struct train_state {
         uint8_t zones[MAX_ZONES_PER_TRAIN];
     };
 
-    uint8_t last_hall_triggered;
-    uint8_t second_last_hall_triggered;
+    // 0) Sensor # that has triggered recently
+    // 1) Number of triggers that has happened
+    sensor_trigger_t triggered_sensors[MAX_DIFF_SENSORS];
+
+    union {
+        struct
+        {
+            uint8_t last_hall_triggered;
+            uint8_t second_last_hall_triggered;
+        };
+        uint16_t last_two_hall_triggers;
+    };
 
     // Number, direction, and speed
     train_ctrl_t train_ctrl;
@@ -189,12 +216,15 @@ class TrainController {
 
         void SetSwitch(switch_ctrl_t ctrl);
         void CmdTrain(train_ctrl_t train_ctrl);
+        void StopTrain(uint8_t train_num);
         uint8_t WhichTrain(uint8_t hall_sensor_num);
         void HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_num);
-        void HandlePartialZoneChange(uint8_t hall_sensor_num, uint8_t train_num);
 
         void CheckIfRoutingNeeded(uint8_t train_num); // Calls RouteTrain for trains en_route
         void RouteTrain(uint8_t train_num); // Routes from any zone to any other zone using routing_table
+
+
+        void HandleSensorTrigger(char* msg_body, uint8_t msg_len);
 
     public:
         TrainController();

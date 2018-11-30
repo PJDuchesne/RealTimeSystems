@@ -35,6 +35,11 @@ TrainController::TrainController() {
         trains_[i].train_ctrl.speed = 0;
         trains_[i].train_ctrl.num = i;
         trains_[i].train_ctrl.dir = STAY;
+
+        // Clear triggered_sensors
+        for (uint8_t x = 0; x < MAX_DIFF_SENSORS; x++) {
+            trains_[i].triggered_sensors[x].reset = 0; // Reset both fields to 0
+        }
     }
 }
 
@@ -53,10 +58,21 @@ void TrainController::CmdTrain(train_ctrl_t train_ctrl) {
     TrainCommandCenterInstance_->SendTrainCommand(train_ctrl.num + 1, train_ctrl.speed, (train_direction_t)train_ctrl.dir, TRAIN_CONTROLLER_MB);
 }
 
-// 0 for ERROR state (No train could possibly have triggered)
-// 1 for Train 1, etc.
+void TrainController::StopTrain(uint8_t train_num) {
+    trains_[train_num].train_ctrl.speed = 0;
+    trains_[train_num].train_ctrl.dir = STAY;
+
+    // Reset zone 
+    trains_[train_num].current_dst = NO_ZONE;
+
+    CmdTrain(trains_[train_num].train_ctrl);
+}
+
+// 255 for ERROR state (No train could possibly have triggered)
+// 0 for Train 1,
+// 1 for Train 2, etc.
 uint8_t TrainController::WhichTrain(uint8_t hall_sensor_num) {
-    uint8_t train_num = 0;
+    uint8_t train_num = 255;
 
     // Iterate through each train
     for(uint8_t x = 0; x < NUM_TRAINS; x++) {
@@ -84,19 +100,21 @@ uint8_t TrainController::WhichTrain(uint8_t hall_sensor_num) {
 
 void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_num) {
     // Determine which zone the train is moving into
-
-    static uint8_t msg_body[4];
-
     assert(trains_[train_num].train_ctrl.dir != STAY); // Ensure the train is actually moving
     uint8_t new_zone = possible_zones[hall_sensor_num][trains_[train_num].train_ctrl.dir][1];
     uint8_t prev_zone = possible_zones[hall_sensor_num][(trains_[train_num].train_ctrl.dir == CW) ? CW : CCW][1]; // Previous zone is the zone that we were
 
-    assert(new_zone != ER); // TODO: make this stop all trains
+    // If the new zone is ER (Error), the train is about to derail
+    if (new_zone == ER) {
+        StopTrain(train_num);
+        assert(new_zone != ER); // Redtext because a train tried to detail and that should never happen
+    }
 
     // Make the new zone the primary zone
     trains_[train_num].primary_zone = new_zone;
 
     // Update monitor with zone changes
+    uint8_t msg_body[4];
     msg_body[0] = ZONE_CHANGE;
     msg_body[1] = train_num;
     msg_body[2] = new_zone;
@@ -104,12 +122,9 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
 
     PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 4);
 
-    // TODO: Stop train if it is at destination
-
-    // Else, Route if needed
-
-    // Route if needed
-    CheckIfRoutingNeeded(train_num);
+    // Check if this is the train's destination
+    if (trains_[train_num].current_dst == new_zone) StopTrain(train_num);
+    else CheckIfRoutingNeeded(train_num);
 }
 
 // Maybe just collapse this into routing table itself, and check on every zone?
@@ -151,18 +166,60 @@ void TrainController::RouteTrain(uint8_t train_num) {
     CmdTrain(trains_[train_num].train_ctrl);
 }
 
-void TrainController::HandlePartialZoneChange(uint8_t hall_sensor_num, uint8_t train_num) {
-    static uint8_t msg_body[3];
+void TrainController::HandleSensorTrigger(char* msg_body, uint8_t msg_len) {
+    uint8_t sensor_num = (int)msg_body[1];
 
-    assert(trains_[train_num].train_ctrl.dir != STAY); // Ensure the train is actually moving
-    uint8_t partial_zone = possible_zones[hall_sensor_num][trains_[train_num].train_ctrl.dir][1];
+    // Determine which train triggered the sensor and that train's 
+    uint8_t train_num = WhichTrain(msg_body[1]); // msg_body[1] contains the hall sensor #
+    if (train_num == 255) {
+        std::cout << "[TrainController::HandleSensorTrigger()] WARNING: No train could have triggered this >>" << sensor_num << "<<\n";
+    }
+    sensor_trigger_t* sensor_array = &(trains_[train_num].triggered_sensors[sensor_num]);
 
-    // Update monitor with zone changes
-    msg_body[0] = ZONE_CHANGE;
-    msg_body[1] = train_num;
-    msg_body[2] = partial_zone;
+    /* Check if the sensor has been triggered recently and is already in triggered_sensors[] */
+    uint8_t empty_idx = 255;
+    uint8_t oldest_idx = 255;
+    bool return_flag = false;
+    for(uint8_t i = 0; i < MAX_DIFF_SENSORS; i++) {
+        // If found, this
+        if (sensor_array[i].sensor_num == sensor_num) {
+            assert(sensor_array[i].num_triggers > 0); // Should have at least 1 trigger
+            assert(return_flag == false); // For debugging, this should never trigger
+            sensor_array[i].num_triggers++; // Iterate to another trigger
+            // If two triggers have occurred, update train position into this zone
+            if (sensor_array[i].num_triggers == 2) HandleZoneChange(sensor_num, train_num);
+            // If more than 2 triggers have happened, just tick and return (Caused by double ticks)
+            return_flag = true;
+        }
+        else if (sensor_array[i].reset == 0) empty_idx = i;
 
-    PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 3);
+        // Find the oldest while looping
+        if (sensor_array[i].age == 3) oldest_idx = i;
+    }
+
+    // Return if the sensor was already in the list
+    if(return_flag) return;
+
+    /* If not in queue already, use the first empty or make an empty slot for it */
+
+    // If full (Which should generally happen), remove the oldest entry and continue
+    uint8_t max_age;
+    if (empty_idx == 255) {
+        assert(oldest_idx != 255); // This means that an age of 3 was not found in the previous loop
+        sensor_array[oldest_idx].reset = 0;
+        empty_idx = oldest_idx;
+    }
+
+    assert(empty_idx != 255); // This should really never happen
+    assert(sensor_array[empty_idx].reset == 0); // TODO: Remove this debugging one
+
+    sensor_array[empty_idx].sensor_num = sensor_num;
+    sensor_array[empty_idx].num_triggers++;
+
+    // Age all values that are reset
+    for(uint8_t i = 0; i < MAX_DIFF_SENSORS; i++) {
+        if (sensor_array[i].reset != 0) sensor_array[i].age++;
+    }
 }
 
 void TrainController::TrainControllerLoop() {
@@ -193,51 +250,7 @@ void TrainController::TrainControllerLoop() {
         switch (msg_body[0]) {
             case '\xA0': // Hall sensor (#) triggered
                 // Update state information
-
-                // Determine which sensor was triggered
-                tmp_num = WhichTrain(msg_body[1]); // msg_body[1] contains the hall sensor #
-
-                /* If either one has triggered this sensor recently */
-
-                if (trains_[tmp_num].last_hall_triggered == msg_body[1]) {
-                    trains_[tmp_num].last_hall_triggered = NO_HALL;
-
-                    // Second one should be zero
-                    if (trains_[tmp_num].second_last_hall_triggered != NO_HALL) {
-                        std::cout << "[TrainController::TrainControllerLoop()] WARNING: This should be NO_HALL\n";
-                        trains_[tmp_num].second_last_hall_triggered = NO_HALL;
-                    }
-
-                    HandleZoneChange(msg_body[1], tmp_num);
-                    break;
-                }
-                else if (trains_[tmp_num].second_last_hall_triggered == msg_body[1]) {
-                    trains_[tmp_num].second_last_hall_triggered = NO_HALL;
-                    HandleZoneChange(msg_body[1], tmp_num);
-                    break;
-                }
-
-                /* Else, Fill buffers accordingly */
-
-                // Second one should be zero here
-                if (trains_[tmp_num].second_last_hall_triggered != NO_HALL) {
-                    std::cout << "[TrainController::TrainControllerLoop()] WARNING: This should be NO_HALL\n";
-                    trains_[tmp_num].second_last_hall_triggered = NO_HALL;
-                }   
-
-                // Else, fill buffer accordingly
-                if (trains_[tmp_num].last_hall_triggered == NO_HALL) {
-                    trains_[tmp_num].last_hall_triggered = msg_body[1];
-                }
-                else {
-                    // If first one is filled, make it second and fill first one with current value
-                    trains_[tmp_num].second_last_hall_triggered = trains_[tmp_num].last_hall_triggered;
-                    trains_[tmp_num].last_hall_triggered = msg_body[1];
-                }
-
-                // This means the train is transitioning between two zones
-                HandlePartialZoneChange(msg_body[1], tmp_num);
-
+                HandleSensorTrigger(msg_body, mailbox_msg_len);
                 break;
             case '\xC2': // Train ACK
                 if (train_msg_buffer_->Empty()) {
