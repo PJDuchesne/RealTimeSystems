@@ -25,6 +25,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "TrainLibrary.h"
 #include <OSLayer/Includes/OSLibrary.h>
 #include <OSLayer/Includes/ProcessCalls.h>
+#include <ISRLayer/Includes/GlobalMailboxes.h>
 
 typedef struct trainMsgAlarm {
     bool is_active;

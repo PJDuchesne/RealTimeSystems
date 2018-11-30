@@ -124,3 +124,11 @@ bool PBind(uint8_t req_q, letter_size_t size, uint8_t mailbox_size) {
 
     return (KernelArgs.rtnvalue);
 }
+
+void assignR7(volatile uint32_t data)
+{
+    /* Assign 'data' to R7; since the first argument is R0, this is
+    * simply a MOV from R0 to R7
+    */
+    __asm(" mov r7,r0");
+}

@@ -64,11 +64,10 @@ void TrainCommandApplication::MailboxLoop() {
 
 // Pass DLL message on to interested parties (Train scheduler? Train Display? Etc.) 
 void TrainCommandApplication::HandleDLLMessage(char* request, uint8_t length) {
-    // For now, just print message contents to screen for debugging
     assert(length >= 1 && length <= 3);
 
     switch (request[0]) {
-        case '\xA0':
+        case '\xA0': // Hall sensor (#) triggered
             #if DEBUGGING_TRAIN == 1
             std::cout << "TrainCommandApplication::HandleDLLMessage(): Hall Sensor Triggered Msg >> Sensor: " << int(request[1]) << "<<\n";
             #endif
@@ -76,23 +75,33 @@ void TrainCommandApplication::HandleDLLMessage(char* request, uint8_t length) {
             // Send a reply to reset the sensor
             TrainCommandCenterInstance_->SendSensorAcknowledge(int(request[1]), TRAIN_APPLICATION_LAYER_MB);
 
-            // TODO: Tell interested parties (GUI and TrainController)
+            // Tell TrainMonitor so it can update the screen
+            PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_MONITOR_MB, request, length);
 
+            // Tell TrainController so it can keep track of the train
+            PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_CONTROLLER_MB, request, length);
             break;
-        case '\xAA':
+        case '\xAA': // TODO: THIS IS USELESS
             #if DEBUGGING_TRAIN == 1
             std::cout << "TrainCommandApplication::HandleDLLMessage(): Hall Sensor Queue Reset Acknowledgement Msg\n";
             #endif
             break;
-        case '\xC2':
+        case '\xC2': // Train ACK
             #if DEBUGGING_TRAIN == 1
             std::cout << "TrainCommandApplication::HandleDLLMessage(): Train Speed/Dir Acknowledgement Msg\n";
             #endif
+
+            // Tell TrainController so it can keep track of the train
+            PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_CONTROLLER_MB, request, length);
+
             break;
-        case '\xE2':
+        case '\xE2': // Switch ACK
             #if DEBUGGING_TRAIN == 1
             std::cout << "TrainCommandApplication::HandleDLLMessage(): Throw-Switch Acknowledgement Msg\n";
             #endif
+
+            // Tell TrainController so it can keep track of the train
+            PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_CONTROLLER_MB, request, length);
             break;
         default:
             std::cout << "TrainCommandApplication::HandleDLLMessage(): ERROR: Invalid COMMAND >>" << HEX(request[0]) << "<<\n";

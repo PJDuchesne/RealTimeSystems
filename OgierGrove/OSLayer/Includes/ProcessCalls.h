@@ -17,7 +17,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "Kernel.h"
 #include "OSLibrary.h"
 #include "PostOffice.h"
 
@@ -27,5 +26,7 @@ void PTerminateProcess();
 bool PSend(uint8_t src_q, uint8_t dst_q, void* msg_ptr, uint32_t msg_len);
 bool PRecv(uint8_t& src_q, uint8_t dst_q, void* msg_ptr, uint32_t& msg_len, bool enable_sleep = true);
 bool PBind(uint8_t req_q, letter_size_t size, uint8_t mailbox_size = MAX_LETTERS);
+
+void assignR7(volatile uint32_t data);
 
 #endif /* ProcessCalls_H */

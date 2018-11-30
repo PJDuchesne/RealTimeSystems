@@ -102,4 +102,3 @@ void TrainControllerLoop() {
     ISRMsgHandler::GetISRMsgHandler();
     TrainController::GetTrainController()->TrainControllerLoop();
 }
-

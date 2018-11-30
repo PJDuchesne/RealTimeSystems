@@ -39,6 +39,4 @@ uint32_t get_SP();
 void volatile save_registers();
 void volatile restore_registers();
 
-void assignR7(volatile uint32_t data);
-
 #endif /* KernelFunctions_H */

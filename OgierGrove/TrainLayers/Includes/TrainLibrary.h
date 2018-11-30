@@ -34,17 +34,28 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define MAX_PACKET_SIZE 5
 #define EMPTY_MAILBOX 0
 
+#define NUM_HALL_SENSORS 24
+
 #define ALL 255 // Used to acknowledge all sensor resets or throw all switches
 
 // Macros to perform modulus 8 increments and decrements
 #define MOD8PLUS1(x) (x = (x + 1) % 8)
 #define MOD8MINUS1(x) (x = (x == 0 ? 7 : x - 1)) // TODO: Make the MINUS one more efficient
 
-typedef enum controller_msg {
-    STOP_CMD,       // 1 or 2 bytes: 1 for this enum, and 1 (optionally) for the train number (Default to both)
-    TRAIN_CMD,      // 3+ Bytes:     1 for this enum, 1 for train num, and at least 1 more for destination(s)
-    HALL_SENSOR,    // 2 Bytes:      1 for this enum, 1 for sensor number
-} controller_msg_t;
+// Raw Msg types
+#define SENSOR      '\xA0'
+#define SENSORQUEUE '\xAA'
+#define TRAIN       '\xC2'
+#define SWITCH      '\xE2'
+
+typedef enum ctrl_msg_type {
+    STOP_CMD    = 0x80,  // 1 or 2 bytes: 1 for this enum, and 1 (optionally) for the train number (Default to both)
+    HALL_SENSOR,         // 2 Bytes:      1 for this enum, 1 for sensor number
+    ZONE_CMD,            // 3 Bytes:      1 for this enum, 1 for the train number and 1 for the train zone
+    ZONE_CHANGE,         // 4 Bytes:      1 for this enum, 1 for the train number, 1 for new zone, and 1 for old zone
+    PARTIAL_ZONE_CHANGE, // 3 Bytes:      1 for this enum, 1 for the train number, 1 for partial zone
+    TRAIN_GO_CMD,        // 3+ Bytes:     1 for this enum, 1 for train num, and at least 1 more for destination(s)
+} ctrl_msg_type_t;
 
 enum train_layer_mailboxes {
     UART_PHYSICAL_LAYER_MB     = 200,
@@ -131,13 +142,15 @@ typedef struct train_alarm {
 uint8_t MsgLengthFromCode(uint8_t msg_code);
 
 typedef enum train_direction {
-    CW = 0,
-    CCW = 8 // 8 because that's the value within its nibble
+    CW   = 0,
+    CCW  = 1,
+    STAY = 2 // To signify that the train is currently not moving (Or shouldn't move)
 } train_direction_t;
 
 typedef enum switch_direction {
-    DIVERTED = 0,
-    STRAIGHT = 1
+    DIVERTED   = 0,
+    STRAIGHT   = 1,
+    NOT_NEEDED = 2,
 } switch_direction_t;
 
 #define DIV DIVERTED
@@ -146,7 +159,7 @@ typedef enum switch_direction {
 typedef struct train_settings
 {
     uint8_t speed : 4;
-    train_direction_t direction : 4;
+    uint8_t direction : 4;
 } train_settings_t;
 
 #define MAX_NUM_TRAIN_TOKENS      3
@@ -288,5 +301,22 @@ const uint8_t switch_locations[MAX_NUM_SWITCHES + 1][2][2] {
 #define CMD_PROMPT_START_COLUMN 6
 
 #define CLEAR_SCREEN     "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+
+typedef struct switch_ctrl {
+    uint8_t num : 4; // Up to 16 switches, 
+    uint8_t req_state : 4;
+} switch_ctrl_t; // 1 byte long
+
+typedef struct train_ctrl {
+    uint8_t num : 2;
+    uint8_t speed : 4;
+    uint8_t dir : 2;
+} train_ctrl_t;
+
+#define SWITCH_BUFFER_SIZE 4 // Should never be spamming requests enough to fill this
+#define TRAIN_BUFFER_SIZE 8
+
+#define NUM_ZONES 20
+#define NUM_TRAINS 2
 
 #endif /* TrainLibrary_H */

@@ -28,7 +28,9 @@ const std::string valid_train_commands[NUM_VALID_TRAIN_COMMANDS] = {
   "SWITCH",
   "SENSOR",
   "QUEUERESET",
-  "REFRESH"
+  "REFRESH",
+  "INIT",
+  "TRAINGO",
 };
 
 // Forward Declarations
@@ -52,6 +54,8 @@ class TrainCommandCenter {
         void SensorCommand(std::string arg);
         void QueueResetCommand(std::string arg);
         void RefreshCommand(std::string arg);
+        void InitCommand(std::string arg);
+        void TrainGoCommand(std::string arg);
 
         // Internal helpers
         void ToUpper(std::string &str);

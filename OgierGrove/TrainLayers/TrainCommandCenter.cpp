@@ -68,7 +68,7 @@ void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
         return;
     }
 
-    if (TrainMonitorInstance_) TrainMonitorInstance_->VisuallySetSwitch(switch_num, switch_dir); // TODO: Move this into the response code
+    if (TrainMonitorInstance_) TrainMonitorInstance_->VisuallySetSwitch(switch_num, switch_dir);
     if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(GREEN);
     SendSwitchCommand(switch_num, switch_dir);
 }
@@ -111,6 +111,51 @@ void TrainCommandCenter::RefreshCommand(std::string arg) {
     if (TrainMonitorInstance_) TrainMonitorInstance_->InitializeScreen();
 }
 
+void TrainCommand::InitCommand(std::string arg) {
+    int tmp_code = TokenizeArguments(arg);
+
+    if (tmp_code != 2) {
+        SendErrorMsg("[TrainCommandCenter::InitCommand] Error! Malformed Command (due to number of args)!\n");
+        return;
+    }
+
+    static uint8_t init_msg[3];
+
+    uint8_t init_msg[0] = ZONE_CMD;
+    uint8_t init_msg[1] = SafeStoi(TokenizedArgs_[0]);
+    uint8_t init_msg[2] = SafeStoi(TokenizedArgs_[1]);
+
+    if ((init_msg[1] == 0 || init_msg[1] > NUM_TRAINS)||(init_msg[2] > NUM_ZONES)) {
+        SendErrorMsg("[TrainCommandCenter::InitCommand] Error! Malformed Command (due to numbers)!\n");
+        return;
+    }
+
+    // If correctly formed, send a message to the controller to initialize the train
+    PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)init_msg, 3);
+}
+
+void TrainGoCommand(std::string arg) {
+    int tmp_code = TokenizeArguments(arg);
+
+    if (tmp_code != 1) { // TODO: Add option to allow multiple routes, increase number of arguments taken
+        SendErrorMsg("[TrainCommandCenter::TrainGoCommand] Error! Malformed Command (due to number of args)!\n");
+        return;
+    }
+
+    static uint8_t train_go_msg[3];
+
+    uint8_t train_go_msg[0] = TRAIN_GO_CMD;
+    uint8_t train_go_msg[1] = SafeStoi(TokenizedArgs_[0]);
+
+    if (train_go_msg[1] > NUM_ZONES) {
+        SendErrorMsg("[TrainCommandCenter::TrainGoCommand] Error! Malformed Command (due to numbers)!\n");
+        return;
+    }
+
+    // If correctly formed, send a message to the controller to start the train routing
+    PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)train_go_msg, 3);
+}
+
 void TrainCommandCenter::SendErrorMsg(std::string msg) {
     if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(RED);
 }
@@ -140,7 +185,7 @@ void TrainCommandCenter::SendTrainCommand(uint8_t train_num, uint8_t speed, trai
     msg_body[0] = '\xC0';
     msg_body[1] = train_num;
     ((train_settings_t *)(&msg_body[2]))->speed = speed;
-    ((train_settings_t *)(&msg_body[2]))->direction = direction;
+    ((train_settings_t *)(&msg_body[2]))->direction = direction*8; // Technically this should be an 8 within this nibble
 
     if (!PSend(src_q, TRAIN_APPLICATION_LAYER_MB, msg_body, 3)) {
         std::cout << "TrainCommandCenter::SendTrainCommand(): Warning! PSend Failed\n";
@@ -158,6 +203,8 @@ void TrainCommandCenter::SendSwitchCommand(uint8_t switch_num, switch_direction_
     if (!PSend(src_q, TRAIN_APPLICATION_LAYER_MB, msg_body, 3)) {
         std::cout << "TrainCommandCenter::SendSwitchCommand(): Warning! PSend Failed\n";
     }
+
+    if (TrainMonitorInstance_) TrainMonitorInstance_->VisuallySetSwitch(switch_num, switch_dir);
 }
 
 void TrainCommandCenter::SendSensorAcknowledge(uint8_t sensor_number, uint8_t src_q) {

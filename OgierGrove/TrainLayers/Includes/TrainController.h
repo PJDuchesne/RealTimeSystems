@@ -18,23 +18,26 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 */
 
 #include "TrainLibrary.h"
+#include "TrainMonitor.h" // Includes the CommandCenter
+// #include "TrainCommandCenter.h"
 #include <OSLayer/Includes/OSLibrary.h>
 #include <OSLayer/Includes/ProcessCalls.h>
-
-#define NUM_ZONES 20
+#include <OSLayer/Includes/RingBuffer.h>
 
 // Direction
-#define STAY 4 // TODO: Find a more elegant solution?
 #define CW__ CW
 #define CCW_ CCW
 
 #define IDC_ CCW_ // Direction doesn't Matter. Pick either
 
 // Action (NOP, SWITCH STR, SWITCH DIV)
-#define NOP_ 0
-#define STR_ STR
-#define DIV_ DIV
+#define DIV_ DIV        // 0
+#define STR_ STR        // 1
+#define NOP_ NOT_NEEDED // 2
 
+// 0) Direction     ()
+// 1) Switch Action (switch_direction_t)
+// 2) Switch Num    (1 to 6)
 const uint8_t routing_table[NUM_ZONES][NUM_ZONES][3] {
 // FROM  TO>   0                 1                 2                 3                 4                 5                 6                 7                 8                 9                 10                11                12                13                14                15                16                17                18                19   
 /* 0  */    { {STAY, NOP_, 0},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {CCW_, STR_, 6},  {IDC_, STR_, 6},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0},  {CCW_, DIV_, 6},  {CCW_, NOP_, 0},  {CW__, NOP_, 0},  {CW__, NOP_, 0} },
@@ -59,22 +62,163 @@ const uint8_t routing_table[NUM_ZONES][NUM_ZONES][3] {
 /* 19 */    { {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CW__, DIV_, 3},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CCW_, DIV_, 1},  {CW__, DIV_, 3},  {STAY, NOP_, 0} },
 };
 
+#define MAX_ZONES_PER_TRAIN 2
+
 typedef struct train_state {
-    bool is_moving;
-    bool en_route;
-    uint8_t current_zone;
+    // Current direction the train is moving (CW, STAY, or CCW)
+    train_direction_t dir;
+
+    union {
+        struct
+        {
+            // The current zone the train is occupying
+            // If partially occupying a zone, this is the zone the train is leaving
+            uint8_t primary_zone;
+
+            // If set, the train is current transitioning from the primary zone to this zone
+            // If "Not set", the value is set to NO_ZONE (255)
+            uint8_t secondary_zone;
+        };
+        uint8_t zones[MAX_ZONES_PER_TRAIN];
+    };
+
+    // The current zone the train is occupying
+    // If partially occupying a zone, this is the zone the train is leaving
+    uint8_t primary_zone;
+
+    // If set, the trainis current transitioning from the primary zone to this secondary zone
+    // If "Not set", the value is set to NO_ZONE (255)
+    uint8_t secondary_zone;
+
+    union {
+        struct
+        {
+            uint8_t last_hall_triggered;
+            uint8_t second_last_hall_triggered;
+        };
+        uint16_t last_two_hall_triggers;
+    }
+
+    // Number, direction, and speed
+    train_ctrl_t train_ctrl;
+
+    uint8_t current_dst;
+    uint8_t speed;
+
 } train_state_t;
+
+#define NO_ZONE    255
+#define NO_TRAIN   255
+#define NO_HALL    0
+
+#define MAX_NUM_SENSORS_FROM_A_ZONE_FOR_A_DIRECTION 2
+
+// 1) Current Zone
+// 2) Current Train Direction
+// 3) Possible Hall Sensors (From 1 to 24, 0 is NULL), only 2 possible options
+const uint8_t possible_halls[NUM_ZONES][2][MAX_NUM_SENSORS_FROM_A_ZONE_FOR_A_DIRECTION] {
+//         CW         CCW
+/* 0  */ { {16, 0},  {1,  0}  },
+/* 1  */ { {0,  0},  {2,  17} },
+/* 2  */ { {1,  0},  {3,  0}  },
+/* 3  */ { {2,  0},  {4,  21} },
+/* 4  */ { {3,  0},  {5,  0}  },
+/* 5  */ { {4,  18}, {6,  0}  },
+/* 6  */ { {5,  0},  {7,  0}  },
+/* 7  */ { {6,  0},  {8,  0}  },
+/* 8  */ { {7,  0},  {9,  0}  },
+/* 9  */ { {8,  0},  {10, 19} },
+/* 10 */ { {9,  0},  {11, 0}  },
+/* 11 */ { {10, 0},  {12, 23} },
+/* 12 */ { {11, 0},  {13, 0}  },
+/* 13 */ { {12, 20}, {14, 0}  },
+/* 14 */ { {13, 0},  {15, 0}  },
+/* 15 */ { {14, 0},  {0,  0}  },
+/* 16 */ { {17, 0},  {18, 0}  },
+/* 17 */ { {21, 0},  {22, 0}  },
+/* 18 */ { {23, 0},  {24, 0}  },
+/* 19 */ { {19, 0},  {20, 0}  },
+};
+
+#define MAX_NUM_ZONES_FROM_A_SENSOR_AND_DIRECTION 1
+#define ER 255 // Error state
+
+// 1) Hall Triggered
+// 2) Current Train Direction
+// 3) Possible Hall Sensors (From 1 to 24, 0 is NULL), only 2 possible options
+const uint8_t possible_zones[NUM_HALL_SENSORS + 1][2][MAX_NUM_ZONES_FROM_A_SENSOR_AND_DIRECTION] {
+//         CW    CCW
+/* 0  */ { {ER}, {ER} }, // This sensor does not exist
+/* 1  */ { {0},  {1}  },
+/* 2  */ { {1},  {2}  },
+/* 3  */ { {2},  {3}  },
+/* 4  */ { {3},  {4}  },
+/* 5  */ { {4},  {5}  },
+/* 6  */ { {5},  {6}  },
+/* 7  */ { {6},  {7}  },
+/* 8  */ { {7},  {8}  },
+/* 9  */ { {8},  {9}  },
+/* 10 */ { {9},  {10} },
+/* 11 */ { {10}, {11} },
+/* 12 */ { {11}, {12} },
+/* 13 */ { {12}, {13} },
+/* 14 */ { {13}, {14} },
+/* 15 */ { {14}, {15} },
+/* 16 */ { {15}, {0}  },
+/* 17 */ {  {1}, {16} },
+/* 18 */ { {16},  {5} },
+/* 19 */ {  {9}, {19} },
+/* 20 */ { {19}, {13} },
+/* 21 */ {  {3}, {17} },
+/* 22 */ { {17}, {ER} }, // Not a feasible state
+/* 23 */ { {11}, {18} },
+/* 24 */ { {18}, {ER} }, // Not a feasible state
+};
+
+#define NUM_DANGER_ZONES 6 // Equal to the number of switches
+
+// Number of danger zones
+// [0] -> Zone num
+// [1] -> Direction
+const uint8_t routing_needed_zones[NUM_DANGER_ZONES][2] {
+    {  0, CCW },
+    {  2, CCW },
+    {  6, CCW },
+    {  8, CCW },
+    { 10, CCW },
+    { 14, CCW },
+};
+
+class TrainCommandCenter;
+class TrainMonitor;
 
 class TrainController {
     private:
         static TrainController* TrainControllerInstance_;
 
-        train_state_t fast_train; // Train "2"
+        TrainCommandCenter* TrainCommandCenterInstance_;
+        TrainMonitor* TrainMonitorInstance_;
+
+        RingBuffer<switch_ctrl_t> *switch_buffer_;
+        RingBuffer<train_ctrl_t> *train_msg_buffer_;
+
+        train_state_t trains_[NUM_TRAINS];
+
+        void SetSwitch(switch_ctrl_t ctrl);
+        void CmdTrain(train_ctrl_t train_ctrl);
+        uint8_t WhichTrain(uint8_t hall_sensor_num);
+        void HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_num);
+
+        void CheckIfRoutingNeeded(uint8_t train_num); // Calls RouteTrain for trains en_route
+        void RouteTrain(uint8_t train_num); // Routes from any zone to any other zone using routing_table
 
     public:
         TrainController();
+        ~TrainController();
 
         void TrainControllerLoop();
+
+        void SingletonGrab();
 
         static TrainController* GetTrainController();
 };
