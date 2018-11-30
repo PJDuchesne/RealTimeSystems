@@ -139,6 +139,7 @@ void TrainMonitor::InputUARTChar(char input_char) {
             break;
         case 0x0D: // Enter (Carriage Return)
             // Handle command
+            TrainCommandCenter::GetTrainCommandCenter()->HandleCommand(command_string);
 
             // Update command string
             command_string = "";

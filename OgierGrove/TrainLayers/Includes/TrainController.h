@@ -65,9 +65,6 @@ const uint8_t routing_table[NUM_ZONES][NUM_ZONES][3] {
 #define MAX_ZONES_PER_TRAIN 2
 
 typedef struct train_state {
-    // Current direction the train is moving (CW, STAY, or CCW)
-    train_direction_t dir;
-
     union {
         struct
         {
@@ -82,14 +79,8 @@ typedef struct train_state {
         uint8_t zones[MAX_ZONES_PER_TRAIN];
     };
 
-    union {
-        struct
-        {
-            uint8_t last_hall_triggered;
-            uint8_t second_last_hall_triggered;
-        };
-        uint16_t last_two_hall_triggers;
-    };
+    uint8_t last_hall_triggered;
+    uint8_t second_last_hall_triggered;
 
     // Number, direction, and speed
     train_ctrl_t train_ctrl;

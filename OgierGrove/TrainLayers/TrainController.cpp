@@ -33,7 +33,7 @@ TrainController::TrainController() {
 
         // Set up control block
         trains_[i].train_ctrl.speed = 0;
-        trains_[i].train_ctrl.num = i + 1;
+        trains_[i].train_ctrl.num = i;
         trains_[i].train_ctrl.dir = STAY;
     }
 }
@@ -50,7 +50,7 @@ void TrainController::SetSwitch(switch_ctrl_t switch_ctrl) {
 
 void TrainController::CmdTrain(train_ctrl_t train_ctrl) {
     train_msg_buffer_->Add(train_ctrl);
-    TrainCommandCenterInstance_->SendTrainCommand(train_ctrl.num, train_ctrl.speed, (train_direction_t)train_ctrl.dir, TRAIN_CONTROLLER_MB);
+    TrainCommandCenterInstance_->SendTrainCommand(train_ctrl.num + 1, train_ctrl.speed, (train_direction_t)train_ctrl.dir, TRAIN_CONTROLLER_MB);
 }
 
 // 0 for ERROR state (No train could possibly have triggered)
@@ -61,19 +61,19 @@ uint8_t TrainController::WhichTrain(uint8_t hall_sensor_num) {
     // Iterate through each train
     for(uint8_t x = 0; x < NUM_TRAINS; x++) {
         // If the train is not moving, it couldn't have triggered the hall sensor
-        if (trains_[x].dir == STAY) continue;
+        if (trains_[x].train_ctrl.dir == STAY) continue;
 
         // Iterate each zone for the train (Primary/Secondary)
         for (uint8_t y = 0; y < MAX_ZONES_PER_TRAIN; y++) {
 
             // Iterate through each possible hall sensor for that zone and the train's current direction
             for (uint8_t z = 0; z < MAX_NUM_SENSORS_FROM_A_ZONE_FOR_A_DIRECTION; z++) {
-                if (possible_halls[trains_[x].zones[y]][trains_[x].dir][z] == hall_sensor_num) {
+                if (possible_halls[trains_[x].zones[y]][trains_[x].train_ctrl.dir][z] == hall_sensor_num) {
                     assert(train_num == 0); // Only 1 train should ever be able to hit a given sensor at a given time
                     train_num = x;
 
                     // The trains should be moving if it has triggered a hall sensor
-                    assert(trains_[train_num].dir != STAY);
+                    assert(trains_[train_num].train_ctrl.dir != STAY);
                 }
             }
         }
@@ -87,9 +87,9 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
 
     static uint8_t msg_body[4];
 
-    assert(trains_[train_num].dir != STAY); // Ensure the train is actually moving
-    uint8_t new_zone = possible_zones[hall_sensor_num][trains_[train_num].dir][1];
-    uint8_t prev_zone = possible_zones[hall_sensor_num][(trains_[train_num].dir == CW) ? CW : CCW][1]; // Previous zone is the zone that we were
+    assert(trains_[train_num].train_ctrl.dir != STAY); // Ensure the train is actually moving
+    uint8_t new_zone = possible_zones[hall_sensor_num][trains_[train_num].train_ctrl.dir][1];
+    uint8_t prev_zone = possible_zones[hall_sensor_num][(trains_[train_num].train_ctrl.dir == CW) ? CW : CCW][1]; // Previous zone is the zone that we were
 
     assert(new_zone != ER); // TODO: make this stop all trains
 
@@ -104,6 +104,10 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
 
     PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 4);
 
+    // TODO: Stop train if it is at destination
+
+    // Else, Route if needed
+
     // Route if needed
     CheckIfRoutingNeeded(train_num);
 }
@@ -113,7 +117,7 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
 // If the train has entered a new zone, check if it should reroute from that zone
 void TrainController::CheckIfRoutingNeeded(uint8_t train_num) {
     for (uint8_t i = 0; i < NUM_DANGER_ZONES; i++) {
-        if ((trains_[train_num].primary_zone == routing_needed_zones[i][0]) && (trains_[train_num].dir == routing_needed_zones[i][1])) {
+        if ((trains_[train_num].primary_zone == routing_needed_zones[i][0]) && (trains_[train_num].train_ctrl.dir == routing_needed_zones[i][1])) {
             RouteTrain(train_num);
             return;
         }
@@ -150,8 +154,8 @@ void TrainController::RouteTrain(uint8_t train_num) {
 void TrainController::HandlePartialZoneChange(uint8_t hall_sensor_num, uint8_t train_num) {
     static uint8_t msg_body[3];
 
-    assert(trains_[train_num].dir != STAY); // Ensure the train is actually moving
-    uint8_t partial_zone = possible_zones[hall_sensor_num][trains_[train_num].dir][1];
+    assert(trains_[train_num].train_ctrl.dir != STAY); // Ensure the train is actually moving
+    uint8_t partial_zone = possible_zones[hall_sensor_num][trains_[train_num].train_ctrl.dir][1];
 
     // Update monitor with zone changes
     msg_body[0] = ZONE_CHANGE;
@@ -171,7 +175,7 @@ void TrainController::TrainControllerLoop() {
 
     static uint8_t src_q;
     static uint32_t mailbox_msg_len;
-    static char msg_body[2]; // TODO: Magic number
+    static char msg_body[10]; // TODO: Magic number
 
     static switch_ctrl_t switch_ctrl;
     static train_ctrl_t train_ctrl;
@@ -279,15 +283,24 @@ void TrainController::TrainControllerLoop() {
                 if (trains_[msg_body[1]].current_dst == NO_ZONE) {
                     assert(trains_[msg_body[1]].train_ctrl.dir == STAY); // If train is not en_route, it should be stationary
                     trains_[msg_body[1]].primary_zone = msg_body[2];
+
+                    // Update monitor with zone changes
+                    msg_body[0] = ZONE_CHANGE;
+                    // msg_body[1] = msg_body[1]; // Already in place
+                    // msg_body[2] = msg_body[2];
+                    msg_body[3] = NO_ZONE;
+
+                    PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 4);
                 }
                 break;
+
             case TRAIN_GO_CMD:
                 // msg_body[1] contains the train number
                 // msg_body[2] contains the first destination
 
                 // If the train is currently stationary and not en_route
                 // TODO: Add functionality to allow the train to be re-routed when en-route
-                if (trains_[msg_body[1]].dir == STAY && trains_[msg_body[1]].current_dst == NO_ZONE) {
+                if (trains_[msg_body[1]].train_ctrl.dir == STAY && trains_[msg_body[1]].current_dst == NO_ZONE) {
                     trains_[msg_body[1]].current_dst = msg_body[2];
                     RouteTrain(msg_body[1]);
                 }

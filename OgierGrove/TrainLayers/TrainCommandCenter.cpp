@@ -122,10 +122,10 @@ void TrainCommandCenter::InitCommand(std::string arg) {
     static uint8_t init_msg[3];
 
     init_msg[0] = ZONE_CMD;
-    init_msg[1] = SafeStoi(TokenizedArgs_[0]);
-    init_msg[2] = SafeStoi(TokenizedArgs_[1]);
+    init_msg[1] = SafeStoi(TokenizedArgs_[0]) - 1; // Train #: Decremented to match table in control system
+    init_msg[2] = SafeStoi(TokenizedArgs_[1]);     // Zone Number
 
-    if ((init_msg[1] == 0 || init_msg[1] > NUM_TRAINS)||(init_msg[2] > NUM_ZONES)) {
+    if ( (init_msg[1] >= NUM_TRAINS) || (init_msg[2] > NUM_ZONES) ) {
         SendErrorMsg("[TrainCommandCenter::InitCommand] Error! Malformed Command (due to numbers)!\n");
         return;
     }
@@ -134,10 +134,13 @@ void TrainCommandCenter::InitCommand(std::string arg) {
     PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)init_msg, 3);
 }
 
+// Two arguments
+// 1) Train Num
+// 2) Destination Zone
 void TrainCommandCenter::TrainGoCommand(std::string arg) {
     int tmp_code = TokenizeArguments(arg);
 
-    if (tmp_code != 1) { // TODO: Add option to allow multiple routes, increase number of arguments taken
+    if (tmp_code != 2) { // TODO: Add option to allow multiple routes, increase number of arguments taken
         SendErrorMsg("[TrainCommandCenter::TrainGoCommand] Error! Malformed Command (due to number of args)!\n");
         return;
     }
@@ -145,9 +148,10 @@ void TrainCommandCenter::TrainGoCommand(std::string arg) {
     static uint8_t train_go_msg[3];
 
     train_go_msg[0] = TRAIN_GO_CMD;
-    train_go_msg[1] = SafeStoi(TokenizedArgs_[0]);
+    train_go_msg[1] = SafeStoi(TokenizedArgs_[0]) - 1; // Train #: Decremented to match table in control system
+    train_go_msg[2] = SafeStoi(TokenizedArgs_[1]);     // Zone Number
 
-    if (train_go_msg[1] > NUM_ZONES) {
+    if ( (train_go_msg[1] >= NUM_TRAINS) || (train_go_msg[2] > NUM_ZONES) ) { // TODO: Fix hard-coding
         SendErrorMsg("[TrainCommandCenter::TrainGoCommand] Error! Malformed Command (due to numbers)!\n");
         return;
     }
