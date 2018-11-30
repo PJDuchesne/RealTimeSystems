@@ -17,12 +17,12 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+#include "TrainLibrary.h"
+#include <ISRLayer/Includes/GlobalMailboxes.h>
+
 #include "TrainMonitor.h"
 
-#include <ISRLayer/Includes/GlobalMailboxes.h>
-#include "TrainLibrary.h"
-
-#define NUM_VALID_TRAIN_COMMANDS  5
+#define NUM_VALID_TRAIN_COMMANDS  7
 const std::string valid_train_commands[NUM_VALID_TRAIN_COMMANDS] = {
   "TRAIN",
   "SWITCH",
@@ -41,8 +41,6 @@ class TrainCommandCenter {
         static TrainCommandCenter* TrainCommandCenterInstance_;
         typedef void (TrainCommandCenter::*FunctionPtr)(std::string arg);
         FunctionPtr FunctionTable[NUM_VALID_TRAIN_COMMANDS];
-
-        TrainMonitor *TrainMonitorInstance_;
 
         bool cup_reset;
 
@@ -65,7 +63,6 @@ class TrainCommandCenter {
 
     public:
         TrainCommandCenter();
-        void SingletonGrab();
 
         void HandleCommand(std::string command_str);
 

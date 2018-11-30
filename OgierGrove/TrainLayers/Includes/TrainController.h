@@ -76,19 +76,11 @@ typedef struct train_state {
             uint8_t primary_zone;
 
             // If set, the train is current transitioning from the primary zone to this zone
-            // If "Not set", the value is set to NO_ZONE (255)
+            // If "Not set", the value is set to NO_ZONE (255) 
             uint8_t secondary_zone;
         };
         uint8_t zones[MAX_ZONES_PER_TRAIN];
     };
-
-    // The current zone the train is occupying
-    // If partially occupying a zone, this is the zone the train is leaving
-    uint8_t primary_zone;
-
-    // If set, the trainis current transitioning from the primary zone to this secondary zone
-    // If "Not set", the value is set to NO_ZONE (255)
-    uint8_t secondary_zone;
 
     union {
         struct
@@ -97,13 +89,13 @@ typedef struct train_state {
             uint8_t second_last_hall_triggered;
         };
         uint16_t last_two_hall_triggers;
-    }
+    };
 
     // Number, direction, and speed
     train_ctrl_t train_ctrl;
 
     uint8_t current_dst;
-    uint8_t speed;
+    uint8_t default_speed;
 
 } train_state_t;
 
@@ -199,7 +191,7 @@ class TrainController {
         TrainCommandCenter* TrainCommandCenterInstance_;
         TrainMonitor* TrainMonitorInstance_;
 
-        RingBuffer<switch_ctrl_t> *switch_buffer_;
+        RingBuffer<switch_ctrl_t> *switch_msg_buffer_;
         RingBuffer<train_ctrl_t> *train_msg_buffer_;
 
         train_state_t trains_[NUM_TRAINS];
@@ -208,6 +200,7 @@ class TrainController {
         void CmdTrain(train_ctrl_t train_ctrl);
         uint8_t WhichTrain(uint8_t hall_sensor_num);
         void HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_num);
+        void HandlePartialZoneChange(uint8_t hall_sensor_num, uint8_t train_num);
 
         void CheckIfRoutingNeeded(uint8_t train_num); // Calls RouteTrain for trains en_route
         void RouteTrain(uint8_t train_num); // Routes from any zone to any other zone using routing_table

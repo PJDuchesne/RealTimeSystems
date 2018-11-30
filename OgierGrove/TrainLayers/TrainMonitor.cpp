@@ -15,6 +15,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 */
 
 #include "Includes/TrainMonitor.h"
+#include "Includes/TrainCommandCenter.h"
 
 // Singleton Instance
 TrainMonitor *TrainMonitor::TrainMonitorInstance_ = 0;
@@ -68,9 +69,6 @@ TrainMonitor::~TrainMonitor() {
 */
 void TrainMonitor::SingletonGrab() {
     ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
-    TrainCommandCenterInstance_ = TrainCommandCenter::GetTrainCommandCenter();
-
-    TrainCommandCenterInstance_->SingletonGrab();    
 }
 
 /*
@@ -141,7 +139,6 @@ void TrainMonitor::InputUARTChar(char input_char) {
             break;
         case 0x0D: // Enter (Carriage Return)
             // Handle command
-            TrainCommandCenterInstance_->HandleCommand(command_string);
 
             // Update command string
             command_string = "";

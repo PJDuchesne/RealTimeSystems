@@ -48,6 +48,6 @@ void TrainMonitorLoopEntry();
 void TrainTimeServer();
 
 // Train Controller for routing the train(s) to various destinations
-void TrainControllerLoop();
+void TrainControllerLoopEntry();
 
 #endif /* TrainProcesses_H */

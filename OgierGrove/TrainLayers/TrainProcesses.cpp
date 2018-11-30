@@ -98,7 +98,7 @@ void TrainTimeServer() {
     TrainTimeServer::GetTrainTimeServer()->TrainTimeServerLoop();
 }
 
-void TrainControllerLoop() {
+void TrainControllerLoopEntry() {
     ISRMsgHandler::GetISRMsgHandler();
     TrainController::GetTrainController()->TrainControllerLoop();
 }

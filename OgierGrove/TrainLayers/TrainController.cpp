@@ -24,32 +24,33 @@ TrainController::TrainController() {
     train_msg_buffer_ = new RingBuffer<train_ctrl_t>(TRAIN_BUFFER_SIZE);
 
     for(uint8_t i = 0; i < NUM_TRAINS; i++) {
-        trains_[i].dir = STAY;
-        trains_[i].primary_zone = NO_ZONE;
-        trains_[i].secondary_zone = NO_ZONE;
-        trains_[i].last_hall_triggered = NO_HALL;
+        trains_[i].primary_zone               = NO_ZONE;
+        trains_[i].secondary_zone             = NO_ZONE;
+        trains_[i].current_dst                = NO_ZONE;
+        trains_[i].last_hall_triggered        = NO_HALL;
         trains_[i].second_last_hall_triggered = NO_HALL;
-        trains_[i].current_dst = NO_ZONE;
-        trains_[i].speed = 4; // TODO: Un-hardcode this speed
+        trains_[i].default_speed              = 4; // TODO: Un-hardcode this speed
 
-        trains_[i].num = i + 1;
-        train
+        // Set up control block
+        trains_[i].train_ctrl.speed = 0;
+        trains_[i].train_ctrl.num = i + 1;
+        trains_[i].train_ctrl.dir = STAY;
     }
 }
 
 TrainController::~TrainController() {
-    delete switch_buffer_;
+    delete switch_msg_buffer_;
     delete train_msg_buffer_;
 }
 
 void TrainController::SetSwitch(switch_ctrl_t switch_ctrl) {
-    switch_buffer_->Add(switch_ctrl);
-    TrainCommandCenterInstance_->SendSwitchCommand(switch_ctrl.switch_num, switch_ctrl.req_state, TRAIN_CONTROLLER_MB);
+    switch_msg_buffer_->Add(switch_ctrl);
+    TrainCommandCenterInstance_->SendSwitchCommand(switch_ctrl.num, (switch_direction_t)switch_ctrl.req_state, TRAIN_CONTROLLER_MB);
 }
 
 void TrainController::CmdTrain(train_ctrl_t train_ctrl) {
     train_msg_buffer_->Add(train_ctrl);
-    TrainCommandCenterInstance_->SendTrainCommand(train_ctrl.num, train_ctrl.req_speed, train_ctrl.req_dir, TRAIN_CONTROLLER_MB);
+    TrainCommandCenterInstance_->SendTrainCommand(train_ctrl.num, train_ctrl.speed, (train_direction_t)train_ctrl.dir, TRAIN_CONTROLLER_MB);
 }
 
 // 0 for ERROR state (No train could possibly have triggered)
@@ -122,25 +123,28 @@ void TrainController::CheckIfRoutingNeeded(uint8_t train_num) {
 // Handles sending train to any zone from any other zone
 // Also in charge of stopping the train!
 void TrainController::RouteTrain(uint8_t train_num) {
-    // Fetch direction the train should go
-    train_ctrl_t train_ctrl;
-    train_ctrl.num = train_num;
-    train_ctrl.req_dir = routing_table[trains_[train_num].primary_zone][trains_[train_num].current_dst][0];
-    train_ctrl.
+    /* Check if any switching needs to be done */
 
-    // Check if any switching needs to be done
     switch_ctrl_t switch_ctrl;
     switch_ctrl.req_state = routing_table[trains_[train_num].primary_zone][trains_[train_num].current_dst][1];
 
     // If switching is required, fetch the number and send the command *FIRST*
     if (switch_ctrl.req_state != NOT_NEEDED) {
         switch_ctrl.num = routing_table[trains_[train_num].primary_zone][trains_[train_num].current_dst][2];
-        assert(switch_num != 0 && switch_num <= 6); // TODO: For debugging
+        assert(switch_ctrl.num != 0 && switch_ctrl.num <= 6); // TODO: For debugging
 
         SetSwitch(switch_ctrl);
     }
 
-    CmdTrain(train_num);
+    /* Route train as needed */
+
+    // Fetch direction the train should go
+    trains_[train_num].train_ctrl.dir = routing_table[trains_[train_num].primary_zone][trains_[train_num].current_dst][0];
+
+    if (trains_[train_num].train_ctrl.dir == STAY) trains_[train_num].train_ctrl.speed = 0;
+    else trains_[train_num].train_ctrl.speed = trains_[train_num].default_speed;
+
+    CmdTrain(trains_[train_num].train_ctrl);
 }
 
 void TrainController::HandlePartialZoneChange(uint8_t hall_sensor_num, uint8_t train_num) {
@@ -236,7 +240,7 @@ void TrainController::TrainControllerLoop() {
                     std::cout << "[TrainController::TrainControllerLoop] WARNING: ACK Was receieved for unaccounted for TRAIN command\n";
                     break;
                 }
-                else train_ctrl = train_buffer_->Get();
+                else train_ctrl = train_msg_buffer_->Get();
 
                 tmp_num = msg_body[1];
                 assert(train_ctrl.num == tmp_num); // Top of ring buffer's switch num should equal the ACKed request
@@ -256,7 +260,7 @@ void TrainController::TrainControllerLoop() {
                     std::cout << "[TrainController::TrainControllerLoop] WARNING: ACK Was receieved for unaccounted for SWITCH command\n";
                     break;
                 }
-                else switch_ctrl = switch_buffer_->Get();
+                else switch_ctrl = switch_msg_buffer_->Get();
 
                 assert(switch_ctrl.num == msg_body[1]); // Top of ring buffer's switch num should equal the ACKed request
 
@@ -266,16 +270,15 @@ void TrainController::TrainControllerLoop() {
                 }
                 else {
                     std::cout << "[TrainController::TrainControllerLoop] WARNING: SWITCH Command failed, resending request\n";
-                    TrainCommandCenterInstance_->SendSwitchCommand(switch_ctrl.switch_num, switch_ctrl.req_state, TRAIN_CONTROLLER_MB);
+                    SetSwitch(switch_ctrl);
                 }
 
                 break;
             case ZONE_CMD: // Internal Init cmd
                 // Only allowed to initialize train while it is not en route (signified by dst == NO_ZONE)
                 if (trains_[msg_body[1]].current_dst == NO_ZONE) {
-                    assert(msg_body[1].dir == STAY); // If train is not en_route, it should be stationary
+                    assert(trains_[msg_body[1]].train_ctrl.dir == STAY); // If train is not en_route, it should be stationary
                     trains_[msg_body[1]].primary_zone = msg_body[2];
-
                 }
                 break;
             case TRAIN_GO_CMD:

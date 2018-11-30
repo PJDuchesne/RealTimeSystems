@@ -17,12 +17,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include "../../OSLayer/Includes/RingBuffer.h"
-#include <ApplicationLayer/Includes/ISRMsgHandler.h>
-#include "TrainCommandCenter.h"
 #include "TrainLibrary.h"
-
+#include "../../OSLayer/Includes/RingBuffer.h"
 #include <ISRLayer/Includes/GlobalMailboxes.h>
+#include <ApplicationLayer/Includes/ISRMsgHandler.h>
 
 #define TRAIN_DATA_BUFFER_SIZE 61
 #define NEW_LINE         "\n\r > "
@@ -31,14 +29,12 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 // Forward Declarations
 class ISRMsgHandler;
-class TrainCommandCenter;
 
 class TrainMonitor {
     private:
         static TrainMonitor* TrainMonitorInstance_;
 
         ISRMsgHandler *ISRMsgHandlerInstance_;
-        TrainCommandCenter *TrainCommandCenterInstance_;
 
         bool CupReset_;
 

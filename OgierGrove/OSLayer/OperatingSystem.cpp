@@ -88,7 +88,7 @@ void OperatingSystem::Inialize() {
         case 7: // Trains!
             // Add Monitor (and RevereString as lithmus test (For testing))
             // RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
-            RegProc(&TrainMonitorLoopEntry, 220, P_THREE, "TrainMonitor");
+            RegProc(&TrainMonitorLoopEntry, 205, P_THREE, "TrainMonitor");
 
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
 
@@ -109,6 +109,9 @@ void OperatingSystem::Inialize() {
 
             // Add new time server to perform DLL timeouts
             RegProc(&TrainTimeServer, 204, P_THREE, "TrainTimeServer");
+
+            // Add Train Controller loop entry
+            RegProc(&TrainControllerLoopEntry, 206, P_THREE, "TrainController");
 
             break;
         default:

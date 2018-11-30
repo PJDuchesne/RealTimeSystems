@@ -42,7 +42,7 @@ void TrainCommandCenter::TrainCommand(std::string args) { // Two arguments
         return;
     }
 
-    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(GREEN);
+    TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendTrainCommand(train_num, train_speed, train_dir);
 }
 
@@ -68,8 +68,8 @@ void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
         return;
     }
 
-    if (TrainMonitorInstance_) TrainMonitorInstance_->VisuallySetSwitch(switch_num, switch_dir);
-    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(GREEN);
+    TrainMonitor::GetTrainMonitor()->VisuallySetSwitch(switch_num, switch_dir);
+    TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendSwitchCommand(switch_num, switch_dir);
 }
 
@@ -87,7 +87,7 @@ void TrainCommandCenter::SensorCommand(std::string arg) {
         return;
     }
     
-    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(GREEN);
+    TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendSensorAcknowledge(sensor_num);
 }
 
@@ -97,7 +97,7 @@ void TrainCommandCenter::QueueResetCommand(std::string arg) {
         return;
     }
 
-    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(GREEN);
+    TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendSensorQueueReset();
 }
 
@@ -107,11 +107,11 @@ void TrainCommandCenter::RefreshCommand(std::string arg) {
         return;
     }
 
-    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(GREEN);
-    if (TrainMonitorInstance_) TrainMonitorInstance_->InitializeScreen();
+    TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
+    TrainMonitor::GetTrainMonitor()->InitializeScreen();
 }
 
-void TrainCommand::InitCommand(std::string arg) {
+void TrainCommandCenter::InitCommand(std::string arg) {
     int tmp_code = TokenizeArguments(arg);
 
     if (tmp_code != 2) {
@@ -121,9 +121,9 @@ void TrainCommand::InitCommand(std::string arg) {
 
     static uint8_t init_msg[3];
 
-    uint8_t init_msg[0] = ZONE_CMD;
-    uint8_t init_msg[1] = SafeStoi(TokenizedArgs_[0]);
-    uint8_t init_msg[2] = SafeStoi(TokenizedArgs_[1]);
+    init_msg[0] = ZONE_CMD;
+    init_msg[1] = SafeStoi(TokenizedArgs_[0]);
+    init_msg[2] = SafeStoi(TokenizedArgs_[1]);
 
     if ((init_msg[1] == 0 || init_msg[1] > NUM_TRAINS)||(init_msg[2] > NUM_ZONES)) {
         SendErrorMsg("[TrainCommandCenter::InitCommand] Error! Malformed Command (due to numbers)!\n");
@@ -134,7 +134,7 @@ void TrainCommand::InitCommand(std::string arg) {
     PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)init_msg, 3);
 }
 
-void TrainGoCommand(std::string arg) {
+void TrainCommandCenter::TrainGoCommand(std::string arg) {
     int tmp_code = TokenizeArguments(arg);
 
     if (tmp_code != 1) { // TODO: Add option to allow multiple routes, increase number of arguments taken
@@ -144,8 +144,8 @@ void TrainGoCommand(std::string arg) {
 
     static uint8_t train_go_msg[3];
 
-    uint8_t train_go_msg[0] = TRAIN_GO_CMD;
-    uint8_t train_go_msg[1] = SafeStoi(TokenizedArgs_[0]);
+    train_go_msg[0] = TRAIN_GO_CMD;
+    train_go_msg[1] = SafeStoi(TokenizedArgs_[0]);
 
     if (train_go_msg[1] > NUM_ZONES) {
         SendErrorMsg("[TrainCommandCenter::TrainGoCommand] Error! Malformed Command (due to numbers)!\n");
@@ -157,7 +157,7 @@ void TrainGoCommand(std::string arg) {
 }
 
 void TrainCommandCenter::SendErrorMsg(std::string msg) {
-    if (TrainMonitorInstance_) TrainMonitorInstance_->UpdateCommandStatus(RED);
+    TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(RED);
 }
 
 int TrainCommandCenter::TokenizeArguments(std::string &arg) {
@@ -204,7 +204,7 @@ void TrainCommandCenter::SendSwitchCommand(uint8_t switch_num, switch_direction_
         std::cout << "TrainCommandCenter::SendSwitchCommand(): Warning! PSend Failed\n";
     }
 
-    if (TrainMonitorInstance_) TrainMonitorInstance_->VisuallySetSwitch(switch_num, switch_dir);
+    TrainMonitor::GetTrainMonitor()->VisuallySetSwitch(switch_num, direction);
 }
 
 void TrainCommandCenter::SendSensorAcknowledge(uint8_t sensor_number, uint8_t src_q) {
@@ -264,15 +264,8 @@ TrainCommandCenter::TrainCommandCenter() {
     FunctionTable[2] = &TrainCommandCenter::SensorCommand;
     FunctionTable[3] = &TrainCommandCenter::QueueResetCommand;
     FunctionTable[4] = &TrainCommandCenter::RefreshCommand;
-}
-
-/*
-    Function: SingletonGrab
-    Brief: Setup function for the TrainCommandCenter to grab its required singleton pointers.
-           Called from main.cpp at startup.
-*/
-void TrainCommandCenter::SingletonGrab() {
-    TrainMonitorInstance_ = TrainMonitor::GetTrainMonitor();
+    FunctionTable[5] = &TrainCommandCenter::InitCommand;
+    FunctionTable[6] = &TrainCommandCenter::TrainGoCommand;
 }
 
 /*
