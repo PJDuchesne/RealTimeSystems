@@ -172,8 +172,6 @@ void TrainController::CheckIfRoutingNeeded(uint8_t train_num) {
 // Handles sending train to any zone from any other zone
 // Also in charge of stopping the train!
 void TrainController::RouteTrain(uint8_t train_num) {
-    static uint8_t msg_body[3];
-
     // Check if at current destination:
     if(trains_[train_num].current_zone == trains_[train_num].current_dst) {
         // Stop train
@@ -301,7 +299,7 @@ void TrainController::TrainControllerLoop() {
                 }
                 else train_ctrl = train_msg_buffer_->Get();
 
-                tmp_num = msg_body[1];
+                tmp_num = msg_body[1] - 1;
                 assert(train_ctrl.num == tmp_num); // Top of ring buffer's switch num should equal the ACKed request
 
                 // Check if msg was successful or not

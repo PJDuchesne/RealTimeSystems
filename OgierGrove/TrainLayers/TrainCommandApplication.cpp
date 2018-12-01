@@ -66,20 +66,33 @@ void TrainCommandApplication::MailboxLoop() {
 void TrainCommandApplication::HandleDLLMessage(char* request, uint8_t length) {
     assert(length >= 1 && length <= 3);
 
+    uint8_t tmp_num;
+    uint32_t tmp_time;
+
     switch (request[0]) {
         case '\xA0': // Hall sensor (#) triggered
             #if DEBUGGING_TRAIN == 1
             std::cout << "TrainCommandApplication::HandleDLLMessage(): Hall Sensor Triggered Msg >> Sensor: " << int(request[1]) << "<<\n";
             #endif
 
+            tmp_num = (uint8_t)request[1];
+            assert(tmp_num != 0 && tmp_num <= NUM_HALL_SENSORS); // Check this is a real hall sensor
+
             // Send a reply to reset the sensor
-            TrainCommandCenterInstance_->SendSensorAcknowledge(int(request[1]), TRAIN_APPLICATION_LAYER_MB);
+            TrainCommandCenterInstance_->SendSensorAcknowledge(tmp_num, TRAIN_APPLICATION_LAYER_MB);
 
-            // Tell TrainMonitor so it can update the screen
-            PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_MONITOR_MB, request, length);
+            // Tell the controller and the monitor if enough time has passed since last trigger
+            tmp_time = TrainTimeServer::GetTrainTimeServer()->GetCurrentTime();
+            if (tmp_time - HallTriggertimes_[tmp_num] > BOUNCE_TIME) {
+                // Tell TrainMonitor so it can update the screen
+                PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_MONITOR_MB, request, length);
 
-            // Tell TrainController so it can keep track of the train
-            PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_CONTROLLER_MB, request, length);
+                // Tell TrainController so it can keep track of the train
+                PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_CONTROLLER_MB, request, length);
+
+                assert(tmp_num != 0 && tmp_num <= NUM_HALL_SENSORS); 
+                HallTriggertimes_[tmp_num] = tmp_num;
+            }
             break;
         case '\xAA': // TODO: THIS IS USELESS
             #if DEBUGGING_TRAIN == 1
@@ -135,6 +148,8 @@ void TrainCommandApplication::HandleAppRequest(char* request, uint8_t length) {
     Brief: Constructor for the TrainCommandApplication class
 */
 TrainCommandApplication::TrainCommandApplication() {
+    // Clear hall sensor trigger times
+    for (uint8_t i = 0; i <= NUM_HALL_SENSORS; i++) HallTriggertimes_[i] = 0;
 }
 
 /*

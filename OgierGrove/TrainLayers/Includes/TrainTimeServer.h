@@ -51,6 +51,8 @@ class TrainTimeServer {
         TrainTimeServer();
         void TrainTimeServerLoop();
 
+        uint32_t GetCurrentTime();
+
         static TrainTimeServer* GetTrainTimeServer();
 };
 

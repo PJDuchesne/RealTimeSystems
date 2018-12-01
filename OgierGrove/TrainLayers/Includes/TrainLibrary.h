@@ -25,6 +25,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 // For cleaning printing hex characters
 #include <iomanip>
+
+// Flag to turn on 
+#define RESEND_TIMERS 0
+
 #define HEX(x) " " << std::setw(2) << std::setfill('0') << std::hex << int(x) << " " << std::dec
 
 #define DELAY(x) i_DELAY = 0; while(i_DELAY++ < x) {}
@@ -300,13 +304,25 @@ const uint8_t sensor_locations[MAX_NUM_SENSORS + 1][2] {
 
 // [Sensor #][Diverted (0) -> Straight (1)][Row (0) -> Column (1)]
 const uint8_t switch_locations[MAX_NUM_SWITCHES + 1][2][2] {
-    {{0,  0},  {0,  0 }}, // 0 --> DOES NOT EXIST
-    {{4,  21}, {5,  21}}, // 1
-    {{6,  39}, {5,  38}}, // 2
-    {{4,  59}, {5,  58}}, // 3
-    {{17, 59}, {16, 58}}, // 4
-    {{15, 41}, {16, 41}}, // 5
-    {{17, 21}, {16, 21}}, // 6
+//  DIVERTED   STRAIGHT
+    { {0,  0},  {0,  0 } }, // 0 --> DOES NOT EXIST
+    { {4,  21}, {5,  21} }, // 1
+    { {6,  39}, {5,  38} }, // 2
+    { {4,  59}, {5,  58} }, // 3
+    { {17, 59}, {16, 58} }, // 4
+    { {15, 41}, {16, 41} }, // 5
+    { {17, 21}, {16, 21} }, // 6
+};
+
+const std::string switch_strings[MAX_NUM_SWITCHES + 1][2] {
+    // DIV   STR
+    { "",     "---"}, // 0 --> DOES NOT EXIST
+    { "//",   "---"}, // 1
+    { "//",   "---"}, // 2
+    { "\\\\", "---"}, // 3
+    { "//",   "---"}, // 4
+    { "//",   "---"}, // 5
+    { "\\\\", "---"}, // 6
 };
 
 #define MAX_COLUMNS_PER_ZONE 4

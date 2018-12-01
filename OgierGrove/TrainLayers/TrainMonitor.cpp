@@ -308,89 +308,36 @@ void TrainMonitor::VisuallySetHallSensor(uint8_t sensor_num, bool status) {
 void TrainMonitor::VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir) {
     std::stringstream sstream;
 
+    assert(dir != NOT_NEEDED);
+
     // Reset all VT_100 Codes
     ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_RESET, UART0);
 
     // Set all sensors high or low
     if (switch_num == 255) {
-        for (int i = 1; i <= MAX_NUM_SWITCHES; i++) {
-            switch_states[i] = dir;
-
-            /* Handle straight portion first */
-
-            // Set cursor at correct location
-            TrainMonitor::PrintCup(switch_locations[i][STRAIGHT][ROW], switch_locations[i][STRAIGHT][COL]);
-
-            if (dir == STRAIGHT) ISRMsgHandlerInstance_->QueueOutputMsg("---", UART0);
-            else ISRMsgHandlerInstance_->QueueOutputMsg("   ", UART0);
-
-            /* Handle diverted portion second */
-
-            // Set cursor at correct location
-            TrainMonitor::PrintCup(switch_locations[i][DIVERTED][ROW], switch_locations[i][DIVERTED][COL]);
-
-
-            if (dir == DIVERTED) {
-                switch (i) {
-                    case 1:
-                    case 2:
-                    case 4:
-                    case 5:
-                        ISRMsgHandlerInstance_->QueueOutputMsg("//", UART0);
-                        break;
-                    case 3:
-                    case 6:
-                        ISRMsgHandlerInstance_->QueueOutputMsg("\\\\", UART0);
-                        break;
-                    default: // No possible error state
-                        break;
-                }
-            }
-            else ISRMsgHandlerInstance_->QueueOutputMsg("  ", UART0);
-
-        }
-    }
-    else if (switch_num != 0 && switch_num <= 6) { // Else set individual switch
-        switch_states[switch_num] = dir;
-
-        /* Handle straight portion first */
-
-        // Set cursor at correct location
-        TrainMonitor::PrintCup(switch_locations[switch_num][STRAIGHT][ROW], switch_locations[switch_num][STRAIGHT][COL]);
-
-        if (dir == STRAIGHT) ISRMsgHandlerInstance_->QueueOutputMsg("---", UART0);
-        else ISRMsgHandlerInstance_->QueueOutputMsg("   ", UART0);
-
-        /* Handle diverted portion second */
-
-        // Set cursor at correct location
-        TrainMonitor::PrintCup(switch_locations[switch_num][DIVERTED][ROW], switch_locations[switch_num][DIVERTED][COL]);
-
-
-        if (dir == DIVERTED) {
-            switch (switch_num) {
-                case 1:
-                case 2:
-                case 4:
-                case 5:
-                    ISRMsgHandlerInstance_->QueueOutputMsg("//", UART0);
-                    break;
-                case 3:
-                case 6:
-                    ISRMsgHandlerInstance_->QueueOutputMsg("\\\\", UART0);
-                    break;
-                default: // No possible error state
-                    break;
-            }
-        }
-        else ISRMsgHandlerInstance_->QueueOutputMsg("  ", UART0);
-
-    }
+        for (uint8_t i = 1; i < MAX_NUM_SWITCHES; i++) SetIndividualSwitch(i, dir);
+    } // Or set one individual switch
+    else if (switch_num != 0 && switch_num <= 6) SetIndividualSwitch(switch_num, dir);
     else {
         // TODO: Error state
     }
 
     CupReset_ = true;
+}
+
+void TrainMonitor::SetIndividualSwitch(uint8_t switch_num, switch_direction_t dir) {
+    /* Handle straight portion first */
+    TrainMonitor::PrintCup(switch_locations[switch_num][STRAIGHT][ROW], switch_locations[switch_num][STRAIGHT][COL]);
+
+    // If straight, draw straight portion, else clear it
+    if (dir == STRAIGHT) ISRMsgHandlerInstance_->QueueOutputMsg(switch_strings[switch_num][STRAIGHT], UART0);
+    else ISRMsgHandlerInstance_->QueueOutputMsg("   ", UART0);
+
+    /* Handle diverted portion second */
+    TrainMonitor::PrintCup(switch_locations[switch_num][DIVERTED][ROW], switch_locations[switch_num][DIVERTED][COL]);
+
+    if (dir == DIVERTED) ISRMsgHandlerInstance_->QueueOutputMsg(switch_strings[switch_num][DIVERTED], UART0);
+    else ISRMsgHandlerInstance_->QueueOutputMsg("   ", UART0);
 }
 
 void TrainMonitor::VisuallyUpdateTrainInfo(uint8_t train_num, uint8_t speed, train_direction_t dir) {
@@ -473,6 +420,7 @@ void TrainMonitor::PaintZone(uint8_t zone, color_t color) {
     }
 }
 
+// TODO: Make this a table
 // Essentially a macro
 uint8_t TrainMonitor::IsSwitchZone(uint8_t zone) {
     switch (zone) {

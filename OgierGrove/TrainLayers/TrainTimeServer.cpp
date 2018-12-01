@@ -76,7 +76,9 @@ void TrainTimeServer::TrainTimeServerLoop() {
                 assert((int)msg_body[0] <= 8);
                 assert((int)msg_body[1] <= 1);
 
+                #if RESEND_TIMERS == 1
                 SetAlarm((int)msg_body[0], (bool)msg_body[1]);
+                #endif
                 break;
             default:
                 std::cout << "TrainTimeServer::TrainTimeServerLoop(): ERROR: MEssage from invalid source\n!";
@@ -103,6 +105,10 @@ void TrainTimeServer::SetAlarm(uint8_t alarm_num, bool set_flag) {
 
         trainAlarms[alarm_num].is_active = false;
     }
+}
+
+uint32_t TrainTimeServer::GetCurrentTime() {
+    return currentDeciTime_;
 }
 
 /*

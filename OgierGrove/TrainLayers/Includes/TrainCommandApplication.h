@@ -21,6 +21,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <ApplicationLayer/Includes/ISRMsgHandler.h>
 
 #include "TrainCommandCenter.h"
+#include "TrainTimeServer.h"
+
+// Empirically derived from a single test at max speed
+// when running the train between two hall sensors
+#define BOUNCE_TIME 25 // 20 Centiseconds is 0.2 seconds
 
 // Forward Declaration
 class TrainCommandCenter;
@@ -30,6 +35,8 @@ class TrainCommandApplication {
         static TrainCommandApplication* TrainCommandApplicationInstance_;
 
         TrainCommandCenter* TrainCommandCenterInstance_;
+
+        uint32_t HallTriggertimes_[NUM_HALL_SENSORS + 1];
 
         void HandleDLLMessage(char* request, uint8_t length);
         void HandleAppRequest(char* request, uint8_t length);

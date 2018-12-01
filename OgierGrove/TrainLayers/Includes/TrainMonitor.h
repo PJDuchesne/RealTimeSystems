@@ -52,6 +52,7 @@ class TrainMonitor {
 
         void PaintZone(uint8_t zone, color_t color);
         uint8_t IsSwitchZone(uint8_t zone);
+        void SetIndividualSwitch(uint8_t switch_num, switch_direction_t dir);
 
     public:
         TrainMonitor();
