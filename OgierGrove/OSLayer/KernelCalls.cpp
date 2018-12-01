@@ -157,7 +157,7 @@ kernel_responses_t KSend(kcallargs_t *kcaptr) {
                 break;
 
             case SMALL_LETTER: // Performs the same memcpy
-                assert(actual_msg_len < 16);
+                assert(actual_msg_len <= 16);
                 memcpy(requested_mailbox->kcaptr->msg_ptr, kcaptr->msg_ptr, actual_msg_len);
             case BIG_LETTER:
                 assert(actual_msg_len < 256);

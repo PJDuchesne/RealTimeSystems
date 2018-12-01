@@ -79,22 +79,7 @@ typedef struct sensor_trigger {
 } sensor_trigger_t;
 
 typedef struct train_state {
-    // Current direction the train is moving (CW, STAY, or CCW)
-    train_direction_t dir;
-
-    union {
-        struct
-        {
-            // The current zone the train is occupying
-            // If partially occupying a zone, this is the zone the train is leaving
-            uint8_t primary_zone;
-
-            // If set, the train is current transitioning from the primary zone to this zone
-            // If "Not set", the value is set to NO_ZONE (255) 
-            uint8_t secondary_zone;
-        };
-        uint8_t zones[MAX_ZONES_PER_TRAIN];
-    };
+    uint8_t current_zone;
 
     // 0) Sensor # that has triggered recently
     // 1) Number of triggers that has happened
@@ -124,61 +109,60 @@ typedef struct train_state {
 // 3) Possible Hall Sensors (From 1 to 24, 0 is NULL), only 2 possible options
 const uint8_t possible_halls[NUM_ZONES][2][MAX_NUM_SENSORS_FROM_A_ZONE_FOR_A_DIRECTION] {
 //         CW         CCW
-/* 0  */ { {16, 0},  {1,  0}  },
-/* 1  */ { {0,  0},  {2,  17} },
-/* 2  */ { {1,  0},  {3,  0}  },
-/* 3  */ { {2,  0},  {4,  21} },
-/* 4  */ { {3,  0},  {5,  0}  },
-/* 5  */ { {4,  18}, {6,  0}  },
-/* 6  */ { {5,  0},  {7,  0}  },
-/* 7  */ { {6,  0},  {8,  0}  },
-/* 8  */ { {7,  0},  {9,  0}  },
-/* 9  */ { {8,  0},  {10, 19} },
-/* 10 */ { {9,  0},  {11, 0}  },
-/* 11 */ { {10, 0},  {12, 23} },
-/* 12 */ { {11, 0},  {13, 0}  },
-/* 13 */ { {12, 20}, {14, 0}  },
-/* 14 */ { {13, 0},  {15, 0}  },
-/* 15 */ { {14, 0},  {0,  0}  },
-/* 16 */ { {17, 0},  {18, 0}  },
-/* 17 */ { {21, 0},  {22, 0}  },
-/* 18 */ { {23, 0},  {24, 0}  },
-/* 19 */ { {19, 0},  {20, 0}  },
+/* 0  */ { {16, NO_HALL},  {1,  NO_HALL} },
+/* 1  */ { {1,  NO_HALL},  {2,  17}      },
+/* 2  */ { {2,  NO_HALL},  {3,  NO_HALL} },
+/* 3  */ { {3,  NO_HALL},  {4,  21}      },
+/* 4  */ { {4,  NO_HALL},  {5,  NO_HALL} },
+/* 5  */ { {5,  18     },  {6,  NO_HALL} },
+/* 6  */ { {6,  NO_HALL},  {7,  NO_HALL} },
+/* 7  */ { {7,  NO_HALL},  {8,  NO_HALL} },
+/* 8  */ { {8,  NO_HALL},  {9,  NO_HALL} },
+/* 9  */ { {9,  NO_HALL},  {10, 19}      },
+/* 10 */ { {10, NO_HALL},  {11, NO_HALL} },
+/* 11 */ { {11, NO_HALL},  {12, 23}      },
+/* 12 */ { {12, NO_HALL},  {13, NO_HALL} },
+/* 13 */ { {13, 20     },  {14, NO_HALL} },
+/* 14 */ { {14, NO_HALL},  {15, NO_HALL} },
+/* 15 */ { {15, NO_HALL},  {16, NO_HALL} },
+/* 16 */ { {17, NO_HALL},  {18, NO_HALL} },
+/* 17 */ { {22, NO_HALL},  {21, NO_HALL} },
+/* 18 */ { {23, NO_HALL},  {24, NO_HALL} },
+/* 19 */ { {19, NO_HALL},  {20, NO_HALL} },
 };
 
-#define MAX_NUM_ZONES_FROM_A_SENSOR_AND_DIRECTION 1
 #define ER 255 // Error state
 
 // 1) Hall Triggered
 // 2) Current Train Direction
 // 3) Possible Hall Sensors (From 1 to 24, 0 is NULL), only 2 possible options
-const uint8_t possible_zones[NUM_HALL_SENSORS + 1][2][MAX_NUM_ZONES_FROM_A_SENSOR_AND_DIRECTION] {
-//         CW    CCW
-/* 0  */ { {ER}, {ER} }, // This sensor does not exist
-/* 1  */ { {0},  {1}  },
-/* 2  */ { {1},  {2}  },
-/* 3  */ { {2},  {3}  },
-/* 4  */ { {3},  {4}  },
-/* 5  */ { {4},  {5}  },
-/* 6  */ { {5},  {6}  },
-/* 7  */ { {6},  {7}  },
-/* 8  */ { {7},  {8}  },
-/* 9  */ { {8},  {9}  },
-/* 10 */ { {9},  {10} },
-/* 11 */ { {10}, {11} },
-/* 12 */ { {11}, {12} },
-/* 13 */ { {12}, {13} },
-/* 14 */ { {13}, {14} },
-/* 15 */ { {14}, {15} },
-/* 16 */ { {15}, {0}  },
-/* 17 */ {  {1}, {16} },
-/* 18 */ { {16},  {5} },
-/* 19 */ {  {9}, {19} },
-/* 20 */ { {19}, {13} },
-/* 21 */ {  {3}, {17} },
-/* 22 */ { {17}, {ER} }, // Not a feasible state
-/* 23 */ { {11}, {18} },
-/* 24 */ { {18}, {ER} }, // Not a feasible state
+const uint8_t possible_zones[NUM_HALL_SENSORS + 1][2] {
+//         CW  CCW
+/* 0  */ { ER, ER }, // This sensor does not exist
+/* 1  */ { 0,   1 },
+/* 2  */ { 1,   2 },
+/* 3  */ { 2,   3 },
+/* 4  */ { 3,   4 },
+/* 5  */ { 4,   5 },
+/* 6  */ { 5,   6 },
+/* 7  */ { 6,   7 },
+/* 8  */ { 7,   8 },
+/* 9  */ { 8,   9 },
+/* 10 */ { 9,  10 },
+/* 11 */ { 10, 11 },
+/* 12 */ { 11, 12 },
+/* 13 */ { 12, 13 },
+/* 14 */ { 13, 14 },
+/* 15 */ { 14, 15 },
+/* 16 */ { 15,  0 },
+/* 17 */ {  1, 16 },
+/* 18 */ { 16,  5 },
+/* 19 */ {  9, 19 },
+/* 20 */ { 19, 13 },
+/* 21 */ {  3, 17 },
+/* 22 */ { 17, ER }, // Not a feasible state
+/* 23 */ { 11, 18 },
+/* 24 */ { 18, ER }, // Not a feasible state
 };
 
 #define NUM_DANGER_ZONES 6 // Equal to the number of switches

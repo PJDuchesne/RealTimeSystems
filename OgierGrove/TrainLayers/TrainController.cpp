@@ -24,8 +24,7 @@ TrainController::TrainController() {
     train_msg_buffer_ = new RingBuffer<train_ctrl_t>(TRAIN_BUFFER_SIZE);
 
     for(uint8_t i = 0; i < NUM_TRAINS; i++) {
-        trains_[i].primary_zone               = NO_ZONE;
-        trains_[i].secondary_zone             = NO_ZONE;
+        trains_[i].current_zone               = NO_ZONE;
         trains_[i].current_dst                = NO_ZONE;
         trains_[i].last_hall_triggered        = NO_HALL;
         trains_[i].second_last_hall_triggered = NO_HALL;
@@ -74,33 +73,52 @@ void TrainController::StopTrain(uint8_t train_num) {
     msg_body[2] = NO_ZONE;
 
     PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 3);
+
+    // Reset triggered hall sensors in this train
+    for (uint8_t i = 0; i < MAX_DIFF_SENSORS; i++) {
+        trains_[train_num].triggered_sensors[i].reset = 0; // Reset both fields to 0
+    }
 }
 
 // 255 for ERROR state (No train could possibly have triggered)
 // 0 for Train 1,
 // 1 for Train 2, etc.
 uint8_t TrainController::WhichTrain(uint8_t hall_sensor_num) {
-    uint8_t train_num = 255;
+    uint8_t train_num = NO_TRAIN;
+
+    std::stringstream tmp_debugging;
+    tmp_debugging << "[TrainController::WhichTrain] Hall:" << (int)hall_sensor_num << "DIR: ";
+    switch (trains_[1].train_ctrl.dir) {
+        case CW:
+            tmp_debugging << "CW";
+            break;
+        case CCW:
+            tmp_debugging << "CCW";
+            break;
+        case STAY:
+            tmp_debugging << "STAY";
+            break;
+    }
 
     // Iterate through each train
     for(uint8_t x = 0; x < NUM_TRAINS; x++) {
         // If the train is not moving, it couldn't have triggered the hall sensor
         if (trains_[x].train_ctrl.dir == STAY) continue;
 
-        // Iterate each zone for the train (Primary/Secondary)
-        for (uint8_t y = 0; y < MAX_ZONES_PER_TRAIN; y++) {
+        // Iterate through each possible hall sensor for that zone and the train's current direction
+        for (uint8_t y = 0; y < MAX_NUM_SENSORS_FROM_A_ZONE_FOR_A_DIRECTION; y++) {
+            if (possible_halls[trains_[x].current_zone][trains_[x].train_ctrl.dir][y] == hall_sensor_num) {
+                assert(train_num == NO_TRAIN); // Only 1 train should ever be able to hit a given sensor at a given time
+                train_num = x;
 
-            // Iterate through each possible hall sensor for that zone and the train's current direction
-            for (uint8_t z = 0; z < MAX_NUM_SENSORS_FROM_A_ZONE_FOR_A_DIRECTION; z++) {
-                if (possible_halls[trains_[x].zones[y]][trains_[x].train_ctrl.dir][z] == hall_sensor_num) {
-                    assert(train_num == 0); // Only 1 train should ever be able to hit a given sensor at a given time
-                    train_num = x;
-
-                    // The trains should be moving if it has triggered a hall sensor
-                    assert(trains_[train_num].train_ctrl.dir != STAY);
-                }
+                // The trains should be moving if it has triggered a hall sensor
+                assert(trains_[train_num].train_ctrl.dir != STAY);
             }
         }
+    }
+
+    if (train_num == NO_TRAIN) {
+
     }
 
     return train_num;
@@ -109,8 +127,12 @@ uint8_t TrainController::WhichTrain(uint8_t hall_sensor_num) {
 void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_num) {
     // Determine which zone the train is moving into
     assert(trains_[train_num].train_ctrl.dir != STAY); // Ensure the train is actually moving
-    uint8_t new_zone = possible_zones[hall_sensor_num][trains_[train_num].train_ctrl.dir][1];
-    uint8_t prev_zone = possible_zones[hall_sensor_num][(trains_[train_num].train_ctrl.dir == CW) ? CW : CCW][1]; // Previous zone is the zone that we were
+
+    uint8_t tmp1 = (int)trains_[train_num].train_ctrl.dir;
+    uint8_t tmp2 = (int)((trains_[train_num].train_ctrl.dir == CW) ? CCW : CW);
+
+    uint8_t new_zone = possible_zones[hall_sensor_num][tmp1];
+    uint8_t prev_zone = possible_zones[hall_sensor_num][tmp2]; // Previous zone is the zone that we were
 
     // If the new zone is ER (Error), the train is about to derail
     if (new_zone == ER) {
@@ -119,7 +141,7 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
     }
 
     // Make the new zone the primary zone
-    trains_[train_num].primary_zone = new_zone;
+    trains_[train_num].current_zone = new_zone;
 
     // Update monitor with zone changes
     static uint8_t msg_body[4];
@@ -140,7 +162,7 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
 // If the train has entered a new zone, check if it should reroute from that zone
 void TrainController::CheckIfRoutingNeeded(uint8_t train_num) {
     for (uint8_t i = 0; i < NUM_DANGER_ZONES; i++) {
-        if ((trains_[train_num].primary_zone == routing_needed_zones[i][0]) && (trains_[train_num].train_ctrl.dir == routing_needed_zones[i][1])) {
+        if ((trains_[train_num].current_zone == routing_needed_zones[i][0]) && (trains_[train_num].train_ctrl.dir == routing_needed_zones[i][1])) {
             RouteTrain(train_num);
             return;
         }
@@ -153,7 +175,7 @@ void TrainController::RouteTrain(uint8_t train_num) {
     static uint8_t msg_body[3];
 
     // Check if at current destination:
-    if(trains_[train_num].primary_zone == trains_[train_num].current_dst) {
+    if(trains_[train_num].current_zone == trains_[train_num].current_dst) {
         // Stop train
         StopTrain(train_num);
         return;
@@ -162,11 +184,11 @@ void TrainController::RouteTrain(uint8_t train_num) {
     /* Check if any switching needs to be done */
 
     switch_ctrl_t switch_ctrl;
-    switch_ctrl.req_state = routing_table[trains_[train_num].primary_zone][trains_[train_num].current_dst][1];
+    switch_ctrl.req_state = routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][1];
 
     // If switching is required, fetch the number and send the command *FIRST*
     if (switch_ctrl.req_state != NOT_NEEDED) {
-        switch_ctrl.num = routing_table[trains_[train_num].primary_zone][trains_[train_num].current_dst][2];
+        switch_ctrl.num = routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][2];
         assert(switch_ctrl.num != 0 && switch_ctrl.num <= 6); // TODO: For debugging
 
         SetSwitch(switch_ctrl);
@@ -175,7 +197,7 @@ void TrainController::RouteTrain(uint8_t train_num) {
     /* Route train as needed */
 
     // Fetch direction the train should go
-    trains_[train_num].train_ctrl.dir = routing_table[trains_[train_num].primary_zone][trains_[train_num].current_dst][0];
+    trains_[train_num].train_ctrl.dir = routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][0];
 
     if (trains_[train_num].train_ctrl.dir == STAY) trains_[train_num].train_ctrl.speed = 0;
     else trains_[train_num].train_ctrl.speed = trains_[train_num].default_speed;
@@ -188,30 +210,33 @@ void TrainController::HandleSensorTrigger(char* msg_body, uint8_t msg_len) {
 
     // Determine which train triggered the sensor and that train's 
     uint8_t train_num = WhichTrain(msg_body[1]); // msg_body[1] contains the hall sensor #
-    if (train_num == 255) {
-        std::cout << "[TrainController::HandleSensorTrigger()] WARNING: No train could have triggered this >>" << sensor_num << "<<\n";
+    if (train_num == NO_TRAIN) {
+        std::cout << "[TrainController::HandleSensorTrigger()] WARNING: No train could have triggered this >>" << (int)sensor_num << "<<\n";
+        return;
     }
-    sensor_trigger_t* sensor_array = &(trains_[train_num].triggered_sensors[sensor_num]);
+
+    // TODO: Get this working
+    sensor_trigger_t* sensor_array = trains_[train_num].triggered_sensors;
 
     /* Check if the sensor has been triggered recently and is already in triggered_sensors[] */
-    uint8_t empty_idx = 255;
-    uint8_t oldest_idx = 255;
+    uint8_t empty_idx = NO_INDEX;
+    uint8_t oldest_idx = NO_INDEX;
     bool return_flag = false;
     for(uint8_t i = 0; i < MAX_DIFF_SENSORS; i++) {
-        // If found, this
-        if (sensor_array[i].sensor_num == sensor_num) {
-            assert(sensor_array[i].num_triggers > 0); // Should have at least 1 trigger
+        // Set empty index if one is found
+        if (trains_[train_num].triggered_sensors[i].reset == 0) empty_idx = i;
+        else if (trains_[train_num].triggered_sensors[i].sensor_num == sensor_num) {
+            assert(trains_[train_num].triggered_sensors[i].num_triggers > 0); // Should have at least 1 trigger
             assert(return_flag == false); // For debugging, this should never trigger
-            sensor_array[i].num_triggers++; // Iterate to another trigger
+            trains_[train_num].triggered_sensors[i].num_triggers += 1; // Iterate to another trigger
             // If two triggers have occurred, update train position into this zone
-            if (sensor_array[i].num_triggers == 2) HandleZoneChange(sensor_num, train_num);
+            if (trains_[train_num].triggered_sensors[i].num_triggers == 2) HandleZoneChange(sensor_num, train_num);
             // If more than 2 triggers have happened, just tick and return (Caused by double ticks)
             return_flag = true;
         }
-        else if (sensor_array[i].reset == 0) empty_idx = i;
 
         // Find the oldest while looping
-        if (sensor_array[i].age == 3) oldest_idx = i;
+        if (trains_[train_num].triggered_sensors[i].age == 3) oldest_idx = i;
     }
 
     // Return if the sensor was already in the list
@@ -221,21 +246,21 @@ void TrainController::HandleSensorTrigger(char* msg_body, uint8_t msg_len) {
 
     // If full (Which should generally happen), remove the oldest entry and continue
     uint8_t max_age;
-    if (empty_idx == 255) {
-        assert(oldest_idx != 255); // This means that an age of 3 was not found in the previous loop
-        sensor_array[oldest_idx].reset = 0;
+    if (empty_idx == NO_INDEX) {
+        assert(oldest_idx != NO_INDEX); // This means that an age of 3 was not found in the previous loop
+        trains_[train_num].triggered_sensors[oldest_idx].reset = 0;
         empty_idx = oldest_idx;
     }
 
-    assert(empty_idx != 255); // This should really never happen
-    assert(sensor_array[empty_idx].reset == 0); // TODO: Remove this debugging one
+    assert(empty_idx != NO_INDEX); // This should really never happen
+    assert(trains_[train_num].triggered_sensors[empty_idx].reset == 0); // TODO: Remove this debugging one
 
-    sensor_array[empty_idx].sensor_num = sensor_num;
-    sensor_array[empty_idx].num_triggers++;
+    trains_[train_num].triggered_sensors[empty_idx].sensor_num = sensor_num;
+    trains_[train_num].triggered_sensors[empty_idx].num_triggers++;
 
     // Age all values that are reset
     for(uint8_t i = 0; i < MAX_DIFF_SENSORS; i++) {
-        if (sensor_array[i].reset != 0) sensor_array[i].age++;
+        if (trains_[train_num].triggered_sensors[i].reset != 0) trains_[train_num].triggered_sensors[i].age++;
     }
 }
 
@@ -312,7 +337,7 @@ void TrainController::TrainControllerLoop() {
                 // Only allowed to initialize train while it is not en route (signified by dst == NO_ZONE)
                 if (trains_[msg_body[1]].current_dst == NO_ZONE) {
                     assert(trains_[msg_body[1]].train_ctrl.dir == STAY); // If train is not en_route, it should be stationary
-                    trains_[msg_body[1]].primary_zone = msg_body[2];
+                    trains_[msg_body[1]].current_zone = msg_body[2];
 
                     // Update monitor with zone changes
                     msg_body[0] = ZONE_CHANGE;

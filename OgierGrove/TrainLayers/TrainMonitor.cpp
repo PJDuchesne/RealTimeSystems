@@ -440,7 +440,10 @@ void TrainMonitor::PaintZone(uint8_t zone, color_t color) {
 
     // Select background color (if any)
     ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_RESET, UART0);
-    if (color != NO_COLOR) ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_BR_COLORS[color], UART0);
+    if (color != NO_COLOR) {
+        ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_BR_COLORS[color], UART0);
+        ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_FONT_COLORS[BLACK], UART0);
+    }
 
     uint8_t switch_num = IsSwitchZone(zone);
 
