@@ -117,10 +117,6 @@ typedef struct train_state {
 
 } train_state_t;
 
-#define NO_ZONE    255
-#define NO_TRAIN   255
-#define NO_HALL    0
-
 #define MAX_NUM_SENSORS_FROM_A_ZONE_FOR_A_DIRECTION 2
 
 // 1) Current Zone

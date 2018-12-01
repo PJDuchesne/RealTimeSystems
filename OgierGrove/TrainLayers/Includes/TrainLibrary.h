@@ -32,9 +32,15 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define UART_PHYSICAL_LAYER_MB_SIZE 100
 
 #define MAX_PACKET_SIZE 5
-#define EMPTY_MAILBOX 0
 
 #define NUM_HALL_SENSORS 24
+
+#define NUM_ZONES 20
+#define NUM_TRAINS 2
+
+#define NO_ZONE    255
+#define NO_TRAIN   255
+#define NO_HALL    0
 
 #define ALL 255 // Used to acknowledge all sensor resets or throw all switches
 
@@ -147,6 +153,12 @@ typedef enum train_direction {
     STAY = 2 // To signify that the train is currently not moving (Or shouldn't move)
 } train_direction_t;
 
+const std::string train_direction_strings[3] {
+    "CW",
+    "CCW",
+    "IDLE"
+};
+
 typedef enum switch_direction {
     DIVERTED   = 0,
     STRAIGHT   = 1,
@@ -159,7 +171,7 @@ typedef enum switch_direction {
 typedef struct train_settings
 {
     uint8_t speed : 4;
-    uint8_t direction : 4;
+    uint8_t dir : 4;
 } train_settings_t;
 
 #define MAX_NUM_TRAIN_TOKENS      3
@@ -175,24 +187,24 @@ typedef struct train_settings
 
 const std::string TrainScreen[NUM_SCREEN_ROWS] = {
   "################################################################################",
-  "#                                                                              #",
-  "#                       20                             19                      #",
-  "#                     ==##=============================##==                    #",
-  "#              14    //    13       12      11       10   \\\\     9             #",
-  "#            ==##====---===##=======##---===##=======##==---=====##==          #",
-  "#          //       S1                 // S2              S3        \\\\         #",
-  "#         //           ====##=======##==                             \\\\        #",
-  "#     15 ##                24       23                                ## 8     #",
-  "#        ||                                                           ||       #",
-  "#        ||      Train 1: Spd, Dir                                    ||       #",
-  "#        ||      Train 2: Spd, Dir                                    ||       #",
-  "#     16 ##                                 21       22               ## 7     #",
-  "#         \\\\                              ==##=======##====          //        #",
-  "#          \\\\       S6     2      3   S5 //  4       5    S4        //         #",
-  "#            ==##====---===##=======##===---##=======##==---=====##==          #",
-  "#              1     \\\\                                   //      6            #",
-  "#  Hall   ##          ==##=============================##==                    #",
-  "#  Switch -- or //      17                             18                      #",
+  "#                      20                              19                      #",
+  "#                    ==##==============================##==                    #",
+  "#             14    //    13       12      11       10    \\\\    9              #",
+  "#          ===##====---===##=======##---===##=======##===---====##===          #",
+  "#         //         S1               // S2              S3         \\\\         #",
+  "#        //             ==##=======##==                              \\\\        #",
+  "#    15 ##                24       23                                 ## 8     #",
+  "#       ||                                                            ||       #",
+  "#       ||      Train 1: Spd: XX  Dir: XXXX  Dst: XXXX                ||       #",
+  "#       ||      Train 2: Spd: XX  Dir: XXXX  Dst: XXXX                ||       #",
+  "#       ||                                                            ||       #",
+  "#    16 ##                                 21       22                ## 7     #",
+  "#        \\\\                              ==##=======##==             //        #",
+  "#         \\\\        S6    2       3  S5 // 4       5      S4        //         #",
+  "#          ===##====---===##=======##===---##=======##===---====##===          #",
+  "#             1     \\\\                                    //    6              #",
+  "#  Hall   ##         ==##==============================##==                    #",
+  "#  Switch -- or //     17                              18                      #",
   "#______________________________________________________________________________#",
   "#                                                                              #",
   "#  >                                                                           #",
@@ -218,8 +230,14 @@ typedef enum {
     BLUE,
     MAGENTA,
     CYAN,
-    WHITE
+    WHITE,
+    NO_COLOR
 } color_t;
+
+const color_t train_colors[NUM_TRAINS] {
+    GREEN,
+    YELLOW
+};
 
 const std::string VT_100_FONT_COLORS[NUM_FONT_COLORS] {
     "\e[1;30m",
@@ -251,30 +269,30 @@ const std::string VT_100_BR_COLORS[NUM_BACKGROUND_COLORS] {
 // [Sensor #][1] -> Column
 const uint8_t sensor_locations[MAX_NUM_SENSORS + 1][2] {
     {0,   0}, // 0 -> DOES NOT EXIST
-    {16, 16}, // 1
-    {16, 28}, // 2
-    {16, 37}, // 3
-    {16, 45}, // 4
-    {16, 54}, // 5
-    {16, 66}, // 6
+    {16, 15}, // 1
+    {16, 27}, // 2
+    {16, 36}, // 3
+    {16, 44}, // 4
+    {16, 53}, // 5
+    {16, 65}, // 6
     {13, 71}, // 7
-    {9,  71}, // 8 
-    {6,  66}, // 9
-    {6,  54}, // 10
-    {6,  45}, // 11
-    {6,  37}, // 12
-    {6,  28}, // 13
-    {6,  16}, // 14
-    {9,  10}, // 15
-    {13, 10}, // 16
-    {18, 25}, // 17
+    {8,  71}, // 8 
+    {5,  65}, // 9
+    {5,  53}, // 10
+    {5,  44}, // 11
+    {5,  36}, // 12
+    {5,  27}, // 13
+    {5,  15}, // 14
+    {8,   9}, // 15
+    {13,  9}, // 16
+    {18, 24}, // 17
     {18, 56}, // 18
-    {4,  56}, // 19
-    {4,  25}, // 20
-    {14, 45}, // 21
-    {14, 54}, // 22
-    {8,  37}, // 23
-    {8,  28}, // 24
+    {3,  56}, // 19
+    {3,  24}, // 20
+    {14, 44}, // 21
+    {14, 53}, // 22
+    {7,  36}, // 23
+    {7,  27}, // 24
 };
 
 #define MAX_NUM_SWITCHES 6
@@ -282,12 +300,46 @@ const uint8_t sensor_locations[MAX_NUM_SENSORS + 1][2] {
 // [Sensor #][Diverted (0) -> Straight (1)][Row (0) -> Column (1)]
 const uint8_t switch_locations[MAX_NUM_SWITCHES + 1][2][2] {
     {{0,  0},  {0,  0 }}, // 0 --> DOES NOT EXIST
-    {{5,  22}, {6,  22}}, // 1
-    {{7,  40}, {6,  39}}, // 2
-    {{5,  59}, {6,  58}}, // 3
+    {{4,  21}, {5,  21}}, // 1
+    {{6,  39}, {5,  38}}, // 2
+    {{4,  59}, {5,  58}}, // 3
     {{17, 59}, {16, 58}}, // 4
-    {{15, 42}, {16, 42}}, // 5
-    {{17, 22}, {16, 22}}, // 6
+    {{15, 41}, {16, 41}}, // 5
+    {{17, 21}, {16, 21}}, // 6
+};
+
+#define MAX_COLUMNS_PER_ZONE 4
+
+// For swiches (Zones 1, 3, 5, 9, 11, and 13):
+// the 0 index is the STR branch
+// the 1-3 indexes are the DIVERTED branch
+const uint8_t zone_locations[NUM_ZONES][MAX_COLUMNS_PER_ZONE][3] {
+    { {14, 10,  2}, {15, 11,  2}, {16, 12,  3}, { 0,  0,  0} }, // 0
+    { {16, 17, 10}, {16, 17,  4}, {17, 21,  2}, {18, 22,  2} }, // 1  // SW 6
+    { {16, 29,  7}, { 0,  0,  0}, { 0,  0,  0}, { 0,  0,  0} }, // 2
+    { {16, 38,  6}, {16, 38,  3}, {15, 41,  2}, {14, 42,  2} }, // 3  // SW 5
+    { {16, 46,  7}, { 0,  0,  0}, { 0,  0,  0}, { 0,  0,  0} }, // 4
+    { {16, 55, 10}, {16, 61,  4}, {17, 59,  2}, {18, 58,  2} }, // 5  // SW 4
+    { {16, 67,  3}, {15, 69,  2}, {14, 70,  2}, { 0,  0,  0} }, // 6
+    { { 9, 71,  2}, {10, 71,  2}, {11, 71,  2}, {12, 71,  2} }, // 7
+    { { 5, 67,  3}, { 6, 69,  2}, { 7, 70,  2}, { 0,  0,  0} }, // 8
+    { { 5, 55, 10}, { 5, 61,  4}, { 4, 59,  2}, { 3, 58,  2} }, // 9  // SW 3
+    { { 5, 46,  7}, { 0,  0,  0}, { 0,  0,  0}, { 0,  0,  0} }, // 10
+    { { 5, 38,  6}, { 5, 41,  3}, { 6, 39,  2}, { 7, 38,  2} }, // 11 // SW 2
+    { { 5, 29,  7}, { 0,  0,  0}, { 0,  0,  0}, { 0,  0,  0} }, // 12
+    { { 5, 17, 10}, { 5, 17,  4}, { 4, 21,  2}, { 3, 22,  2} }, // 13 // SW 1
+    { { 5, 12,  3}, { 6, 11,  2}, { 7, 10,  2}, { 0,  0,  0} }, // 14
+    { { 9,  9,  2}, {10,  9,  2}, {11,  9,  2}, {12,  9,  2} }, // 15
+    { {18, 26, 30}, { 0,  0,  0}, { 0,  0,  0}, { 0,  0,  0} }, // 16
+    { {14, 46,  7}, { 0,  0,  0}, { 0,  0,  0}, { 0,  0,  0} }, // 17
+    { { 7, 29,  7}, { 0,  0,  0}, { 0,  0,  0}, { 0,  0,  0} }, // 18
+    { { 3, 26, 30}, { 0,  0,  0}, { 0,  0,  0}, { 0,  0,  0} }, // 19
+};
+
+#define TRAIN_INFO_OFFSET 8
+const uint8_t train_info_locations[NUM_TRAINS][5] {
+    {10, 17, 31, 40, 51}, 
+    {11, 17, 31, 40, 51},
 };
 
 #define RESET_VT_100_CODE "\e[0m"
@@ -315,8 +367,5 @@ typedef struct train_ctrl {
 
 #define SWITCH_BUFFER_SIZE 4 // Should never be spamming requests enough to fill this
 #define TRAIN_BUFFER_SIZE 8
-
-#define NUM_ZONES 20
-#define NUM_TRAINS 2
 
 #endif /* TrainLibrary_H */

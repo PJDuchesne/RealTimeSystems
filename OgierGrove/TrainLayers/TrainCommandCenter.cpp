@@ -149,7 +149,7 @@ void TrainCommandCenter::TrainGoCommand(std::string arg) {
 
     train_go_msg[0] = TRAIN_GO_CMD;
     train_go_msg[1] = SafeStoi(TokenizedArgs_[0]) - 1; // Train #: Decremented to match table in control system
-    train_go_msg[2] = SafeStoi(TokenizedArgs_[1]);     // Zone Number
+    train_go_msg[2] = SafeStoi(TokenizedArgs_[1]);     // Destination zone Number
 
     if ( (train_go_msg[1] >= NUM_TRAINS) || (train_go_msg[2] > NUM_ZONES) ) { // TODO: Fix hard-coding
         SendErrorMsg("[TrainCommandCenter::TrainGoCommand] Error! Malformed Command (due to numbers)!\n");
@@ -189,11 +189,14 @@ void TrainCommandCenter::SendTrainCommand(uint8_t train_num, uint8_t speed, trai
     msg_body[0] = '\xC0';
     msg_body[1] = train_num;
     ((train_settings_t *)(&msg_body[2]))->speed = speed;
-    ((train_settings_t *)(&msg_body[2]))->direction = direction*8; // Technically this should be an 8 within this nibble
+    ((train_settings_t *)(&msg_body[2]))->dir = direction*8; // Technically this should be an 8 within this nibble
 
     if (!PSend(src_q, TRAIN_APPLICATION_LAYER_MB, msg_body, 3)) {
         std::cout << "TrainCommandCenter::SendTrainCommand(): Warning! PSend Failed\n";
     }
+
+    // Also update monitor with train status
+    PSend(src_q, TRAIN_MONITOR_MB, msg_body, 3);
 }
 
 // Construct a message to throw switch(es) and send to TrainCommand mailbox
@@ -208,6 +211,7 @@ void TrainCommandCenter::SendSwitchCommand(uint8_t switch_num, switch_direction_
         std::cout << "TrainCommandCenter::SendSwitchCommand(): Warning! PSend Failed\n";
     }
 
+    // Update monitor with new switch state
     TrainMonitor::GetTrainMonitor()->VisuallySetSwitch(switch_num, direction);
 }
 

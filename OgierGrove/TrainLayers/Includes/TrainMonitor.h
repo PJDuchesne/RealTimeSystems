@@ -18,7 +18,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 */
 
 #include "TrainLibrary.h"
-#include "../../OSLayer/Includes/RingBuffer.h"
+#include <OSLayer/Includes/RingBuffer.h>
 #include <ISRLayer/Includes/GlobalMailboxes.h>
 #include <ApplicationLayer/Includes/ISRMsgHandler.h>
 
@@ -26,6 +26,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define NEW_LINE         "\n\r > "
 
 #define CUP_STRUCT_SIZE 9
+
+#define MONITOR_MAILBOX_SIZE 16
 
 // Forward Declarations
 class ISRMsgHandler;
@@ -35,6 +37,8 @@ class TrainMonitor {
         static TrainMonitor* TrainMonitorInstance_;
 
         ISRMsgHandler *ISRMsgHandlerInstance_;
+
+        switch_direction_t switch_states[MAX_NUM_SWITCHES + 1];
 
         bool CupReset_;
 
@@ -46,6 +50,9 @@ class TrainMonitor {
         void PrintDefaultScreen();
         void PrintCup(int row, int col);
 
+        void PaintZone(uint8_t zone, color_t color);
+        uint8_t IsSwitchZone(uint8_t zone);
+
     public:
         TrainMonitor();
         ~TrainMonitor();
@@ -54,6 +61,9 @@ class TrainMonitor {
         void InitializeScreen();
         void VisuallySetHallSensor(uint8_t sensor_num, bool status);
         void VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir);
+        void VisuallyUpdateTrainInfo(uint8_t train_num, uint8_t speed, train_direction_t dir);
+        void VisuallyUpdateTrainDst(uint8_t train_num, uint8_t dst);
+        void VisuallySetTrainLocation(uint8_t train_num, uint8_t new_zone, uint8_t prev_zone);
 
         void UpdateCommandStatus(color_t color);
 

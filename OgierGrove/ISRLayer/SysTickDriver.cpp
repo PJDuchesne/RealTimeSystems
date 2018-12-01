@@ -74,8 +74,6 @@ SysTickDriver::SysTickDriver() {
     Brief: SysTick ISR, which queues the interrupt into the ISR message queue with the MsgHandler
 */
 void SysTickDriver::SysTickHandler() {
-    static uint8_t CentiSecondCounter = 0;
-
     static kcallargs_t SysTickArguments_Monitor, SysTickArguments_Train;
     static bool first_time = true;
 
@@ -91,11 +89,8 @@ void SysTickDriver::SysTickHandler() {
         first_time = false;
     }
 
-    // Queue message for time application
-    if (CentiSecondCounter++ >= CENTI_TO_DECI_SECONDS) {
-        KSend(&SysTickArguments_Monitor);
-        CentiSecondCounter = 0;
-    }
+    // Queue message for the monitor (Acts as a screen refresh in A3)
+    KSend(&SysTickArguments_Monitor);
 
     // Also send to Train Time Server
     KSend(&SysTickArguments_Train);

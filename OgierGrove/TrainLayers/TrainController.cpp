@@ -66,6 +66,14 @@ void TrainController::StopTrain(uint8_t train_num) {
     trains_[train_num].current_dst = NO_ZONE;
 
     CmdTrain(trains_[train_num].train_ctrl);
+
+    // Update monitor with new destination (NO_ZONE)
+    static uint8_t msg_body[3];
+    msg_body[0] = TRAIN_GO_CMD;
+    msg_body[1] = train_num;
+    msg_body[2] = NO_ZONE;
+
+    PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 3);
 }
 
 // 255 for ERROR state (No train could possibly have triggered)
@@ -114,7 +122,7 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
     trains_[train_num].primary_zone = new_zone;
 
     // Update monitor with zone changes
-    uint8_t msg_body[4];
+    static uint8_t msg_body[4];
     msg_body[0] = ZONE_CHANGE;
     msg_body[1] = train_num;
     msg_body[2] = new_zone;
@@ -142,6 +150,15 @@ void TrainController::CheckIfRoutingNeeded(uint8_t train_num) {
 // Handles sending train to any zone from any other zone
 // Also in charge of stopping the train!
 void TrainController::RouteTrain(uint8_t train_num) {
+    static uint8_t msg_body[3];
+
+    // Check if at current destination:
+    if(trains_[train_num].primary_zone == trains_[train_num].current_dst) {
+        // Stop train
+        StopTrain(train_num);
+        return;
+    }
+
     /* Check if any switching needs to be done */
 
     switch_ctrl_t switch_ctrl;
@@ -316,6 +333,9 @@ void TrainController::TrainControllerLoop() {
                 if (trains_[msg_body[1]].train_ctrl.dir == STAY && trains_[msg_body[1]].current_dst == NO_ZONE) {
                     trains_[msg_body[1]].current_dst = msg_body[2];
                     RouteTrain(msg_body[1]);
+
+                    // Update Monitor with new Destination
+                    PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 3);
                 }
                 break;
             default:
