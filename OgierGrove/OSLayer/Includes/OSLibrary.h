@@ -23,7 +23,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <sstream>
 
 // Turns debugging printouts on with 1 or 2 and off otherwise (At 0)
-#define DEBUGGING_TRAIN 0
+#define DEBUGGING_TRAIN 2
 
 #define MAX_PRIORITY (uint32_t) P_FIVE
 
@@ -39,7 +39,12 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define PSP_RETURN 0xFFFFFFFD    //LR value: exception return using PSP as SP
 #define THUMB_MODE 0x01000000
 
-#define STACKSIZE   512
+#define ISR_QUEUE_SIZE 100
+#define UART0_OUTPUT_DATA_BUFFER_SIZE 500
+#define UART1_OUTPUT_DATA_BUFFER_SIZE 100
+#define ONE_BYTE_MAX 255
+
+#define STACKSIZE   1024
 // #define STACKSIZE   2048
 
 #define INVALID_NUM UINT32_MAX

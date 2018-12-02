@@ -20,32 +20,43 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Note: Works with DeciSecond Prevision
 
 #define MSG_TIMEOUT_TIME 100 // In centisecond precision
-#define MAX_ALARMS 8 // TODO: Tie to MAX_DLL_WAITING_PACKETS from Data Link Layer
+#define HALL_TIMEOUT_TIME 40 // In centisecond precision
+#define MAX_RESEND_ALARMS 8
 
 #include "TrainLibrary.h"
 #include <OSLayer/Includes/OSLibrary.h>
 #include <OSLayer/Includes/ProcessCalls.h>
 #include <ISRLayer/Includes/GlobalMailboxes.h>
 
+// #include "TrainMonitor.h"
+
 typedef struct trainMsgAlarm {
     bool is_active;
     uint32_t alarm_time;
 } trainMsgAlarm_t;
 
+typedef struct hallSensorAlarm {
+    bool is_active;
+    uint32_t alarm_time;
+} hallSensorAlarm_t;
+
 class TrainTimeServer {
     private:
         static TrainTimeServer* TrainTimeServerInstance_;
 
-        // Called owhen MSG is received from SYSTICK
+        // Called when MSG is received from SYSTICK
         void TickCentiSec();
         void CheckAlarms();
-        void TriggerAlarm(uint8_t alarm_num);
+        void TriggerResendAlarm(uint8_t alarm_num);
+        void TriggerHallSensorAlarm(uint8_t alarm_num);
 
         // Called when MSG is received from DLL
-        void SetAlarm(uint8_t alarm_num, bool set_flag);
+        void SetResendAlarm(uint8_t alarm_num, bool set_flag);
+        void SetHallSensorAlarm(uint8_t alarm_num);
 
         uint32_t currentDeciTime_; // Will overflow after ~30000 hours
-        trainMsgAlarm_t trainAlarms[MAX_ALARMS];
+        trainMsgAlarm_t trainAlarms[MAX_RESEND_ALARMS];
+        hallSensorAlarm_t hallSensorAlarms[NUM_HALL_SENSORS + 1];
 
     public:
         TrainTimeServer();

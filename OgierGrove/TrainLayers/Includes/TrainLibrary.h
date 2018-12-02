@@ -59,9 +59,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define TRAIN       '\xC2'
 #define SWITCH      '\xE2'
 
+// Custom control messages in the range of 0x80
 typedef enum ctrl_msg_type {
     STOP_CMD    = 0x80,  // 1 or 2 bytes: 1 for this enum, and 1 (optionally) for the train number (Default to both)
-    HALL_SENSOR,         // 2 Bytes:      1 for this enum, 1 for sensor number
+    HALL_SENSOR,         // 2 Bytes:      1 for this enum, 1 for sensor control block
+    SWITCH_CHANGE,       // 2 Bytes:      1 for this enum, 1 for switch control block
     ZONE_CMD,            // 3 Bytes:      1 for this enum, 1 for the train number and 1 for the train zone
     ZONE_CHANGE,         // 4 Bytes:      1 for this enum, 1 for the train number, 1 for new zone, and 1 for old zone
     PARTIAL_ZONE_CHANGE, // 3 Bytes:      1 for this enum, 1 for the train number, 1 for partial zone
@@ -205,13 +207,13 @@ const std::string TrainScreen[NUM_SCREEN_ROWS] = {
   "#       ||                                                            ||       #",
   "#    16 ##                                 21       22                ## 7     #",
   "#        \\\\                              ==##=======##==             //        #",
-  "#         \\\\  1     S6    2       3  S5 // 4       5      S4        //         #",
+  "#         \\\\  1     S6    2        3 S5 // 4        5     S4        //         #",
   "#          ===##====---===##=======##===---##=======##===---====##===          #",
   "#                   \\\\                                    //    6              #",
   "#  Hall   ##         ==##==============================##==                    #",
   "#  Switch -- or //     17                              18                      #",
   "#______________________________________________________________________________#",
-  "#                                                                              #",
+  "#                                             TX:                              #",
   "#  >                                                                           #",
   "#                                                                              #",
   "################################################################################"
@@ -266,7 +268,9 @@ const std::string VT_100_BR_COLORS[NUM_BACKGROUND_COLORS] {
     "\e[47m"
 };
 
-#define VT_100_RESET    "\e[0m" 
+#define VT_100_RESET        "\e[0m" 
+#define VT_100_SHOW_CURSOR  "\e[?25h" 
+#define VT_100_HIDE_CURSOR  "\e[?25l" 
 
 #define MAX_NUM_SENSORS 24
 
@@ -315,8 +319,8 @@ const uint8_t switch_locations[MAX_NUM_SWITCHES + 1][2][2] {
 };
 
 const std::string switch_strings[MAX_NUM_SWITCHES + 1][2] {
-    // DIV   STR
-    { "",     "---"}, // 0 --> DOES NOT EXIST
+    // DIV    STR
+    { "",     ""   }, // 0 --> DOES NOT EXIST
     { "//",   "---"}, // 1
     { "//",   "---"}, // 2
     { "\\\\", "---"}, // 3
@@ -366,21 +370,32 @@ const uint8_t train_info_locations[NUM_TRAINS][5] {
 
 #define LIT_HALL_SENSOR_CLR 44 // Active hall sensors are blue
 
-#define CMD_PROMPT_START_ROW    22
-#define CMD_PROMPT_START_COLUMN 6
+#define CMD_PROMPT_START_ROW 22
+#define CMD_PROMPT_START_COL 6
 
 #define CLEAR_SCREEN     "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
 
 typedef struct switch_ctrl {
-    uint8_t num : 4; // Up to 16 switches, 
+    uint8_t num : 4;
     uint8_t req_state : 4;
 } switch_ctrl_t; // 1 byte long
+
+typedef struct switch_msg {
+    uint8_t type;
+    switch_ctrl_t ctrl;
+} switch_msg_t;
 
 typedef struct train_ctrl {
     uint8_t num : 2;
     uint8_t speed : 4;
     uint8_t dir : 2;
 } train_ctrl_t;
+
+typedef struct sensor_msg_t {
+    uint8_t type;
+    uint8_t state : 1;
+    uint8_t num : 7;
+} sensor_msg_t;
 
 #define SWITCH_BUFFER_SIZE 4 // Should never be spamming requests enough to fill this
 #define TRAIN_BUFFER_SIZE 8

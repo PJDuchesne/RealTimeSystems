@@ -28,7 +28,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <ApplicationLayer/Includes/Monitor.h>
 #include <ApplicationLayer/Includes/CommandCenter.h>
 #include <ApplicationLayer/Includes/TimeHandler.h>
-#include <TrainLayers/Includes/TrainMonitor.h>
 
 #include "GlobalMailboxes.h"
 
@@ -37,10 +36,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #define INT_VEC_UART0   5  // UART0 Rx and Tx interrupt index (decimal)
 #define INT_VEC_UART1   6  // UART1 Rx and Tx interrupt index (decimal)
-
-#define ISR_QUEUE_SIZE 100
-#define UART0_OUTPUT_DATA_BUFFER_SIZE 1000
-#define UART1_OUTPUT_DATA_BUFFER_SIZE 100
 
 void InterruptMasterEnable();
 void InterruptEnable(unsigned long InterruptIndex);

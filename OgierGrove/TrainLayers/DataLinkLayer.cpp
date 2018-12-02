@@ -20,6 +20,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <ISRLayer/Includes/GlobalConfig.h>
 #include <OSLayer/Includes/OperatingSystem.h>
 
+#include "Includes/TrainMonitor.h"
+
 // Singleton Instance
 DataLinkLayer *DataLinkLayer::DataLinkLayerInstance_ = 0;
 
@@ -183,6 +185,12 @@ void DataLinkLayer::SendPacketDown(packet_t* packet) {
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, (void *)packet, packet->length + 2);
 
     SetPacketAlarm(packet->control_block.ns);
+
+    std::stringstream sstream;
+    if (packet->code != '\xA2') {
+        for(uint8_t i = 0; i < (packet->length + 2); i++) sstream << HEX(packet->tmp_array[i]);
+        TrainMonitor::GetTrainMonitor()->VisuallyDisplayTX(sstream.str());
+    }
 
     #if DEBUGGING_TRAIN >= 1
     packet->tmp_array[packet->length + 2] = num_packets_in_limbo_;

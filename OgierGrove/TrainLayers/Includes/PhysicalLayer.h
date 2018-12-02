@@ -18,6 +18,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 */
 
 #include "TrainLibrary.h"
+#include <OSLayer/Includes/OSLibrary.h>
 #include <ApplicationLayer/Includes/ISRMsgHandler.h>
 
 #define CHAR_BUFFER_SIZE 100

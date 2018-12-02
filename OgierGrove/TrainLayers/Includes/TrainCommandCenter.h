@@ -19,8 +19,11 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "TrainLibrary.h"
 #include <ISRLayer/Includes/GlobalMailboxes.h>
+#include <OSLayer/Includes/ProcessCalls.h>
 
 #include "TrainMonitor.h"
+
+#define ASCII_CASE_OFFSET 32
 
 #define NUM_VALID_TRAIN_COMMANDS  7
 const std::string valid_train_commands[NUM_VALID_TRAIN_COMMANDS] = {

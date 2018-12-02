@@ -17,7 +17,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-#include <ApplicationLayer/Includes/ISRMsgHandler.h>
 #include "../../OSLayer/Includes/RingBuffer.h"
 #include <TrainLayers/Includes/TrainLibrary.h> // For nice hex output
 
@@ -98,13 +97,9 @@ typedef enum uarts {
     UART1
 } uarts_t;
 
-// Forward Declaration
-class ISRMsgHandler;
-
 class UART0Driver {
     private:
         static UART0Driver* UART0DriverInstance_;
-        ISRMsgHandler *ISRMsgHandlerInstance_;
         void UART0Init();
         void UART1Init();
         void UART0Enable(unsigned long flags);
@@ -112,7 +107,6 @@ class UART0Driver {
 
     public:
         UART0Driver();
-        void SingletonGrab();
         void UART0Handler();
         void UART1Handler();
         void JumpStartOutput0(char first_char);

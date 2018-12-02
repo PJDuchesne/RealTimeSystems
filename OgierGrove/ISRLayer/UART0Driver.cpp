@@ -16,6 +16,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include <ISRLayer/Includes/UART0Driver.h>
 
+#include <ApplicationLayer/Includes/ISRMsgHandler.h>
+
 // Singleton Instance
 UART0Driver *UART0Driver::UART0DriverInstance_ = 0;
 
@@ -111,15 +113,6 @@ void UART0Driver::UART1Enable(unsigned long flags) {
 }
 
 /*
-    Function: SingletonGrab
-    Brief: Setup function for the UART0Driver to grab its required singleton pointers.
-           Called from main.cpp at startup.
-*/
-void UART0Driver::SingletonGrab() {
-    ISRMsgHandlerInstance_ = ISRMsgHandler::GetISRMsgHandler();
-}
-
-/*
     Function: UART0Driver
     Brief: Constructor for the UART0Driver class, which initializes UART0 & UART1 on startup
 */
@@ -174,11 +167,11 @@ void UART0Driver::UART0Handler() {
         UART0_ICR_R |= UART_INT_TX;
 
         // If there is more data in the buffer, output another char
-        if (ISRMsgHandlerInstance_->OutputBufferEmpty(UART0)) {
-            ISRMsgHandlerInstance_->uart0_output_idle_ = true;
+        if (ISRMsgHandler::GetISRMsgHandler()->OutputBufferEmpty(UART0)) {
+            ISRMsgHandler::GetISRMsgHandler()->uart0_output_idle_ = true;
         }
         else {
-            char tmp = ISRMsgHandlerInstance_->GetOutputChar(UART0);
+            char tmp = ISRMsgHandler::GetISRMsgHandler()->GetOutputChar(UART0);
             UART0_DR_R = tmp;
         }
     }
@@ -220,19 +213,19 @@ void UART0Driver::UART1Handler() {
         UART1_ICR_R |= UART_INT_TX;
 
         // If the buffer is empty, set UART to idle
-        if (ISRMsgHandlerInstance_->OutputBufferEmpty(UART1)) {
-            ISRMsgHandlerInstance_->uart1_output_idle_ = true;
+        if (ISRMsgHandler::GetISRMsgHandler()->OutputBufferEmpty(UART1)) {
+            ISRMsgHandler::GetISRMsgHandler()->uart1_output_idle_ = true;
         }
         // Else, the buffer has more to print
         else {
-            char tmp = ISRMsgHandlerInstance_->GetOutputChar(UART1);
+            char tmp = ISRMsgHandler::GetISRMsgHandler()->GetOutputChar(UART1);
             UART1_DR_R = tmp;
         }
     }
 }
 
 /*
-    Function: JumpStartOutput
+    Function: JumpStartOutput0
     Brief: Jumpstarts the transmission sequence mentioned in UART0Handler. Once started, the
            process cascades to empty out the buffer.
 */
@@ -241,12 +234,11 @@ void UART0Driver::JumpStartOutput0(char first_char) {
 }
 
 /*
-    Function: JumpStartOutput
+    Function: JumpStartOutput1
     Brief: Jumpstarts the transmission sequence mentioned in UART0Handler. Once started, the
            process cascades to empty out the buffer.
 */
 void UART0Driver::JumpStartOutput1(char first_char) {
-    // std::cout << "UART0Driver::JumpStartOutput1() >>" << int(first_char) << "<<\n";
     UART1_DR_R = first_char;
 }
 

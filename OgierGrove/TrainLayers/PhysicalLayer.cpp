@@ -154,9 +154,9 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
         #endif
 
         #if DEBUGGING_TRAIN >= 1
-        if (!PSend(UART_PHYSICAL_LAYER_MB, MONITOR_MB, (void *)msg_body, msg_idx)) {
-            std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Packet failed to send to Monitor\n";
-        }
+        // if (!PSend(UART_PHYSICAL_LAYER_MB, MONITOR_MB, (void *)msg_body, msg_idx)) {
+        //     std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Packet failed to send to Monitor\n";
+        // }
         #endif
 
         // Send message up to Data Link Layer, without the STX, Checksum, or ETX

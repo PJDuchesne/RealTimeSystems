@@ -16,11 +16,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Author: Paul Duchesne (B00332119)
 -> Contact: pl332718@dal.ca
 */
-
+// Dead ends
 #include "TrainLibrary.h"
 #include <OSLayer/Includes/RingBuffer.h>
 #include <ISRLayer/Includes/GlobalMailboxes.h>
-#include <ApplicationLayer/Includes/ISRMsgHandler.h>
 
 #define TRAIN_DATA_BUFFER_SIZE 61
 #define NEW_LINE         "\n\r > "
@@ -36,8 +35,6 @@ class TrainMonitor {
     private:
         static TrainMonitor* TrainMonitorInstance_;
 
-        ISRMsgHandler *ISRMsgHandlerInstance_;
-
         switch_direction_t switch_states[MAX_NUM_SWITCHES + 1];
 
         bool CupReset_;
@@ -49,6 +46,7 @@ class TrainMonitor {
         void ResetCommandLine();
         void PrintDefaultScreen();
         void PrintCup(int row, int col);
+        void CupResetFlag();
 
         void PaintZone(uint8_t zone, color_t color);
         uint8_t IsSwitchZone(uint8_t zone);
@@ -57,7 +55,6 @@ class TrainMonitor {
     public:
         TrainMonitor();
         ~TrainMonitor();
-        void SingletonGrab();
         void CentralLoop();
         void InitializeScreen();
         void VisuallySetHallSensor(uint8_t sensor_num, bool status);
@@ -65,6 +62,8 @@ class TrainMonitor {
         void VisuallyUpdateTrainInfo(uint8_t train_num, uint8_t speed, train_direction_t dir);
         void VisuallyUpdateTrainDst(uint8_t train_num, uint8_t dst);
         void VisuallySetTrainLocation(uint8_t train_num, uint8_t new_zone, uint8_t prev_zone);
+
+        void VisuallyDisplayTX(std::string msg);
 
         void UpdateCommandStatus(color_t color);
 

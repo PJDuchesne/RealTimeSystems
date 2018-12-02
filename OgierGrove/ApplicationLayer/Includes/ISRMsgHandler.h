@@ -17,16 +17,13 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+#include <OSLayer/includes/KernelCalls.h>
+
+// Dead ends
 #include <string>
-
-#include <ISRLayer/Includes/GlobalConfig.h>
-#include <ISRLayer/Includes/SysTickDriver.h>
-#include <ISRLayer/Includes/UART0Driver.h>
+#include <OSLayer/Includes/OSLibrary.h>
+#include <ISRLayer/Includes/GlobalMailboxes.h>
 #include <OSLayer/Includes/RingBuffer.h>
-#include <OSLayer/Includes/OperatingSystem.h>
-
-// TODO: Delete
-// #include <OSLayer/Includes/PostOffice.h/>
 
 typedef enum MsgType {
   NONE,
@@ -39,21 +36,15 @@ typedef struct ISRMsg {
   char data;
 } ISRMsg_t;
 
-// Forward Declaration
-class UART0Driver;
-
 class ISRMsgHandler {
     private:
         static ISRMsgHandler* ISRMsgHandlerInstance_;
         RingBuffer<ISRMsg_t> *isr_queue_;
         RingBuffer<char> *uart0_output_data_buffer_;
         RingBuffer<char> *uart1_output_data_buffer_;
-
-        UART0Driver *UART0DriverInstance_;
     public:
         ISRMsgHandler();
         ~ISRMsgHandler() ;
-        void SingletonGrab();
 
         void GetFromISRQueue(MsgType_t &type, char &data);
         void QueueOutputMsg(std::string msg, uint8_t uart_num); // TODO: make uart_num an enum msg type

@@ -16,17 +16,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/ISRMsgHandler.h"
 
+#include <ISRLayer/Includes/UART0Driver.h>
+
 // Singleton Instance
 ISRMsgHandler *ISRMsgHandler::ISRMsgHandlerInstance_ = 0;
-
-/*
-    Function: SingletonGrab
-    Brief: Setup function for the UART0Driver to grab its required singleton pointers.
-           Called from main.cpp at startup.
-*/
-void ISRMsgHandler::SingletonGrab() {
-    UART0DriverInstance_ = UART0Driver::GetUART0Driver();
-}
 
 /*
     Function: ISRMsgHandler
@@ -86,7 +79,7 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
             if (uart0_output_idle_) {
                 first_char = uart0_output_data_buffer_->Get();
                 uart0_output_idle_ = false;
-                UART0DriverInstance_->JumpStartOutput0(first_char);
+                UART0Driver::GetUART0Driver()->JumpStartOutput0(first_char);
             }
 
             break;
@@ -100,7 +93,7 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
             if (uart1_output_idle_) {
                 first_char = uart1_output_data_buffer_->Get();
                 uart1_output_idle_ = false;
-                UART0DriverInstance_->JumpStartOutput1(first_char);
+                UART0Driver::GetUART0Driver()->JumpStartOutput1(first_char);
             }
 
             break;
@@ -123,7 +116,7 @@ void ISRMsgHandler::QueueOutputMsg(char* msg, uint8_t msg_len, uint8_t uart_num)
             if (uart0_output_idle_) {
                 first_char = uart0_output_data_buffer_->Get();
                 uart0_output_idle_ = false;
-                UART0DriverInstance_->JumpStartOutput0(first_char);
+                UART0Driver::GetUART0Driver()->JumpStartOutput0(first_char);
             }
 
             break;
@@ -136,7 +129,7 @@ void ISRMsgHandler::QueueOutputMsg(char* msg, uint8_t msg_len, uint8_t uart_num)
             if (uart1_output_idle_) {
                 first_char = uart1_output_data_buffer_->Get();
                 uart1_output_idle_ = false;
-                UART0DriverInstance_->JumpStartOutput1(first_char);
+                UART0Driver::GetUART0Driver()->JumpStartOutput1(first_char);
             }
 
             break;
@@ -186,7 +179,7 @@ void ISRMsgHandler::QueueOutputPacket(char* packet, uint16_t len) {
     if (uart1_output_idle_) {
         first_char = uart1_output_data_buffer_->Get();
         uart1_output_idle_ = false;
-        UART0DriverInstance_->JumpStartOutput1(first_char);
+        UART0Driver::GetUART0Driver()->JumpStartOutput1(first_char);
     }
 
 }

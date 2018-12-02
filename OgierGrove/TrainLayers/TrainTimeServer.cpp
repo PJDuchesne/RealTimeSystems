@@ -16,6 +16,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/TrainTimeServer.h"
 
+#include "Includes/TrainMonitor.h"
+
 // Singleton Instance
 TrainTimeServer *TrainTimeServer::TrainTimeServerInstance_ = 0;
 
@@ -26,14 +28,25 @@ TrainTimeServer *TrainTimeServer::TrainTimeServerInstance_ = 0;
 */
 TrainTimeServer::TrainTimeServer() {
     currentDeciTime_ = 0;
-    for (int i = 0; i < MAX_ALARMS; i++) trainAlarms[i].is_active = false;
+    for (int i = 0; i < MAX_RESEND_ALARMS; i++) trainAlarms[i].is_active = false;
+    for (int i = 0; i <= NUM_HALL_SENSORS; i++) hallSensorAlarms[i].is_active = false;
 }
 
-void TrainTimeServer::TriggerAlarm(uint8_t alarm_num) {
+void TrainTimeServer::TriggerResendAlarm(uint8_t alarm_num) {
     trainAlarms[alarm_num].is_active = false;
-
     static char msg_body = alarm_num; 
-    PSend(TRAIN_TIME_SERVER_MB, DATA_LINK_LAYER_MB, (void *)msg_body, 1); // TODO: MAgic number
+    PSend(TRAIN_TIME_SERVER_MB, DATA_LINK_LAYER_MB, (void *)msg_body, 1);
+}
+
+void TrainTimeServer::TriggerHallSensorAlarm(uint8_t alarm_num) {
+    hallSensorAlarms[alarm_num].is_active = false;
+
+    sensor_msg_t sensor_msg;
+    sensor_msg.type = HALL_SENSOR;
+    sensor_msg.state = false;
+    sensor_msg.num = alarm_num;
+
+    PSend(TRAIN_TIME_SERVER_MB, TRAIN_MONITOR_MB, &sensor_msg, 2);
 }
 
 void TrainTimeServer::TickCentiSec() {
@@ -42,15 +55,21 @@ void TrainTimeServer::TickCentiSec() {
 }
 
 void TrainTimeServer::CheckAlarms() {
-    for(int i = 0; i < MAX_ALARMS; i++) {
+    for(int i = 0; i < MAX_RESEND_ALARMS; i++) {
         if (trainAlarms[i].is_active && trainAlarms[i].alarm_time <= currentDeciTime_) {
-            TriggerAlarm(i);
+            TriggerResendAlarm(i);
+        }
+    }
+
+    for(int i = 0; i <= NUM_HALL_SENSORS; i++) {
+        if (hallSensorAlarms[i].is_active && hallSensorAlarms[i].alarm_time <= currentDeciTime_) {
+            TriggerHallSensorAlarm(i);
         }
     }
 }
 
 void TrainTimeServer::TrainTimeServerLoop() {
-    if (!PBind(TRAIN_TIME_SERVER_MB, BIG_LETTER)) { // Default mailbox size of 16, which is MAX_ALARMS*2
+    if (!PBind(TRAIN_TIME_SERVER_MB, BIG_LETTER)) { // Default mailbox size of 16, which is MAX_RESEND_ALARMS*2
         std::cout << "TrainTimeServer::Initialize: WARNING Mailbox failed to bind\n";
     }
     else std::cout << "TrainTimeServer::TrainTimeServerLoop: WARNING Mailbox bound!\n";
@@ -77,11 +96,14 @@ void TrainTimeServer::TrainTimeServerLoop() {
                 assert((int)msg_body[1] <= 1);
 
                 #if RESEND_TIMERS == 1
-                SetAlarm((int)msg_body[0], (bool)msg_body[1]);
+                SetResendAlarm((uint8_t)msg_body[0], (bool)msg_body[1]);
                 #endif
                 break;
+            case TRAIN_APPLICATION_LAYER_MB:
+                SetHallSensorAlarm((uint8_t)msg_body[0]);
+                break;
             default:
-                std::cout << "TrainTimeServer::TrainTimeServerLoop(): ERROR: MEssage from invalid source\n!";
+                std::cout << "TrainTimeServer::TrainTimeServerLoop(): ERROR: MEssage from invalid source " << src_q << "\n!";
                 while(1) {}
                 break;
         }
@@ -89,7 +111,7 @@ void TrainTimeServer::TrainTimeServerLoop() {
     }
 }
 
-void TrainTimeServer::SetAlarm(uint8_t alarm_num, bool set_flag) {
+void TrainTimeServer::SetResendAlarm(uint8_t alarm_num, bool set_flag) {
     if(set_flag) { // Set alarm
         // TODO: Remove debugging assert, this might not always be true?
         // This shouldnt be this layer's responsibility to check
@@ -105,6 +127,11 @@ void TrainTimeServer::SetAlarm(uint8_t alarm_num, bool set_flag) {
 
         trainAlarms[alarm_num].is_active = false;
     }
+}
+
+void TrainTimeServer::SetHallSensorAlarm(uint8_t alarm_num) {
+    hallSensorAlarms[alarm_num].is_active = true;
+    hallSensorAlarms[alarm_num].alarm_time = currentDeciTime_ + HALL_TIMEOUT_TIME;
 }
 
 uint32_t TrainTimeServer::GetCurrentTime() {

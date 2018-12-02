@@ -68,7 +68,6 @@ void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
         return;
     }
 
-    TrainMonitor::GetTrainMonitor()->VisuallySetSwitch(switch_num, switch_dir);
     TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendSwitchCommand(switch_num, switch_dir);
 }
@@ -171,7 +170,7 @@ int TrainCommandCenter::TokenizeArguments(std::string &arg) {
     // Tokenize input
     int token_idx = 0;
     for (int i = 0; i < arg.length(); i++ ) {
-        // Should only have 2 tokens
+        // Should only have 2 tokens (TODO: Inrcrease this as more arguments are allowed)
         if (token_idx == MAX_NUM_TRAIN_TOKENS) {
             return -1;
         }
@@ -183,7 +182,10 @@ int TrainCommandCenter::TokenizeArguments(std::string &arg) {
 }
 
 // Construct a message to command a train and send to TrainCommand mailbox
+// Expects the 1 indexed number of the train
 void TrainCommandCenter::SendTrainCommand(uint8_t train_num, uint8_t speed, train_direction_t direction, uint8_t src_q) {
+    assert(train_num == 2); // TODO: Delete this debugging flag. used for testing train 1 logic
+
     static char msg_body[3];
 
     msg_body[0] = '\xC0';
@@ -196,7 +198,7 @@ void TrainCommandCenter::SendTrainCommand(uint8_t train_num, uint8_t speed, trai
     }
 
     // Also update monitor with train status
-    PSend(src_q, TRAIN_MONITOR_MB, msg_body, 3);
+    TrainMonitor::GetTrainMonitor()->VisuallyUpdateTrainInfo(train_num - 1, speed, direction);
 }
 
 // Construct a message to throw switch(es) and send to TrainCommand mailbox
@@ -212,7 +214,11 @@ void TrainCommandCenter::SendSwitchCommand(uint8_t switch_num, switch_direction_
     }
 
     // Update monitor with new switch state
-    TrainMonitor::GetTrainMonitor()->VisuallySetSwitch(switch_num, direction);
+    switch_msg_t switch_msg;
+    switch_msg.ctrl.num = switch_num;
+    switch_msg.ctrl.req_state = direction;
+
+    PSend(src_q, TRAIN_MONITOR_MB, &switch_msg, 2);
 }
 
 void TrainCommandCenter::SendSensorAcknowledge(uint8_t sensor_number, uint8_t src_q) {
