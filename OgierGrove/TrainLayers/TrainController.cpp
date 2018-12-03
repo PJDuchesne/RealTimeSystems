@@ -43,6 +43,10 @@ TrainController::TrainController() {
             trains_[i].triggered_sensors[x].reset = 0; // Reset both fields to 0
         }
     }
+
+    #if DEBUGGING_TRAIN >= 1
+    for(uint8_t i = 0; i < 16; i++) debugging_flags[i] = false;
+    #endif
 }
 
 TrainController::~TrainController() {
@@ -58,8 +62,21 @@ void TrainController::SetSwitch(switch_ctrl_t switch_ctrl) {
 void TrainController::CmdTrain(train_ctrl_t train_ctrl) {
     assert(train_ctrl.num == 1);
 
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[11] = true;
+    #endif
     train_msg_buffer_->Add(train_ctrl);
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[11] = false;
+    #endif
+
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[12] = true;
+    #endif
     TrainCommandCenterInstance_->SendTrainCommand(train_ctrl.num + 1, train_ctrl.speed, (train_direction_t)train_ctrl.dir, TRAIN_CONTROLLER_MB);
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[12] = false;
+    #endif
 }
 
 void TrainController::StopTrain(uint8_t train_num) {
@@ -72,7 +89,7 @@ void TrainController::StopTrain(uint8_t train_num) {
     CmdTrain(trains_[train_num].train_ctrl);
 
     // Update monitor with new destination (NO_ZONE)
-    static uint8_t msg_body[3];
+    uint8_t msg_body[3];
     msg_body[0] = TRAIN_GO_CMD;
     msg_body[1] = train_num;
     msg_body[2] = NO_ZONE;
@@ -89,21 +106,11 @@ void TrainController::StopTrain(uint8_t train_num) {
 // 0 for Train 1,
 // 1 for Train 2, etc.
 uint8_t TrainController::WhichTrain(uint8_t hall_sensor_num) {
-    uint8_t train_num = NO_TRAIN;
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[0] = true;
+    #endif
 
-    std::stringstream tmp_debugging;
-    tmp_debugging << "[TrainController::WhichTrain] Hall:" << (int)hall_sensor_num << "DIR: ";
-    switch (trains_[1].train_ctrl.dir) {
-        case CW:
-            tmp_debugging << "CW";
-            break;
-        case CCW:
-            tmp_debugging << "CCW";
-            break;
-        case STAY:
-            tmp_debugging << "STAY";
-            break;
-    }
+    uint8_t train_num = NO_TRAIN;
 
     /* OLD METHOD: Try this first */
 
@@ -146,10 +153,17 @@ uint8_t TrainController::WhichTrain(uint8_t hall_sensor_num) {
 
     assert(train_num != NO_TRAIN);
 
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[0] = false;
+    #endif
+
     return train_num;
 }
 
 void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_num) {
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[1] = true;
+    #endif
     // Determine which zone the train is moving into
     assert(trains_[train_num].train_ctrl.dir != STAY); // Ensure the train is actually moving
 
@@ -169,7 +183,7 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
     trains_[train_num].current_zone = new_zone;
 
     // Update monitor with zone changes
-    static uint8_t msg_body[4];
+    uint8_t msg_body[4];
     msg_body[0] = ZONE_CHANGE;
     msg_body[1] = train_num;
     msg_body[2] = new_zone;
@@ -180,6 +194,10 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
     // Check if this is the train's destination
     if (trains_[train_num].current_dst == new_zone) StopTrain(train_num);
     else CheckIfRoutingNeeded(train_num);
+
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[1] = false;
+    #endif
 }
 
 // Maybe just collapse this into routing table itself, and check on every zone?
@@ -197,6 +215,10 @@ void TrainController::CheckIfRoutingNeeded(uint8_t train_num) {
 // Handles sending train to any zone from any other zone
 // Also in charge of stopping the train!
 void TrainController::RouteTrain(uint8_t train_num) {
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[2] = true;
+    #endif
+
     // Check if at current destination:
     if(trains_[train_num].current_zone == trains_[train_num].current_dst) {
         // Stop train
@@ -204,8 +226,11 @@ void TrainController::RouteTrain(uint8_t train_num) {
         return;
     }
 
-    /* Check if any switching needs to be done */
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[10] = true;
+    #endif
 
+    /* Check if any switching needs to be done */
     switch_ctrl_t switch_ctrl;
     switch_ctrl.req_state = routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][1];
 
@@ -217,6 +242,10 @@ void TrainController::RouteTrain(uint8_t train_num) {
         SetSwitch(switch_ctrl);
     }
 
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[10] = false;
+    #endif
+
     /* Route train as needed */
 
     // Fetch direction the train should go
@@ -226,9 +255,17 @@ void TrainController::RouteTrain(uint8_t train_num) {
     else trains_[train_num].train_ctrl.speed = trains_[train_num].default_speed;
 
     CmdTrain(trains_[train_num].train_ctrl);
+
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[2] = false;
+    #endif
 }
 
 void TrainController::HandleSensorTrigger(char* msg_body, uint8_t msg_len) {
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[3] = true;
+    #endif
+
     uint8_t sensor_num = (int)msg_body[1];
 
     // Determine which train triggered the sensor and that train's 
@@ -285,39 +322,58 @@ void TrainController::HandleSensorTrigger(char* msg_body, uint8_t msg_len) {
     for(uint8_t i = 0; i < MAX_DIFF_SENSORS; i++) {
         if (trains_[train_num].triggered_sensors[i].reset != 0) trains_[train_num].triggered_sensors[i].age++;
     }
+
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[3] = false;
+    #endif
 }
 
 void TrainController::TrainControllerLoop() {
     if (!PBind(TRAIN_CONTROLLER_MB, BIG_LETTER)) { // Default mailbox size of 16, which is MAX_ALARMS*2
         std::cout << "TrainController::Initialize: WARNING Mailbox failed to bind\n";
     }
-    else std::cout << "TrainController::TrainControllerLoop: WARNING Mailbox bound!\n";
+    else std::cout << "TrainController::TrainControllerLoop: Mailbox bound!\n";
 
     SingletonGrab();
 
-    static uint8_t src_q;
-    static uint32_t mailbox_msg_len;
-    static char msg_body[10]; // TODO: Magic number
+    uint8_t src_q;
+    uint32_t mailbox_msg_len;
+    char msg_body[10]; // TODO: Magic number
 
-    static switch_ctrl_t switch_ctrl;
-    static train_ctrl_t train_ctrl;
+    switch_ctrl_t switch_ctrl;
+    train_ctrl_t train_ctrl;
 
     uint8_t tmp_num;
 
-    static uint8_t zone_change_msg[4];
+    uint8_t zone_change_msg[4];
     zone_change_msg[0] = ZONE_CHANGE;
 
     // Should just be receiving from UART and Data Link Layer
     while(1) {
+        #if DEBUGGING_TRAIN >= 1
+        debugging_flags[4] = true;
+        #endif
         PRecv(src_q, TRAIN_CONTROLLER_MB, &msg_body, mailbox_msg_len);
+        #if DEBUGGING_TRAIN >= 1
+        debugging_flags[4] = false;
+        #endif
 
         // TODO: Functionize this table
         switch (msg_body[0]) {
             case '\xA0': // Hall sensor (#) triggered
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags[5] = true;
+                #endif
                 // Update state information
                 HandleSensorTrigger(msg_body, mailbox_msg_len);
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags[5] = false;
+                #endif
                 break;
             case '\xC2': // Train ACK
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags[6] = true;
+                #endif
                 if (train_msg_buffer_->Empty()) {
                     std::cout << "[TrainController::TrainControllerLoop] WARNING: ACK Was receieved for unaccounted for TRAIN command\n";
                     break;
@@ -335,9 +391,15 @@ void TrainController::TrainControllerLoop() {
                     std::cout << "[TrainController::TrainControllerLoop] WARNING: TRAIN Command failed, resending request\n";
                     // CmdTrain(train_ctrl); // Will re-buffer and all that
                 }
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags[6] = false;
+                #endif
 
                 break;
             case '\xE2': // Switch ACK
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags[7] = true;
+                #endif
                 if (switch_msg_buffer_->Empty()) {
                     std::cout << "[TrainController::TrainControllerLoop] WARNING: ACK Was receieved for unaccounted for SWITCH command\n";
                     break;
@@ -354,9 +416,15 @@ void TrainController::TrainControllerLoop() {
                     std::cout << "[TrainController::TrainControllerLoop] WARNING: SWITCH Command failed, resending request\n";
                     SetSwitch(switch_ctrl);
                 }
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags[7] = false;
+                #endif
 
                 break;
             case ZONE_CMD: // Internal Init cmd
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags[8] = true;
+                #endif
                 // Only allowed to initialize train while it is not en route (signified by dst == NO_ZONE)
                 if (trains_[msg_body[1]].initialized == false) {
                     trains_[msg_body[1]].initialized = true;
@@ -372,9 +440,15 @@ void TrainController::TrainControllerLoop() {
 
                     PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 4);
                 }
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags[8] = false;
+                #endif
                 break;
 
             case TRAIN_GO_CMD:
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags[9] = true;
+                #endif
                 // msg_body[1] contains the train number
                 // msg_body[2] contains the first destination
                 if (trains_[msg_body[1]].initialized == true) {
@@ -388,6 +462,9 @@ void TrainController::TrainControllerLoop() {
                         PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 3);
                     }
                 }
+                #if DEBUGGING_TRAIN >= 1
+                debugging_flags[9] = false;
+                #endif
                 break;
             default:
                 std::cout << "TrainController::TrainControllerLoop(): ERROR: Invalid COMMAND >>" << HEX(msg_body[0]) << "<<\n";

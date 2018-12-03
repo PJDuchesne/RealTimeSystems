@@ -293,6 +293,10 @@ class TrainController {
 
         void HandleSensorTrigger(char* msg_body, uint8_t msg_len);
 
+        #if DEBUGGING_TRAIN >= 1
+        bool debugging_flags[16];
+        #endif
+
     public:
         TrainController();
         ~TrainController();

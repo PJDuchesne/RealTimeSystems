@@ -50,7 +50,7 @@ void Monitor::CheckMessageHandler() {
     uint8_t src_q;
     uint32_t msg_len;
     static char msg_body[256];
-    std::stringstream sstream;
+    static std::stringstream sstream;
     bool ctrl_block = false;
     control_t tmp_control;
 
@@ -116,6 +116,9 @@ void Monitor::CheckMessageHandler() {
             // sstream << "<<" << NEW_LINE;
             // PrintMsg(sstream.str());
         }
+
+        sstream.str("");
+        sstream.clear();
 
         // Then reprint output buffer!
         RePrintOutputBuffer();

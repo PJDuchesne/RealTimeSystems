@@ -186,11 +186,13 @@ void DataLinkLayer::SendPacketDown(packet_t* packet) {
 
     SetPacketAlarm(packet->control_block.ns);
 
-    std::stringstream sstream;
+    static std::stringstream sstream;
     if (packet->code != '\xA2') {
         for(uint8_t i = 0; i < (packet->length + 2); i++) sstream << HEX(packet->tmp_array[i]);
         TrainMonitor::GetTrainMonitor()->VisuallyDisplayTX(sstream.str());
     }
+    sstream.str("");
+    sstream.clear();
 
     #if DEBUGGING_TRAIN >= 1
     packet->tmp_array[packet->length + 2] = num_packets_in_limbo_;

@@ -118,7 +118,7 @@ void TrainCommandCenter::InitCommand(std::string arg) {
         return;
     }
 
-    static uint8_t init_msg[3];
+    uint8_t init_msg[3];
 
     init_msg[0] = ZONE_CMD;
     init_msg[1] = SafeStoi(TokenizedArgs_[0]) - 1; // Train #: Decremented to match table in control system
@@ -144,7 +144,7 @@ void TrainCommandCenter::TrainGoCommand(std::string arg) {
         return;
     }
 
-    static uint8_t train_go_msg[3];
+    uint8_t train_go_msg[3];
 
     train_go_msg[0] = TRAIN_GO_CMD;
     train_go_msg[1] = SafeStoi(TokenizedArgs_[0]) - 1; // Train #: Decremented to match table in control system
@@ -184,26 +184,49 @@ int TrainCommandCenter::TokenizeArguments(std::string &arg) {
 // Construct a message to command a train and send to TrainCommand mailbox
 // Expects the 1 indexed number of the train
 void TrainCommandCenter::SendTrainCommand(uint8_t train_num, uint8_t speed, train_direction_t direction, uint8_t src_q) {
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[0] = true;
+    #endif
+
+    uint8_t tmp_num = src_q;
+
     assert(train_num == 2); // TODO: Delete this debugging flag. used for testing train 1 logic
 
-    static char msg_body[3];
+    char msg_body[3];
 
     msg_body[0] = '\xC0';
     msg_body[1] = train_num;
     ((train_settings_t *)(&msg_body[2]))->speed = speed;
     ((train_settings_t *)(&msg_body[2]))->dir = direction*8; // Technically this should be an 8 within this nibble
 
-    if (!PSend(src_q, TRAIN_APPLICATION_LAYER_MB, msg_body, 3)) {
+    PSend(tmp_num, TRAIN_MONITOR_MB, msg_body, 3);
+
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[1] = true;
+    #endif
+    if (!PSend(tmp_num, TRAIN_APPLICATION_LAYER_MB, msg_body, 3)) {
         std::cout << "TrainCommandCenter::SendTrainCommand(): Warning! PSend Failed\n";
     }
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[1] = false;
+    #endif
 
-    // Also update monitor with train status
-    TrainMonitor::GetTrainMonitor()->VisuallyUpdateTrainInfo(train_num - 1, speed, direction);
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[2] = true;
+    #endif
+
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[2] = false;
+    #endif
+
+    #if DEBUGGING_TRAIN >= 1
+    debugging_flags[0] = false;
+    #endif
 }
 
 // Construct a message to throw switch(es) and send to TrainCommand mailbox
 void TrainCommandCenter::SendSwitchCommand(uint8_t switch_num, switch_direction_t direction, uint8_t src_q) {
-    static char msg_body[3];
+    char msg_body[3];
 
     msg_body[0] = '\xE0';
     msg_body[1] = switch_num;
@@ -222,7 +245,7 @@ void TrainCommandCenter::SendSwitchCommand(uint8_t switch_num, switch_direction_
 }
 
 void TrainCommandCenter::SendSensorAcknowledge(uint8_t sensor_number, uint8_t src_q) {
-    static char msg_body[2];
+    char msg_body[2];
 
     msg_body[0] = '\xA2';
     msg_body[1] = sensor_number;
@@ -234,7 +257,7 @@ void TrainCommandCenter::SendSensorAcknowledge(uint8_t sensor_number, uint8_t sr
 
 // Construct a message to reset sensor queue and send to TrainCommand mailbox
 void TrainCommandCenter::SendSensorQueueReset(uint8_t src_q) {
-    static char msg_body[1];
+    char msg_body[1];
 
     msg_body[0] = '\xA8';
 
@@ -280,6 +303,10 @@ TrainCommandCenter::TrainCommandCenter() {
     FunctionTable[4] = &TrainCommandCenter::RefreshCommand;
     FunctionTable[5] = &TrainCommandCenter::InitCommand;
     FunctionTable[6] = &TrainCommandCenter::TrainGoCommand;
+
+    #if DEBUGGING_TRAIN >= 1
+    for(uint8_t i = 0; i < 16; i++) debugging_flags[i] = false;
+    #endif
 }
 
 /*
@@ -305,15 +332,14 @@ void TrainCommandCenter::HandleCommand(std::string command_str) {
     }
 
     // Call the correct command
-    bool flag = false;
     for (int i = 0; i < NUM_VALID_TRAIN_COMMANDS; i++) {
         if (valid_train_commands[i] == token_array[0] ) {
             (this->*FunctionTable[i])(token_array[1]);
-            flag = true;
-            break;
+            return;
         }
     }
-    if (!flag) SendErrorMsg("Invalid Command: " + command_str);
+
+    SendErrorMsg("Invalid Command: " + command_str);
 }
 
 /*

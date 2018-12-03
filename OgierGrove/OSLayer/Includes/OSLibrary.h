@@ -40,7 +40,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define THUMB_MODE 0x01000000
 
 #define ISR_QUEUE_SIZE 100
-#define UART0_OUTPUT_DATA_BUFFER_SIZE 500
+#define UART0_OUTPUT_DATA_BUFFER_SIZE 1000
 #define UART1_OUTPUT_DATA_BUFFER_SIZE 100
 #define ONE_BYTE_MAX 255
 

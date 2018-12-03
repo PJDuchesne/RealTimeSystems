@@ -67,6 +67,10 @@ class TrainMonitor {
 
         void UpdateCommandStatus(color_t color);
 
+        #if DEBUGGING_TRAIN >= 1
+        bool debugging_flags[16];
+        #endif
+
         static TrainMonitor* GetTrainMonitor();
 };
 

@@ -68,37 +68,30 @@ void TestLayers() {
 }
 
 void PhysicalLayerUARTLoopEntry() {
-    ISRMsgHandler::GetISRMsgHandler(); // TODO: Put these in one central location, like the kernal startup
     PhysicalLayer::GetPhysicalLayer()->UARTMailboxLoop();
 }
 
 
 void PhysicalLayerPacketLoopEntry() {
-    ISRMsgHandler::GetISRMsgHandler();
     PhysicalLayer::GetPhysicalLayer()->PacketMailboxLoop();
 }
 
 void DataLinkLayerLoopEntry() {
-    ISRMsgHandler::GetISRMsgHandler();
     DataLinkLayer::GetDataLinkLayer()->MailboxLoop();
 }
 
 void TrainCommandApplicationLoopEntry() {
-    ISRMsgHandler::GetISRMsgHandler();
     TrainCommandApplication::GetTrainCommandApplication()->MailboxLoop();
 }
 
 void TrainMonitorLoopEntry() {
-    ISRMsgHandler::GetISRMsgHandler();
     TrainMonitor::GetTrainMonitor()->CentralLoop();
 }
 
 void TrainTimeServer() {
-    ISRMsgHandler::GetISRMsgHandler();
     TrainTimeServer::GetTrainTimeServer()->TrainTimeServerLoop();
 }
 
 void TrainControllerLoopEntry() {
-    ISRMsgHandler::GetISRMsgHandler();
     TrainController::GetTrainController()->TrainControllerLoop();
 }

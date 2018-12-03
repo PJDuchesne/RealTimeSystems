@@ -16,6 +16,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include <ISRLayer/Includes/CustomFaultISR.h>
 
+
+
 /*
     Function: CustomFaultISR
     Brief: Used to debug the operating system by accessing singletons 
@@ -34,6 +36,8 @@ void Custom_Fault_ISR() {
     // Access singletons here
     OperatingSystem* OperatingSystemInstance = OperatingSystem::GetOperatingSystem();
     DataLinkLayer* DataLinkLayerInstance = DataLinkLayer::GetDataLinkLayer();
+    TrainController* TrainControllerInstance = TrainController::GetTrainController();
+    TrainCommandCenter* TrainCommandCenterInstance = TrainCommandCenter::GetTrainCommandCenter();
 
     #if DEBUGGING_TRAIN >= 1
     OperatingSystemInstance->StackDebug();

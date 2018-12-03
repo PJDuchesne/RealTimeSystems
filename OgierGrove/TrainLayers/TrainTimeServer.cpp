@@ -72,7 +72,7 @@ void TrainTimeServer::TrainTimeServerLoop() {
     if (!PBind(TRAIN_TIME_SERVER_MB, BIG_LETTER)) { // Default mailbox size of 16, which is MAX_RESEND_ALARMS*2
         std::cout << "TrainTimeServer::Initialize: WARNING Mailbox failed to bind\n";
     }
-    else std::cout << "TrainTimeServer::TrainTimeServerLoop: WARNING Mailbox bound!\n";
+    else std::cout << "TrainTimeServer::TrainTimeServerLoop: Mailbox bound!\n";
 
     static uint8_t src_q;
     static uint32_t mailbox_msg_len;

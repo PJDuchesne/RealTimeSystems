@@ -28,6 +28,10 @@ OperatingSystem *OperatingSystem::OperatingSystemInstance_ = 0;
     Brief: Constructor for the OS, which creates a new TaskScheduler.
 */
 OperatingSystem::OperatingSystem() {
+    // Initialize ISR_MSG_Handler and UARTHandler Singletons
+    UART0Driver::GetUART0Driver();
+    ISRMsgHandler::GetISRMsgHandler();
+
     TaskScheduler_ = new TaskScheduler;
 
     // Initialize PostOffice singleton and store reference for future use
@@ -40,9 +44,6 @@ OperatingSystem::OperatingSystem() {
 */
 void OperatingSystem::Inialize() {
     uint8_t test_case = 7;
-
-    // Initialize ISR_MSG_Handler Singleton
-    ISRMsgHandler::GetISRMsgHandler();
 
     std::cout << "Launching things\n";
 
@@ -95,8 +96,6 @@ void OperatingSystem::Inialize() {
             // Add test function
             // RegProc(&TestLayers, 126, P_THREE, "TestLayers");
 
-            // TODO: Put layers (And Monitor?) at a higher priority!
-
             // Add physical layer loops
             RegProc(&PhysicalLayerUARTLoopEntry,   200, P_THREE, "PhysicalLayerUARTLoop");
             RegProc(&PhysicalLayerPacketLoopEntry, 201, P_THREE, "PhysicalLayerPacketLoop");
@@ -121,11 +120,6 @@ void OperatingSystem::Inialize() {
     }
 
     if (idle_needed_flag) RegProc(&EndlessProcess, 1, P_ONE, "IdleProcess");
-
-    #if DEBUGGING_TRAIN >= 1
-    StackDebug();
-    // Custom_Fault_ISR();
-    #endif
 
     // Pass control to first process
     KickStart();

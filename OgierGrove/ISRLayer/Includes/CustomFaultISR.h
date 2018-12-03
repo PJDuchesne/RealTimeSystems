@@ -22,6 +22,8 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include <OSLayer/Includes/OperatingSystem.h>
 #include <TrainLayers/Includes/DataLinkLayer.h>
+#include <TrainLayers/Includes/TrainController.h>
+#include <TrainLayers/Includes/TrainCommandCenter.h>
 
 void Custom_Fault_ISR();
 

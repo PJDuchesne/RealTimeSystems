@@ -75,6 +75,10 @@ class TrainCommandCenter {
         void SendSensorAcknowledge(uint8_t sensor_number, uint8_t src_q = TRAIN_MONITOR_MB);
         void SendSensorQueueReset(uint8_t src_q = TRAIN_MONITOR_MB);
 
+        #if DEBUGGING_TRAIN >= 1
+        bool debugging_flags[16];
+        #endif
+
         static TrainCommandCenter* GetTrainCommandCenter();
 };
 
