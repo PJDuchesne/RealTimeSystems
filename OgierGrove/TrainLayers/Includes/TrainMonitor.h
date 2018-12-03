@@ -49,6 +49,7 @@ class TrainMonitor {
         void ResetCommandLine();
         void PrintDefaultScreen();
         void PrintCup(int row, int col);
+        void CupResetFlag();
 
         void PaintZone(uint8_t zone, color_t color);
         uint8_t IsSwitchZone(uint8_t zone);
@@ -65,6 +66,7 @@ class TrainMonitor {
         void VisuallyUpdateTrainInfo(uint8_t train_num, uint8_t speed, train_direction_t dir);
         void VisuallyUpdateTrainDst(uint8_t train_num, uint8_t dst);
         void VisuallySetTrainLocation(uint8_t train_num, uint8_t new_zone, uint8_t prev_zone);
+        void VisuallyDisplayTX(char* msg, uint8_t msg_len);
 
         void UpdateCommandStatus(color_t color);
 

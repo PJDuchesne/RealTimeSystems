@@ -171,7 +171,7 @@ int TrainCommandCenter::TokenizeArguments(std::string &arg) {
     // Tokenize input
     int token_idx = 0;
     for (int i = 0; i < arg.length(); i++ ) {
-        // Should only have 2 tokens
+        // Should only have 2 tokens --> TODO: Increase this later
         if (token_idx == MAX_NUM_TRAIN_TOKENS) {
             return -1;
         }
@@ -184,19 +184,28 @@ int TrainCommandCenter::TokenizeArguments(std::string &arg) {
 
 // Construct a message to command a train and send to TrainCommand mailbox
 void TrainCommandCenter::SendTrainCommand(uint8_t train_num, uint8_t speed, train_direction_t direction, uint8_t src_q) {
+    // Direction doesn't matter if the speed is set to 0
+    if (direction == STAY) assert(speed == 0);
+
+    assert(train_num == 2); // TODO: Delete this debugging flag. used for testing single train logic
+
     static char msg_body[3];
+
+    uint8_t tmp_num = src_q;
 
     msg_body[0] = '\xC0';
     msg_body[1] = train_num;
     ((train_settings_t *)(&msg_body[2]))->speed = speed;
-    ((train_settings_t *)(&msg_body[2]))->dir = direction*8; // Technically this should be an 8 within this nibble
+    ((train_settings_t *)(&msg_body[2]))->dir = (direction == CW ? CW : 8*CCW); // Technically this should be an 8 within this nibble
 
-    if (!PSend(src_q, TRAIN_APPLICATION_LAYER_MB, msg_body, 3)) {
+    if (!PSend(tmp_num, TRAIN_APPLICATION_LAYER_MB, msg_body, 3)) {
         std::cout << "TrainCommandCenter::SendTrainCommand(): Warning! PSend Failed\n";
     }
 
     // Also update monitor with train status
-    PSend(src_q, TRAIN_MONITOR_MB, msg_body, 3);
+    PSend(tmp_num, TRAIN_MONITOR_MB, msg_body, 3);
+
+    // std::cout << "TC: " << (int)train_num << " | " << (int)speed << " | " << (int)(direction == CW ? CW : 8*CCW) << "\n";
 }
 
 // Construct a message to throw switch(es) and send to TrainCommand mailbox
@@ -208,11 +217,17 @@ void TrainCommandCenter::SendSwitchCommand(uint8_t switch_num, switch_direction_
     msg_body[2] = direction;
 
     if (!PSend(src_q, TRAIN_APPLICATION_LAYER_MB, msg_body, 3)) {
-        std::cout << "TrainCommandCenter::SendSwitchCommand(): Warning! PSend Failed\n";
+        std::cout << "TrainCommandCenter::SendSwitchCommand(): Warning! TRAIN_APPLICATION_LAYER_MB PSend Failed\n";
     }
 
     // Update monitor with new switch state
-    TrainMonitor::GetTrainMonitor()->VisuallySetSwitch(switch_num, direction);
+    switch_msg_t switch_msg;
+    switch_msg.type = SWITCH_CHANGE;
+    switch_msg.ctrl.num = switch_num;
+    switch_msg.ctrl.req_state = direction;
+    if (!PSend(src_q, TRAIN_MONITOR_MB, &switch_msg, 2)) {
+        std::cout << "TrainCommandCenter::SendSwitchCommand(): Warning! TRAIN_MONITOR_MB PSend Failed\n";
+    }
 }
 
 void TrainCommandCenter::SendSensorAcknowledge(uint8_t sensor_number, uint8_t src_q) {

@@ -49,18 +49,26 @@ void TrainMonitor::CheckMessageHandler() {
     uint8_t src_q;
     uint32_t msg_len;
     static char msg_body[SMALL_LETTER];
+    std::string tmp;
 
-    // If there is a message, print it
+    // If there is a message, handle it
     if (PRecv(src_q, TRAIN_MONITOR_MB, &msg_body, msg_len, false)) {
         if(msg_len >= 1) {
             switch(msg_body[0]) {
-                case '\xA0': // Hall sensor update from DLL
-                    assert(msg_len == 2 || msg_len == 3);
-                    VisuallySetHallSensor(msg_body[1], (msg_len == 3 ? true : false));
-                    break;
                 case '\xC0':
                     assert(msg_len == 3);
                     VisuallyUpdateTrainInfo(msg_body[1], ((train_settings_t *)(&msg_body[2]))->speed, (train_direction_t)((train_settings_t *)(&msg_body[2]))->dir);
+
+                    // Display command to screen
+                    VisuallyDisplayTX(msg_body, 3);
+                    break;
+                case HALL_SENSOR:
+                    assert(msg_len == 2);
+                    VisuallySetHallSensor(((sensor_msg_t *)msg_body)->num, ((sensor_msg_t *)msg_body)->state);
+                    break;
+                case SWITCH_CHANGE:
+                    assert(msg_len == 2);
+                    VisuallySetSwitch(((switch_msg_t *)msg_body)->ctrl.num, (switch_direction_t)(((switch_msg_t *)msg_body)->ctrl.req_state));
                     break;
                 case ZONE_CHANGE: // Zone change update from the train controller
                     assert(msg_len == 4);
@@ -71,6 +79,7 @@ void TrainMonitor::CheckMessageHandler() {
                     VisuallyUpdateTrainDst(msg_body[1], msg_body[2]);
                     break;
                 default:
+                    std::cout << "TrainMonitor::CheckMessageHandler(): Invalid switch case <<" << HEX(msg_body[0]) << " <<\n";
                     // TODO: Some sort of error/warning here
                     break;
             }
@@ -84,6 +93,8 @@ void TrainMonitor::CheckMessageHandler() {
 */
 TrainMonitor::TrainMonitor() {
     CupReset_ = false;
+
+    for(uint8_t i = 0; i <= MAX_NUM_SWITCHES; i++) switch_states[i] = STRAIGHT;
 }
 
 /*
@@ -134,9 +145,11 @@ void TrainMonitor::InputUARTChar(char input_char) {
     if (CupReset_) {
         // Reset all VT-100 commands
         ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_RESET, UART0);
+        ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_RESET, UART0);
+        ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_SHOW_CURSOR, UART0);
 
         // Output cup command to reset cursor position
-        PrintCup(CMD_PROMPT_START_ROW, CMD_PROMPT_START_COLUMN + command_string_len);
+        PrintCup(CMD_PROMPT_START_ROW, CMD_PROMPT_START_COL + command_string_len);
 
         // Clear flag for future use
         CupReset_ = false;
@@ -173,7 +186,7 @@ void TrainMonitor::InputUARTChar(char input_char) {
             // Update command string
             command_string = "";
             command_string_len = 0;
-            CupReset_ = true;
+            CupResetFlag();
 
             // Reset the prompt
             ResetCommandLine();
@@ -204,7 +217,7 @@ void TrainMonitor::ResetCommandLine() {
     ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_RESET, UART0);
     ISRMsgHandlerInstance_->QueueOutputMsg(TrainScreen[CMD_PROMPT_START_ROW - 1] + "\r", UART0);
 
-    PrintCup(CMD_PROMPT_START_ROW, CMD_PROMPT_START_COLUMN);
+    PrintCup(CMD_PROMPT_START_ROW, CMD_PROMPT_START_COL);
 }
 
 void TrainMonitor::PrintDefaultScreen() {
@@ -219,9 +232,17 @@ void TrainMonitor::PrintDefaultScreen() {
 }
 
 void TrainMonitor::PrintCup(int row, int col) {
-    std::stringstream sstream;
+    static std::stringstream sstream;
     sstream << "\e[" << row << ";" << col << "H";
     ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
+    sstream.str("");
+    sstream.clear();
+}
+
+void TrainMonitor::CupResetFlag() {
+    // Hide the curosor
+    ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg(VT_100_HIDE_CURSOR, UART0);
+    CupReset_ = true;
 }
 
 void TrainMonitor::InitializeScreen() {
@@ -239,28 +260,22 @@ void TrainMonitor::InitializeScreen() {
 
     // Train 1 is green
     PrintCup(train_info_locations[0][0], train_info_locations[0][1]);
-    sstream << VT_100_BR_COLORS[train_colors[0]] << VT_100_FONT_COLORS[BLACK] << "Train 1" << VT_100_RESET;
+    sstream << VT_100_FONT_COLORS[train_colors[0]] << "Train 1" << VT_100_RESET;
     ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
-
-    VisuallyUpdateTrainInfo(1, 0, STAY);
-    VisuallyUpdateTrainDst(1, NO_ZONE);
 
     sstream.str(std::string());
     sstream.clear();
 
     // Train 2 is Yellow
     PrintCup(train_info_locations[1][0], train_info_locations[1][1]);
-    sstream << VT_100_BR_COLORS[train_colors[1]] << VT_100_FONT_COLORS[BLACK] << "Train 2" << VT_100_RESET;
+    sstream << VT_100_FONT_COLORS[train_colors[1]] << "Train 2" << VT_100_RESET;
     ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
-
-    VisuallyUpdateTrainInfo(2, 0, STAY);
-    VisuallyUpdateTrainDst(2, NO_ZONE);
 
     // To correspond with initial state of the trainset
     VisuallySetSwitch(255, STRAIGHT);
 
     // Set prompt to starting position 
-    PrintCup(CMD_PROMPT_START_ROW, CMD_PROMPT_START_COLUMN);
+    PrintCup(CMD_PROMPT_START_ROW, CMD_PROMPT_START_COL);
 }
 
 void TrainMonitor::VisuallySetHallSensor(uint8_t sensor_num, bool status) {
@@ -270,7 +285,7 @@ void TrainMonitor::VisuallySetHallSensor(uint8_t sensor_num, bool status) {
     if (sensor_num == 255) {
 
         // Set VT-100 color just once
-        if (status) sstream << VT_100_BR_COLORS[BLUE];
+        if (status) sstream << VT_100_FONT_COLORS[BLUE];
         else sstream << VT_100_RESET;
 
         ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
@@ -289,7 +304,7 @@ void TrainMonitor::VisuallySetHallSensor(uint8_t sensor_num, bool status) {
         TrainMonitor::PrintCup(sensor_locations[sensor_num][ROW], sensor_locations[sensor_num][COL]);
 
         // 1) Set background color depending on status
-        if (status) sstream << VT_100_BR_COLORS[BLUE];
+        if (status) sstream << VT_100_FONT_COLORS[BLUE];
         else sstream << VT_100_RESET;
         // 2) Add characters to update
         // 3) Reset VT-100 codes
@@ -302,7 +317,7 @@ void TrainMonitor::VisuallySetHallSensor(uint8_t sensor_num, bool status) {
     }
 
     // Set cup reset flag
-    CupReset_ = true;
+    CupResetFlag();
 }
 
 void TrainMonitor::VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir) {
@@ -315,19 +330,22 @@ void TrainMonitor::VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir)
 
     // Set all sensors high or low
     if (switch_num == 255) {
-        for (uint8_t i = 1; i < MAX_NUM_SWITCHES; i++) SetIndividualSwitch(i, dir);
+        for (uint8_t i = 1; i <= MAX_NUM_SWITCHES; i++) SetIndividualSwitch(i, dir);
     } // Or set one individual switch
     else if (switch_num != 0 && switch_num <= 6) SetIndividualSwitch(switch_num, dir);
     else {
         // TODO: Error state
     }
 
-    CupReset_ = true;
+    CupResetFlag();
 }
 
 void TrainMonitor::SetIndividualSwitch(uint8_t switch_num, switch_direction_t dir) {
     /* Handle straight portion first */
     TrainMonitor::PrintCup(switch_locations[switch_num][STRAIGHT][ROW], switch_locations[switch_num][STRAIGHT][COL]);
+
+    // Save state of the switch
+    switch_states[switch_num] = dir;
 
     // If straight, draw straight portion, else clear it
     if (dir == STRAIGHT) ISRMsgHandlerInstance_->QueueOutputMsg(switch_strings[switch_num][STRAIGHT], UART0);
@@ -337,9 +355,10 @@ void TrainMonitor::SetIndividualSwitch(uint8_t switch_num, switch_direction_t di
     TrainMonitor::PrintCup(switch_locations[switch_num][DIVERTED][ROW], switch_locations[switch_num][DIVERTED][COL]);
 
     if (dir == DIVERTED) ISRMsgHandlerInstance_->QueueOutputMsg(switch_strings[switch_num][DIVERTED], UART0);
-    else ISRMsgHandlerInstance_->QueueOutputMsg("   ", UART0);
+    else ISRMsgHandlerInstance_->QueueOutputMsg("  ", UART0);
 }
 
+// Updates Speed and direction of the
 void TrainMonitor::VisuallyUpdateTrainInfo(uint8_t train_num, uint8_t speed, train_direction_t dir) {
     train_num--;
     assert(train_num < NUM_TRAINS);
@@ -348,7 +367,7 @@ void TrainMonitor::VisuallyUpdateTrainInfo(uint8_t train_num, uint8_t speed, tra
 
     // Print speed
     PrintCup(train_info_locations[train_num][0], train_info_locations[train_num][2]);
-    sstream << "  " << '\x7F' << '\x7F' << (int)speed;
+    sstream << VT_100_RESET << "  " << '\x7F' << '\x7F' << (int)speed;
     ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
 
     sstream.str("");
@@ -361,14 +380,14 @@ void TrainMonitor::VisuallyUpdateTrainInfo(uint8_t train_num, uint8_t speed, tra
 }
 
 void TrainMonitor::VisuallyUpdateTrainDst(uint8_t train_num, uint8_t dst) {
-    train_num--;
+    // train_num--;
     assert(train_num < NUM_TRAINS);
 
     std::stringstream sstream;
 
     // Print new destination 
     PrintCup(train_info_locations[train_num][0], train_info_locations[train_num][4]);
-    sstream << "    " << '\x7F' << '\x7F' << '\x7F' << '\x7F';
+    sstream << VT_100_RESET << "    " << '\x7F' << '\x7F' << '\x7F' << '\x7F';
     if (dst != NO_ZONE) sstream << (int)dst;
     else sstream << "NONE";
     ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
@@ -387,10 +406,7 @@ void TrainMonitor::PaintZone(uint8_t zone, color_t color) {
 
     // Select background color (if any)
     ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_RESET, UART0);
-    if (color != NO_COLOR) {
-        ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_BR_COLORS[color], UART0);
-        ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_FONT_COLORS[BLACK], UART0);
-    }
+    if (color != NO_COLOR) ISRMsgHandlerInstance_->QueueOutputMsg(VT_100_FONT_COLORS[color], UART0);
 
     uint8_t switch_num = IsSwitchZone(zone);
 
@@ -441,6 +457,26 @@ uint8_t TrainMonitor::IsSwitchZone(uint8_t zone) {
     }
 }
 
+#define TX_ROW 21
+#define TX_COL 50
+#define MAX_TX_NUM_CHARS 29
+void TrainMonitor::VisuallyDisplayTX(char* msg, uint8_t msg_len) {
+    msg_len = MIN(msg_len, MAX_TX_NUM_CHARS); // Arbitrary number of characters
+
+     // Delete old msg
+    PrintCup(TX_ROW, TX_COL);
+    ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg(VT_100_RESET, UART0);
+    ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg("                            ", UART0);
+
+     // Put new msg
+    PrintCup(TX_ROW, TX_COL);
+    static std::stringstream sstream;
+    for (uint8_t i = 0; i < msg_len; i++) sstream << HEX(msg[i]);
+    ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg(sstream.str(), UART0);
+    sstream.str("");
+    sstream.clear();
+}
+
 #define STATUS_ROW 3
 #define STATUS_COL 5
 void TrainMonitor::UpdateCommandStatus(color_t color) {
@@ -451,7 +487,7 @@ void TrainMonitor::UpdateCommandStatus(color_t color) {
 
     ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
 
-    CupReset_ = true;
+    CupResetFlag();
 }
 
 /*

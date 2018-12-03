@@ -25,7 +25,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 // Empirically derived from a single test at max speed
 // when running the train between two hall sensors
-#define BOUNCE_TIME 25 // 20 Centiseconds is 0.2 seconds
+#define BOUNCE_TIME 40 // 40 Centiseconds is 0.4 seconds
 
 // Forward Declaration
 class TrainCommandCenter;
@@ -40,6 +40,8 @@ class TrainCommandApplication {
 
         void HandleDLLMessage(char* request, uint8_t length);
         void HandleAppRequest(char* request, uint8_t length);
+
+        void SendHallMsg(uint8_t sensor_num);
     public:
         void MailboxLoop();
 

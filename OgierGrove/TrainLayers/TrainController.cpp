@@ -35,6 +35,8 @@ TrainController::TrainController() {
         trains_[i].train_ctrl.num = i;
         trains_[i].train_ctrl.dir = STAY;
 
+        trains_[i].initialized = false;
+
         // Clear triggered_sensors
         for (uint8_t x = 0; x < MAX_DIFF_SENSORS; x++) {
             trains_[i].triggered_sensors[x].reset = 0; // Reset both fields to 0
@@ -53,11 +55,15 @@ void TrainController::SetSwitch(switch_ctrl_t switch_ctrl) {
 }
 
 void TrainController::CmdTrain(train_ctrl_t train_ctrl) {
+    assert(train_ctrl.num == 1);    // TODO: DELETE THIS, used for testing single train logic
+
     train_msg_buffer_->Add(train_ctrl);
     TrainCommandCenterInstance_->SendTrainCommand(train_ctrl.num + 1, train_ctrl.speed, (train_direction_t)train_ctrl.dir, TRAIN_CONTROLLER_MB);
 }
 
 void TrainController::StopTrain(uint8_t train_num) {
+    assert(train_num == 1); // TODO: DELETE THIS, used for testing single train logic
+
     trains_[train_num].train_ctrl.speed = 0;
     trains_[train_num].train_ctrl.dir = STAY;
 
@@ -100,6 +106,8 @@ uint8_t TrainController::WhichTrain(uint8_t hall_sensor_num) {
             break;
     }
 
+    /* OLD METHOD: Try this first */
+
     // Iterate through each train
     for(uint8_t x = 0; x < NUM_TRAINS; x++) {
         // If the train is not moving, it couldn't have triggered the hall sensor
@@ -117,9 +125,26 @@ uint8_t TrainController::WhichTrain(uint8_t hall_sensor_num) {
         }
     }
 
-    if (train_num == NO_TRAIN) {
+    /* NEW METHOD: If the previous method fails, try the new one */
 
+     uint8_t tmp_distance;
+     uint8_t lowest_distance = 255;
+     if (train_num == NO_TRAIN) {
+       for(uint8_t x = 0; x < NUM_TRAINS; x++) {
+            if (trains_[x].initialized == false || trains_[x].train_ctrl.dir == STAY) continue;
+             // tmp_distance = zone_hall_distance_table[trains_[x].train_ctrl.dir][trains_[x].current_zone][hall_sensor_num];
+             tmp_distance = 0;
+             if (tmp_distance == lowest_distance) {
+                std::cout << "WARNING: TWO TRAINS OF EQUAL DISTANCE TO A HALL SENSOR TRIGGER (NOW GAMBLING)\n";
+            }
+            else if (tmp_distance < lowest_distance) {
+                train_num = x;
+                lowest_distance = tmp_distance;
+            }
+        }
     }
+
+    assert(train_num != NO_TRAIN);
 
     return train_num;
 }
@@ -128,32 +153,29 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
     // Determine which zone the train is moving into
     assert(trains_[train_num].train_ctrl.dir != STAY); // Ensure the train is actually moving
 
-    uint8_t tmp1 = (int)trains_[train_num].train_ctrl.dir;
-    uint8_t tmp2 = (int)((trains_[train_num].train_ctrl.dir == CW) ? CCW : CW);
+    // Store previous zone
+    uint8_t prev_zone = trains_[train_num].current_zone;
 
-    uint8_t new_zone = possible_zones[hall_sensor_num][tmp1];
-    uint8_t prev_zone = possible_zones[hall_sensor_num][tmp2]; // Previous zone is the zone that we were
+    // Get new zone
+    uint8_t tmp1_dir = (int)trains_[train_num].train_ctrl.dir;
+    trains_[train_num].current_zone = possible_zones[hall_sensor_num][tmp1_dir];
 
     // If the new zone is ER (Error), the train is about to derail
-    if (new_zone == ER) {
+    if (trains_[train_num].current_zone == ER) {
         StopTrain(train_num);
-        assert(new_zone != ER); // Redtext because a train tried to detail and that should never happen
     }
-
-    // Make the new zone the primary zone
-    trains_[train_num].current_zone = new_zone;
 
     // Update monitor with zone changes
     static uint8_t msg_body[4];
     msg_body[0] = ZONE_CHANGE;
     msg_body[1] = train_num;
-    msg_body[2] = new_zone;
+    msg_body[2] = trains_[train_num].current_zone;
     msg_body[3] = prev_zone;
 
     PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 4);
 
     // Check if this is the train's destination
-    if (trains_[train_num].current_dst == new_zone) StopTrain(train_num);
+    if (trains_[train_num].current_dst == trains_[train_num].current_zone) StopTrain(train_num);
     else CheckIfRoutingNeeded(train_num);
 }
 
@@ -161,12 +183,24 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
 
 // If the train has entered a new zone, check if it should reroute from that zone
 void TrainController::CheckIfRoutingNeeded(uint8_t train_num) {
+    /* NEW METHOD */
+
+    // If in a zone that does not need routing, return
+    for (uint8_t i = 0; i < NUM_DANGER_ZONES; i++) {
+        if (trains_[train_num].current_zone == routing_not_needed_zones[i]) return;
+    }
+
+    // Else, route!
+    RouteTrain(train_num);
+
+    /* OLD METHOD
     for (uint8_t i = 0; i < NUM_DANGER_ZONES; i++) {
         if ((trains_[train_num].current_zone == routing_needed_zones[i][0]) && (trains_[train_num].train_ctrl.dir == routing_needed_zones[i][1])) {
             RouteTrain(train_num);
             return;
         }
     }
+    */
 }
 
 // Handles sending train to any zone from any other zone
@@ -307,7 +341,8 @@ void TrainController::TrainControllerLoop() {
                     // This never happens currently
                 }
                 else {
-                    std::cout << "[TrainController::TrainControllerLoop] WARNING: TRAIN Command failed, resending request\n";
+                    // std::cout << "[TrainController::TrainControllerLoop] WARNING: TRAIN Command failed, resending request\n";
+                    std::cout << "RT\n";
                     CmdTrain(train_ctrl); // Will re-buffer and all that
                 }
 
@@ -333,7 +368,9 @@ void TrainController::TrainControllerLoop() {
                 break;
             case ZONE_CMD: // Internal Init cmd
                 // Only allowed to initialize train while it is not en route (signified by dst == NO_ZONE)
-                if (trains_[msg_body[1]].current_dst == NO_ZONE) {
+                if (trains_[msg_body[1]].initialized == false) {
+                    trains_[msg_body[1]].initialized = true;
+
                     assert(trains_[msg_body[1]].train_ctrl.dir == STAY); // If train is not en_route, it should be stationary
                     trains_[msg_body[1]].current_zone = msg_body[2];
 
@@ -351,14 +388,16 @@ void TrainController::TrainControllerLoop() {
                 // msg_body[1] contains the train number
                 // msg_body[2] contains the first destination
 
-                // If the train is currently stationary and not en_route
-                // TODO: Add functionality to allow the train to be re-routed when en-route
-                if (trains_[msg_body[1]].train_ctrl.dir == STAY && trains_[msg_body[1]].current_dst == NO_ZONE) {
-                    trains_[msg_body[1]].current_dst = msg_body[2];
-                    RouteTrain(msg_body[1]);
+                if(trains_[msg_body[1]].initialized == true) {
+                    // If the train is currently stationary and not en_route
+                    // TODO: Add functionality to allow the train to be re-routed when en-route
+                    if (trains_[msg_body[1]].train_ctrl.dir == STAY && trains_[msg_body[1]].current_dst == NO_ZONE) {
+                        trains_[msg_body[1]].current_dst = msg_body[2];
+                        RouteTrain(msg_body[1]);
 
-                    // Update Monitor with new Destination
-                    PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 3);
+                        // Update Monitor with new Destination
+                        PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 3);
+                    }
                 }
                 break;
             default:

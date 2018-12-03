@@ -84,14 +84,16 @@ void TrainCommandApplication::HandleDLLMessage(char* request, uint8_t length) {
             // Tell the controller and the monitor if enough time has passed since last trigger
             tmp_time = TrainTimeServer::GetTrainTimeServer()->GetCurrentTime();
             if (tmp_time - HallTriggertimes_[tmp_num] > BOUNCE_TIME) {
+                assert(tmp_num != 0 && tmp_num <= NUM_HALL_SENSORS); 
+                
+                // Update time for debouncing
+                HallTriggertimes_[tmp_num] = tmp_time;
+
                 // Tell TrainMonitor so it can update the screen
-                PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_MONITOR_MB, request, length);
+                SendHallMsg(tmp_num);
 
                 // Tell TrainController so it can keep track of the train
                 PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_CONTROLLER_MB, request, length);
-
-                assert(tmp_num != 0 && tmp_num <= NUM_HALL_SENSORS); 
-                HallTriggertimes_[tmp_num] = tmp_num;
             }
             break;
         case '\xAA': // TODO: THIS IS USELESS
@@ -141,6 +143,18 @@ void TrainCommandApplication::HandleAppRequest(char* request, uint8_t length) {
 
     // Send message down
     PSend(TRAIN_APPLICATION_LAYER_MB, DATA_LINK_LAYER_MB, (void *)request, length);
+}
+
+void TrainCommandApplication::SendHallMsg(uint8_t sensor_num) {
+    // Tell the monitor so it updates
+    sensor_msg_t sensor_msg;
+    sensor_msg.type = HALL_SENSOR;
+    sensor_msg.state = true;
+    sensor_msg.num = sensor_num;
+    PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_MONITOR_MB, &sensor_msg, 2);
+
+    // Send the time server so it can be reset soon
+    PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_TIME_SERVER_MB, &sensor_num, 1);
 }
 
 /*
