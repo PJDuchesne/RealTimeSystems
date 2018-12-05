@@ -63,7 +63,7 @@ class DataLinkLayer {
         // Array for packets that have been sent, but not yet acknowledged
         packet_t outgoing_messages_[MAX_DLL_WAITING_PACKETS];
         // Number of packets that have been sent but not yet acknowledged,
-        uint8_t num_packets_in_limbo_; // At all times, should be <= WINDOW_SIZE
+        // uint8_t num_packets_in_limbo_; // At all times, should be <= WINDOW_SIZE
 
         // NS and NR to use
         uint8_t tiva_ns_;
@@ -83,7 +83,7 @@ class DataLinkLayer {
 
         void MakePacket(packet_t &packet, train_msg_t *msg);
 
-        uint8_t PacketLengthFromCode(uint8_t msg_code);
+        uint8_t NumPacketsInLimbo();
 
     public:
         void MailboxLoop();

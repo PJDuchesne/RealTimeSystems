@@ -34,9 +34,10 @@ void DataLinkLayer::MailboxLoop() {
     uint8_t src_q;
     uint32_t mailbox_msg_len;
     char msg_body[SMALL_LETTER];
+    uint8_t tmp_num;
 
     // initialize to 0
-    num_packets_in_limbo_ = 0;
+    // num_packets_in_limbo_ = 0;
     tiva_ns_ = 0;
     tiva_nr_ = 0;
 
@@ -117,13 +118,14 @@ void DataLinkLayer::MailboxLoop() {
                 break;
             // Else it is from the application layer and should be sent down to the Physical Layer
             default:
-
                 // Make packet for sending or buffering
                 assert(mailbox_msg_len < 8);
                 MakePacket(newly_made_packet, (train_msg_t *)msg_body);
 
+                tmp_num = NumPacketsInLimbo();
+
                 // Add to outgoing mail buff if allowed
-                if (num_packets_in_limbo_ < WINDOW_SIZE) {
+                if (tmp_num < WINDOW_SIZE) {
                     SendPacketDown(&newly_made_packet);
 
                     // Increment NS after this gets sent
@@ -172,6 +174,8 @@ void DataLinkLayer::SendMessageUp(packet_t* packet) {
     PSend(DATA_LINK_LAYER_MB, TRAIN_APPLICATION_LAYER_MB, (void *)msg_body, packet->length);
 }
 
+// num_packets_in_limbo_ INCREASED (Nothing needed)
+
 // Send packet down to application layer
 void DataLinkLayer::SendPacketDown(packet_t* packet) {
     // Add packet to outgoing_messages_ buffer
@@ -179,18 +183,20 @@ void DataLinkLayer::SendPacketDown(packet_t* packet) {
     memcpy(&outgoing_messages_[tiva_ns_], packet, packet->length + 2);
 
     // This assumes that num_packets_in_limbo_ was checked for bounds before calling this function 
-    num_packets_in_limbo_++;
+    // num_packets_in_limbo_++;
 
     assert(packet->control_block.type == DATA_PT);
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, (void *)packet, packet->length + 2);
 
     SetPacketAlarm(packet->control_block.ns);
 
-    #if DEBUGGING_TRAIN >= 1
-    packet->tmp_array[packet->length + 2] = num_packets_in_limbo_;
-    PSend(DATA_LINK_LAYER_MB, MONITOR_MB, (void *)packet, packet->length + 3);
-    #endif
+    // #if DEBUGGING_TRAIN >= 1
+    // packet->tmp_array[packet->length + 2] = num_packets_in_limbo_;
+    // PSend(DATA_LINK_LAYER_MB, MONITOR_MB, (void *)packet, packet->length + 3);
+    // #endif
 }
+
+// num_packets_in_limbo_ Used
 
 // Clear appropriate message from buffer and update 'num_packets_in_limbo_' number
 void DataLinkLayer::HandleACK(uint8_t train_nr) {
@@ -199,12 +205,13 @@ void DataLinkLayer::HandleACK(uint8_t train_nr) {
     assert(CheckACKRange(train_nr)); // If found to be outside the range, that's a problem
 
     static packet_t packet;
+    uint8_t limbo_num = NumPacketsInLimbo();
 
     // Clear any packets in limbo within sliding window size backwards
     // if (outgoing_messages_[train_nr].control_block.type != DATA_PT) return;
     for (int i = 0; i < WINDOW_SIZE; i++) {
         // If out of packets, break
-        if (num_packets_in_limbo_ == 0) break;
+        if (limbo_num == 0) break;
         MOD8MINUS1(train_nr);
 
         // If there are no more packets in this range, break
@@ -215,10 +222,11 @@ void DataLinkLayer::HandleACK(uint8_t train_nr) {
     }
 
     // Check if any other messages are waiting to be sent
-    while(num_packets_in_limbo_ < WINDOW_SIZE) {
+    while(limbo_num < WINDOW_SIZE) {
         if (packet_buffer_->Empty()) break;
         packet = packet_buffer_->Get();
-        SendPacketDown(&packet); // This increments num_packets_in_limbo_
+        SendPacketDown(&packet);
+        limbo_num++;
     }
 }
 
@@ -285,7 +293,7 @@ void DataLinkLayer::InternallyACK(uint8_t buffer_idx) {
     outgoing_messages_[buffer_idx].control_block.type = UNUSED_PT;
 
     // 3) Lower Limbo Number
-    num_packets_in_limbo_--;
+    // num_packets_in_limbo_--;
 
     // TODO: (Maybe) If num_packets_in_limbo_, could do a hard reset of all packets in the table.
     // and alarms in timeserver. Very costly, but could prevent issues
@@ -311,8 +319,8 @@ bool DataLinkLayer::CheckACKRange(uint8_t incoming_nr) {
     }
 
     std::cout << "DataLinkLayer::CheckACKRange(): FAILURE >>NS: " << (int)tiva_ns_ << "<< >>NR " 
-                                                                  << (int)incoming_nr << "<< >>Limbo: "
-                                                                  << (int)num_packets_in_limbo_ << "<<\n";
+                                                                  << (int)incoming_nr << "<< >>Limbo: \nA;";
+                                                                  // << (int)num_packets_in_limbo_ << "<<\n";
     return false;
 }
 
@@ -343,6 +351,15 @@ void DataLinkLayer::MakePacket(packet_t &packet, train_msg_t* msg) {
             while(1) {}
             break;
     }
+}
+
+// Returns the current number of packets waiting in limbo
+uint8_t DataLinkLayer::NumPacketsInLimbo() {
+    uint8_t num_packets_in_limbo = 0;
+    for (uint8_t i = 0; i < MAX_DLL_WAITING_PACKETS; i++) {
+        if (outgoing_messages_[i].control_block.type == DATA_PT) num_packets_in_limbo++;
+    }
+    return num_packets_in_limbo;
 }
 
 /*

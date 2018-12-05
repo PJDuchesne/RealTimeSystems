@@ -124,7 +124,8 @@ typedef struct packet {
                 train_msg_t msg;
                 struct 
                 {
-                    packet_type_t code;
+                    // packet_type_t code;
+                    uint8_t code;
                     uint8_t arg1;
                     uint8_t arg2;
                 };
