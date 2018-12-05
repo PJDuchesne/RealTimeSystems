@@ -126,7 +126,7 @@ void TrainCommandCenter::InitCommand(std::string arg) {
     init_msg[2] = SafeStoi(TokenizedArgs_[1]);     // Zone Number
 
     if ( (init_msg[1] >= NUM_TRAINS) || (init_msg[2] > NUM_ZONES) ) {
-        SendErrorMsg("[TrainCommandCenter::InitCommand] Error! Malformed Command (due to numbers)!\n");
+        SendErrorMsg("[TrainCommandCenter::InitCommand] Error! Malformed Command (due to switch destination)!\n");
         return;
     }
 
@@ -151,6 +151,13 @@ void TrainCommandCenter::TrainGoCommand(std::string arg) {
     train_go_msg[1] = SafeStoi(TokenizedArgs_[0]) - 1; // Train #: Decremented to match table in control system
     train_go_msg[2] = SafeStoi(TokenizedArgs_[1]);     // Destination zone Number
 
+    for (uint8_t i = 0; i < MAX_NUM_SWITCHES; i++) {
+        if (train_go_msg[2] == switch_zones[i]) {
+            SendErrorMsg("[TrainCommandCenter::TrainGoCommand] Error! Malformed Command (due to numbers)!\n");
+            return;
+        }
+    }
+
     if ( (train_go_msg[1] >= NUM_TRAINS) || (train_go_msg[2] > NUM_ZONES) ) { // TODO: Fix hard-coding
         SendErrorMsg("[TrainCommandCenter::TrainGoCommand] Error! Malformed Command (due to numbers)!\n");
         return;
@@ -158,6 +165,25 @@ void TrainCommandCenter::TrainGoCommand(std::string arg) {
 
     // If correctly formed, send a message to the controller to start the train routing
     PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)train_go_msg, 3);
+}
+
+// One argument
+// 1) Train num
+void TrainCommandCenter::KickTrainCommand(std::string arg) {
+    int tmp_code = TokenizeArguments(arg);
+
+    if (tmp_code != 1) {
+        SendErrorMsg("[TrainCommandCenter::KickTrainCommand] Error! Malformed Command (due to number of args)!\n");
+        return;
+    }
+
+    static uint8_t train_go_msg[2];
+
+    train_go_msg[0] = KICK_CMD;
+    train_go_msg[1] = SafeStoi(TokenizedArgs_[0]) - 1; // Train #: Decremented to match table in control system
+
+    // If correctly formed, send a message to the controller to start the train routing
+    PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)train_go_msg, 2);
 }
 
 void TrainCommandCenter::SendErrorMsg(std::string msg) {
@@ -187,8 +213,6 @@ void TrainCommandCenter::SendTrainCommand(uint8_t train_num, uint8_t speed, trai
     // Direction doesn't matter if the speed is set to 0
     if (direction == STAY) assert(speed == 0);
 
-    assert(train_num == 2); // TODO: Delete this debugging flag. used for testing single train logic
-
     static char msg_body[3];
 
     uint8_t tmp_num = src_q;
@@ -204,12 +228,14 @@ void TrainCommandCenter::SendTrainCommand(uint8_t train_num, uint8_t speed, trai
 
     // Also update monitor with train status
     PSend(tmp_num, TRAIN_MONITOR_MB, msg_body, 3);
-
-    // std::cout << "TC: " << (int)train_num << " | " << (int)speed << " | " << (int)(direction == CW ? CW : 8*CCW) << "\n";
 }
 
 // Construct a message to throw switch(es) and send to TrainCommand mailbox
 void TrainCommandCenter::SendSwitchCommand(uint8_t switch_num, switch_direction_t direction, uint8_t src_q) {
+    // Switch 5 and 6 were reversed on Dec 3rd, 2018
+    if (switch_num == 5) switch_num = 6;
+    else if (switch_num == 6) switch_num = 5;
+
     static char msg_body[3];
 
     msg_body[0] = '\xE0';
@@ -289,6 +315,7 @@ TrainCommandCenter::TrainCommandCenter() {
     FunctionTable[4] = &TrainCommandCenter::RefreshCommand;
     FunctionTable[5] = &TrainCommandCenter::InitCommand;
     FunctionTable[6] = &TrainCommandCenter::TrainGoCommand;
+    FunctionTable[7] = &TrainCommandCenter::KickTrainCommand;
 }
 
 /*

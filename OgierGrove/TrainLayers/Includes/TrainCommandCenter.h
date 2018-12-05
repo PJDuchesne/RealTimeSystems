@@ -22,7 +22,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "TrainMonitor.h"
 
-#define NUM_VALID_TRAIN_COMMANDS  7
+#define NUM_VALID_TRAIN_COMMANDS  8
 const std::string valid_train_commands[NUM_VALID_TRAIN_COMMANDS] = {
   "TRAIN",
   "SWITCH",
@@ -31,6 +31,7 @@ const std::string valid_train_commands[NUM_VALID_TRAIN_COMMANDS] = {
   "REFRESH",
   "INIT",
   "TRAINGO",
+  "KICK",
 };
 
 // Forward Declarations
@@ -54,6 +55,7 @@ class TrainCommandCenter {
         void RefreshCommand(std::string arg);
         void InitCommand(std::string arg);
         void TrainGoCommand(std::string arg);
+        void KickTrainCommand(std::string arg);
 
         // Internal helpers
         void ToUpper(std::string &str);

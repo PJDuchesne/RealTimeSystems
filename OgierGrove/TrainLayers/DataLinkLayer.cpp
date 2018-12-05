@@ -132,6 +132,8 @@ void DataLinkLayer::MailboxLoop() {
                 // Else, buffer the msg for later
                 else {
                     if (!packet_buffer_->Full()) {
+                        std::cout << "BF\n";
+
                         // Make packet to send
                         packet_buffer_->Add(&newly_made_packet);
 
@@ -207,7 +209,6 @@ void DataLinkLayer::HandleACK(uint8_t train_nr) {
 
         // If there are no more packets in this range, break
         if (outgoing_messages_[train_nr].control_block.type == UNUSED_PT) break;
-        // assert(outgoing_messages_[train_nr].control_block.type == UNUSED_PT);
 
         // Clear alarm, lower limbo_num, and clear buffer spot
         InternallyACK(train_nr);

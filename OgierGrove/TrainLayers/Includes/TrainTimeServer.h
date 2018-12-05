@@ -52,8 +52,9 @@ class TrainTimeServer {
         void SetResendAlarm(uint8_t alarm_num, bool set_flag);
         void SetHallSensorAlarm(uint8_t alarm_num);
 
-        trainMsgAlarm_t trainAlarms[MAX_RESEND_ALARMS];
-        hallSensorAlarm_t hallSensorAlarms[NUM_HALL_SENSORS + 1];
+        trainMsgAlarm_t trainAlarms[MAX_RESEND_ALARMS]; // For resending timed out commands on the data link layer
+        hallSensorAlarm_t hallSensorAlarms[NUM_HALL_SENSORS + 1]; // For temporarily displaying hall sensors
+        // hallSensorAlarm_t trainPauseAlarms[NUM_HALL_SENSORS + 1]; // 
 
         uint32_t currentDeciTime_; // Will overflow after ~30000 hours
 

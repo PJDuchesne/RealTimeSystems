@@ -21,14 +21,14 @@ TrainController *TrainController::TrainControllerInstance_ = 0;
 
 TrainController::TrainController() {
     switch_msg_buffer_ = new RingBuffer<switch_ctrl_t>(SWITCH_BUFFER_SIZE);
-    train_msg_buffer_ = new RingBuffer<train_ctrl_t>(TRAIN_BUFFER_SIZE);
+    // train_msg_buffer_ = new RingBuffer<train_ctrl_t>(TRAIN_BUFFER_SIZE);
 
     for(uint8_t i = 0; i < NUM_TRAINS; i++) {
         trains_[i].current_zone               = NO_ZONE;
         trains_[i].current_dst                = NO_ZONE;
         trains_[i].last_hall_triggered        = NO_HALL;
         trains_[i].second_last_hall_triggered = NO_HALL;
-        trains_[i].default_speed              = 4; // TODO: Un-hardcode this speed
+        trains_[i].default_speed              = 5; // TODO: Un-hardcode this speed
 
         // Set up control block
         trains_[i].train_ctrl.speed = 0;
@@ -46,7 +46,7 @@ TrainController::TrainController() {
 
 TrainController::~TrainController() {
     delete switch_msg_buffer_;
-    delete train_msg_buffer_;
+    // delete train_msg_buffer_;
 }
 
 void TrainController::SetSwitch(switch_ctrl_t switch_ctrl) {
@@ -55,15 +55,12 @@ void TrainController::SetSwitch(switch_ctrl_t switch_ctrl) {
 }
 
 void TrainController::CmdTrain(train_ctrl_t train_ctrl) {
-    assert(train_ctrl.num == 1);    // TODO: DELETE THIS, used for testing single train logic
-
-    train_msg_buffer_->Add(train_ctrl);
+    last_train_cmds[train_ctrl.num] = train_ctrl;
+    // train_msg_buffer_->Add(train_ctrl);
     TrainCommandCenterInstance_->SendTrainCommand(train_ctrl.num + 1, train_ctrl.speed, (train_direction_t)train_ctrl.dir, TRAIN_CONTROLLER_MB);
 }
 
 void TrainController::StopTrain(uint8_t train_num) {
-    assert(train_num == 1); // TODO: DELETE THIS, used for testing single train logic
-
     trains_[train_num].train_ctrl.speed = 0;
     trains_[train_num].train_ctrl.dir = STAY;
 
@@ -185,27 +182,19 @@ void TrainController::HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_nu
 void TrainController::CheckIfRoutingNeeded(uint8_t train_num) {
     /* NEW METHOD */
 
-    // If in a zone that does not need routing, return
-    for (uint8_t i = 0; i < NUM_DANGER_ZONES; i++) {
-        if (trains_[train_num].current_zone == routing_not_needed_zones[i]) return;
+    if (routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][1] == NOP_) return;
+
+    // If in a switch zone, do not route
+    for (uint8_t i = 0; i < MAX_NUM_SWITCHES; i++) {
+        if (trains_[train_num].current_zone == switch_zones[i]) return;
     }
 
-    // Else, route!
     RouteTrain(train_num);
-
-    /* OLD METHOD
-    for (uint8_t i = 0; i < NUM_DANGER_ZONES; i++) {
-        if ((trains_[train_num].current_zone == routing_needed_zones[i][0]) && (trains_[train_num].train_ctrl.dir == routing_needed_zones[i][1])) {
-            RouteTrain(train_num);
-            return;
-        }
-    }
-    */
 }
 
 // Handles sending train to any zone from any other zone
 // Also in charge of stopping the train!
-void TrainController::RouteTrain(uint8_t train_num) {
+void TrainController::RouteTrain(uint8_t train_num, bool kick) {
     // Check if at current destination:
     if(trains_[train_num].current_zone == trains_[train_num].current_dst) {
         // Stop train
@@ -224,16 +213,27 @@ void TrainController::RouteTrain(uint8_t train_num) {
         assert(switch_ctrl.num != 0 && switch_ctrl.num <= 6); // TODO: For debugging
 
         SetSwitch(switch_ctrl);
+
+        kick = true;
     }
 
     /* Route train as needed */
 
-    // Fetch direction the train should go
+    // Fetch direction the train should go, storing the old direction for a later test
+    switch_direction_t old_dir = (switch_direction_t)trains_[train_num].train_ctrl.dir;
     trains_[train_num].train_ctrl.dir = routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][0];
 
-    if (trains_[train_num].train_ctrl.dir == STAY) trains_[train_num].train_ctrl.speed = 0;
-    else trains_[train_num].train_ctrl.speed = trains_[train_num].default_speed;
+    // Stop the train if the routing table indicates that the train should be stopped
+    if (trains_[train_num].train_ctrl.dir == STAY) { // If this happens, stop the train
+        trains_[train_num].train_ctrl.speed = 0;
+        CmdTrain(trains_[train_num].train_ctrl);
+        return;
+    }
 
+    // Route the train if kicking or if the train has changed direction
+    if (!kick && trains_[train_num].train_ctrl.dir == old_dir) return;
+
+    trains_[train_num].train_ctrl.speed = trains_[train_num].default_speed;
     CmdTrain(trains_[train_num].train_ctrl);
 }
 
@@ -246,9 +246,6 @@ void TrainController::HandleSensorTrigger(char* msg_body, uint8_t msg_len) {
         std::cout << "[TrainController::HandleSensorTrigger()] WARNING: No train could have triggered this >>" << (int)sensor_num << "<<\n";
         return;
     }
-
-    // TODO: Get this working
-    sensor_trigger_t* sensor_array = trains_[train_num].triggered_sensors;
 
     /* Check if the sensor has been triggered recently and is already in triggered_sensors[] */
     uint8_t empty_idx = NO_INDEX;
@@ -277,7 +274,6 @@ void TrainController::HandleSensorTrigger(char* msg_body, uint8_t msg_len) {
     /* If not in queue already, use the first empty or make an empty slot for it */
 
     // If full (Which should generally happen), remove the oldest entry and continue
-    uint8_t max_age;
     if (empty_idx == NO_INDEX) {
         assert(oldest_idx != NO_INDEX); // This means that an age of 3 was not found in the previous loop
         trains_[train_num].triggered_sensors[oldest_idx].reset = 0;
@@ -313,8 +309,8 @@ void TrainController::TrainControllerLoop() {
 
     uint8_t tmp_num;
 
-    static uint8_t zone_change_msg[4];
-    zone_change_msg[0] = ZONE_CHANGE;
+    // Reset switches to straight on startup
+    TrainCommandCenterInstance_->SendSwitchCommand(255, STRAIGHT, TRAIN_CONTROLLER_MB);
 
     // Should just be receiving from UART and Data Link Layer
     while(1) {
@@ -327,6 +323,13 @@ void TrainController::TrainControllerLoop() {
                 HandleSensorTrigger(msg_body, mailbox_msg_len);
                 break;
             case '\xC2': // Train ACK
+                // Fetch zero indexed number of train
+                tmp_num = msg_body[1] - 1;
+
+                CmdTrain(last_train_cmds[tmp_num]); // Will re-buffer and all that
+
+
+                /* OLD METHOD
                 if (train_msg_buffer_->Empty()) {
                     std::cout << "[TrainController::TrainControllerLoop] WARNING: ACK Was receieved for unaccounted for TRAIN command\n";
                     break;
@@ -345,6 +348,7 @@ void TrainController::TrainControllerLoop() {
                     std::cout << "RT\n";
                     CmdTrain(train_ctrl); // Will re-buffer and all that
                 }
+                */
 
                 break;
             case '\xE2': // Switch ACK
@@ -393,11 +397,16 @@ void TrainController::TrainControllerLoop() {
                     // TODO: Add functionality to allow the train to be re-routed when en-route
                     if (trains_[msg_body[1]].train_ctrl.dir == STAY && trains_[msg_body[1]].current_dst == NO_ZONE) {
                         trains_[msg_body[1]].current_dst = msg_body[2];
-                        RouteTrain(msg_body[1]);
+                        RouteTrain(msg_body[1], true);
 
                         // Update Monitor with new Destination
                         PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 3);
                     }
+                }
+                break;
+            case KICK_CMD:
+                if(trains_[msg_body[1]].initialized == true) {
+                    RouteTrain(msg_body[1], true);
                 }
                 break;
             default:

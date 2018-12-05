@@ -321,6 +321,10 @@ void TrainMonitor::VisuallySetHallSensor(uint8_t sensor_num, bool status) {
 }
 
 void TrainMonitor::VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir) {
+    // Switch 5 and 6 were reversed on Dec 3rd, 2018
+    if (switch_num == 5) switch_num = 6;
+    else if (switch_num == 6) switch_num = 5;
+    
     std::stringstream sstream;
 
     assert(dir != NOT_NEEDED);

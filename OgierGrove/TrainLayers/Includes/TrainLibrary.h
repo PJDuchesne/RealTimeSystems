@@ -67,6 +67,7 @@ typedef enum ctrl_msg_type {
     ZONE_CHANGE,         // 4 Bytes:      1 for this enum, 1 for the train number, 1 for new zone, and 1 for old zone
     PARTIAL_ZONE_CHANGE, // 3 Bytes:      1 for this enum, 1 for the train number, 1 for partial zone
     TRAIN_GO_CMD,        // 3+ Bytes:     1 for this enum, 1 for train num, and at least 1 more for destination(s)
+    KICK_CMD,            // 2 Bytes:      1 for this enum, 1 for train num
 } ctrl_msg_type_t;
 
 enum train_layer_mailboxes {
@@ -232,9 +233,9 @@ const std::string TrainScreen[NUM_SCREEN_ROWS] = {
   "#    15 ||      Train 1: Spd: XX  Dir: XXXX  Dst: XXXX                || 7     #",
   "#       ||      Train 2: Spd: XX  Dir: XXXX  Dst: XXXX                ||       #",
   "#       ||                                                            ||       #",
-  "#       ##                                       17                   ##       #",
+  "#       ##                                     17                     ##       #",
   "#        \\\\                              ==##=======##==             //        #",
-  "#      0  \\\\         1         2       3 //      4          5       //  6      #",
+  "#      0  \\\\         1         2      3 //      4          5        //  6      #",
   "#          ===##====---===##=======##===---##=======##===---====##===          #",
   "#                   \\\\                  16                //                   #",
   "#                    ==##==============================##==                    #",
@@ -385,7 +386,9 @@ const uint8_t zone_locations[NUM_ZONES][MAX_COLUMNS_PER_ZONE][3] {
     { { 3, 26, 30}, { 0,  0,  0}, { 0,  0,  0}, { 0,  0,  0} }, // 19
 };
 
-#define TRAIN_INFO_OFFSET 8
+const uint8_t switch_zones[MAX_NUM_SWITCHES] { 1, 3, 5, 9, 11, 13 };
+
+// Used to display train information to the center of the monitor
 const uint8_t train_info_locations[NUM_TRAINS][5] {
     {10, 17, 31, 40, 51}, 
     {11, 17, 31, 40, 51},
