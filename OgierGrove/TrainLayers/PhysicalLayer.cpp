@@ -16,16 +16,12 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/PhysicalLayer.h"
 
-// TODO: Delete, used for testing
-#include <ISRLayer/Includes/GlobalConfig.h>
-#include <OSLayer/Includes/OperatingSystem.h>
-
 // Singleton Instance
 PhysicalLayer *PhysicalLayer::PhysicalLayerInstance_ = 0;
 
 /*
     Function: UARTMailboxLoop
-    Brief: <>
+    Brief: The main loop for checking data coming from the UART driver, byte by byte
 */
 void PhysicalLayer::UARTMailboxLoop() {
     // Bind PhysicalLayer queue
@@ -43,19 +39,7 @@ void PhysicalLayer::UARTMailboxLoop() {
     static unsigned char incoming_frame[MAX_FRAME_SIZE];
     static uint8_t frame_len = 0;
 
-    // Hijacking function for testing without the trainset
-    // #if DEBUGGING_TRAIN >= 1
-    // int i_DELAY = 0;
-    
-    // while (1) {
-    //     // Short delay
-    //     DELAY(1000000/4)
-
-    //     // Send a dummy packet to test system
-    //     FakePacket();
-    // }
-    // #endif
-
+    // Loop infinitly, sleeping between messages
     while (1) {
         // Blocking message request
         PRecv(src_q, UART_PHYSICAL_LAYER_MB, &msg_body, mailbox_msg_len);
@@ -78,6 +62,7 @@ void PhysicalLayer::UARTMailboxLoop() {
                     // Reset frame
                     frame_len = 0;
                     break;
+
                 // Unescaped 0x02 found (That wasn't the first char), must restart 
                 // the frame with this first character
                 case '\x02':
@@ -86,13 +71,9 @@ void PhysicalLayer::UARTMailboxLoop() {
                     frame_len = 1;
                     break;
 
-                // They can escape any character, doesn't *have* to be a control character technically
-                // case '\x10':
-                //     std::cout << "PhysicalLayer::UARTMailboxLoop(): ERROR: UNESCAPED 0x10 FOUND\n";
-                //     while (1) {}
+                // The default behavior is a non-escaped non-control character
                 default:
                     frame_len++;
-                    // A normal character, which was not escaped (This is fine)
                     break;
             }
         }
@@ -110,25 +91,14 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
 
     int msg_idx = 0;
 
-    #if DEBUGGING_TRAIN == 1
-    std::cout << "    PhysicalLayer::PassFrame: Frame from UART1, passing to DLL >>";
-    for (int i = 0; i < frame_len; i++) {
-        std::cout << HEX(frame_ptr[i]);
-    }
-    std::cout << "<<\n";
-    #endif
-
     // Ensure frame starts with STX (0x02) and ends with ETX (0x03)
-    // Note: These checks should be taken care of in the previous function. TODO: Remove
-    assert(frame_len >= 4); // NACKs and ACKS are at least length 4 (Actually 5), DATA should be 6. More with escape characters
+    // Note: These checks should be taken care of in the previous function.
+    assert(frame_len >= 4); // NACKs and ACKS are at length 5, DATA should be 6. More with escape characters
     assert(frame_ptr[0]             == '\x02');
     assert(frame_ptr[frame_len - 1] == '\x03');
 
     // Checks checksum
     uint8_t frame_checksum = 0;
-
-    // TODO: This would be simpler if the loop just kept iterating when an escape character
-    //       was found, leaving the bounds to be the bounds
 
     // Create msg_body to send up
     for(int i = 1; i < frame_len - 2; i++) {
@@ -149,16 +119,6 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
 
     // If checksum passes, pass msg, otherwise drop it
     if (frame_checksum == frame_ptr[frame_len - 2]) {
-        #if DEBUGGING_TRAIN == 1
-        std::cout << "    PhysicalLayer::PassFrame(): Passed Checksum, passing up!\n";
-        #endif
-
-        #if DEBUGGING_TRAIN >= 1
-        // if (!PSend(UART_PHYSICAL_LAYER_MB, MONITOR_MB, (void *)msg_body, msg_idx)) {
-        //     std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Packet failed to send to Monitor\n";
-        // }
-        #endif
-
         // Send message up to Data Link Layer, without the STX, Checksum, or ETX
         if (!PSend(UART_PHYSICAL_LAYER_MB, DATA_LINK_LAYER_MB, (void *)msg_body, msg_idx)) {
             std::cout << "    PhysicalLayer::PassFrame(): WARNING -> Packet failed to send to DLL\n";
@@ -170,6 +130,11 @@ void PhysicalLayer::PassFrame(unsigned char* frame_ptr, uint8_t frame_len) {
     }
 }
 
+/*
+    Function: PacketMailboxLoop
+    Brief: This loop handles data coming down from the DLL looping to be passed out through the UART
+    Note: This loop is handled by a separate process than the previous loop
+*/
 void PhysicalLayer::PacketMailboxLoop() {
     // Bind PhysicalLayer queue
     if (!PBind(PACKET_PHYSICAL_LAYER_MB, SMALL_LETTER)) { // Default mailbox size of 16
@@ -190,18 +155,6 @@ void PhysicalLayer::PacketMailboxLoop() {
         assert(mailbox_msg_len < SMALL_LETTER);
         assert(src_q == DATA_LINK_LAYER_MB); // Frame should always be coming from DLL
 
-        #if DEBUGGING_TRAIN == 1
-        std::cout << "    PhysicalLayer::PacketMailboxLoop: Frame from DLL, passing to UART1 >>";
-        for (int i = 0; i < mailbox_msg_len; i++) {
-            std::cout << HEX(msg_body[i]);
-        }
-        std::cout << "<<\n";
-        #endif
-
-        #if DEBUGGING_TRAIN == 1
-        std::cout << "    PhysicalLayer::PacketMailboxLoop(): Packet from Data Link Layer, sending out UART1\n";
-        #endif
-
         // Output Packet
             // This function handles adding the control characters, any necessary
             // escape characters, and the checksum
@@ -209,6 +162,11 @@ void PhysicalLayer::PacketMailboxLoop() {
     }
 }
 
+/*
+    Function: FakePacket
+    Brief: This function fakes a packet coming up from the UART and was used
+        early on to test the DLL, this is obviously not used in the final code
+*/
 void PhysicalLayer::FakePacket() {
     static unsigned char fake_frame[16];
     static bool first_time = true;
@@ -216,8 +174,6 @@ void PhysicalLayer::FakePacket() {
     static uint8_t frame_length = 10;
 
     static uint8_t prev_total = 198;
-
-    // std::cout << "PhysicalLayer::FakePacket(): FAKING A PACKET!\n";
 
     // Set up fields that don't change
     if(first_time) {
@@ -227,7 +183,7 @@ void PhysicalLayer::FakePacket() {
         control_block.nr = 0;
         control_block.ns = 0;
 
-        // Always escape control block, just because
+        // Always escape control block, just in case
         fake_frame[1] = '\x10';
 
         fake_frame[2] = control_block.all;
@@ -256,20 +212,6 @@ void PhysicalLayer::FakePacket() {
 
     // Send frame
     PassFrame(fake_frame, frame_length);
-}
-
-/*
-    Function: PhysicalLayer
-    Brief: Constructor for the PhysicalLayer class
-*/
-PhysicalLayer::PhysicalLayer() {
-}
-
-/*
-    Function: ~PhysicalLayer
-    Brief: Destructor for the PhysicalLayer class
-*/
-PhysicalLayer::~PhysicalLayer() {
 }
 
 /*

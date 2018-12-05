@@ -181,8 +181,7 @@ typedef struct mailbox {
     pcb_t* owner_pcb;
     letter_size_t letter_size;
     void* mailbox_ptr;
-    // kcallargs_t mailbox_kca;
-    kcallargs_t* kcaptr; // TODO: THIS IS MAYBE A PROBLEM
+    kcallargs_t* kcaptr;
 } mailbox_t;
 
 #endif /* OSLibrary_H */

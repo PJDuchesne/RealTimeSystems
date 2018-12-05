@@ -23,10 +23,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 TrainCommandApplication *TrainCommandApplication::TrainCommandApplicationInstance_ = 0;
 
 /*
-    Function: UARTMailboxLoop
-    Brief: <>
+    Function: MailboxLoop
+    Brief: Central loop of this layer, checking the mailbox for messages coming up
+        from the DLL, as well as messages to pass down to the DLL from other processes
 */
-#define TIME_GAP 3 // 30 ms
 void TrainCommandApplication::MailboxLoop() {
     // Bind TrainCommandApplication queue
     if (!PBind(TRAIN_APPLICATION_LAYER_MB, SMALL_LETTER)) { // Default mailbox size of 16
@@ -67,7 +67,12 @@ void TrainCommandApplication::MailboxLoop() {
     }
 }
 
-// Pass DLL message on to interested parties (Train scheduler? Train Display? Etc.) 
+/*
+    Function: MailboxLoop
+    Brief: Passes a DLL message on to interested parties (Monitor, controller, etc.)
+    Inputs: request: Pointer to message
+            length: Length of message
+*/
 void TrainCommandApplication::HandleDLLMessage(char* request, uint8_t length) {
     assert(length >= 1 && length <= 3);
 
@@ -101,25 +106,14 @@ void TrainCommandApplication::HandleDLLMessage(char* request, uint8_t length) {
                 PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_CONTROLLER_MB, request, length);
             }
             break;
-        case '\xAA': // TODO: THIS IS USELESS
-            #if DEBUGGING_TRAIN == 1
-            std::cout << "TrainCommandApplication::HandleDLLMessage(): Hall Sensor Queue Reset Acknowledgement Msg\n";
-            #endif
+        case '\xAA': // Not currently used
             break;
         case '\xC2': // Train ACK
-            #if DEBUGGING_TRAIN == 1
-            std::cout << "TrainCommandApplication::HandleDLLMessage(): Train Speed/Dir Acknowledgement Msg\n";
-            #endif
-
             // Tell TrainController so it can keep track of the train
             PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_CONTROLLER_MB, request, length);
 
             break;
         case '\xE2': // Switch ACK
-            #if DEBUGGING_TRAIN == 1
-            std::cout << "TrainCommandApplication::HandleDLLMessage(): Throw-Switch Acknowledgement Msg\n";
-            #endif
-
             // Tell TrainController so it can keep track of the train
             PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_CONTROLLER_MB, request, length);
             break;
@@ -128,20 +122,14 @@ void TrainCommandApplication::HandleDLLMessage(char* request, uint8_t length) {
             while (1) {}
             break;
     }
-
-    #if DEBUGGING_TRAIN == 1
-    std::cout << "TrainCommandApplication::HandleDLLMessage(): Msg >> ";
-    for(int i = 0; i < length; i++) {
-        std::cout << HEX(request[i]);
-    }
-    std::cout << "<<\n";
-    #endif
-
 }
 
-// Pass Message down to DLL layer
-// This function expects fully formed messages, but does perform error
-//    checking to ensure that is the case
+/*
+    Function: HandleAppRequest
+    Brief: Passes a message down to the DLL. This expectes a fully formed message
+    Inputs: request: Pointer to message
+            length: Length of message
+*/
 void TrainCommandApplication::HandleAppRequest(char* request, uint8_t length) {
     // Check that length is correct
     assert(MsgLengthFromCode(request[0]) == length);
@@ -150,15 +138,22 @@ void TrainCommandApplication::HandleAppRequest(char* request, uint8_t length) {
     PSend(TRAIN_APPLICATION_LAYER_MB, DATA_LINK_LAYER_MB, (void *)request, length);
 }
 
+/*
+    Function: SendHallMsg
+    Brief: Sends a message to the monitor to visually trigger the message on the
+        UI. Also sets a timer on the train time server to reset that visual
+        trigger after a certain time period
+    Inputs: sensor_num: Number of the hall sensor to trigger
+*/
 void TrainCommandApplication::SendHallMsg(uint8_t sensor_num) {
-    // Tell the monitor so it updates
+    // Tell the monitor
     sensor_msg_t sensor_msg;
     sensor_msg.type = HALL_SENSOR;
     sensor_msg.state = true;
     sensor_msg.num = sensor_num;
     PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_MONITOR_MB, &sensor_msg, 2);
 
-    // Send the time server so it can be reset soon
+    // Send the time server so it can be reset
     PSend(TRAIN_APPLICATION_LAYER_MB, TRAIN_TIME_SERVER_MB, &sensor_num, 1);
 }
 
@@ -178,6 +173,10 @@ TrainCommandApplication::TrainCommandApplication() {
 TrainCommandApplication::~TrainCommandApplication() {
 }
 
+/*
+    Function: SingletonGrab
+    Brief: Grabs instance of train command center to avoid unnecessary calls
+*/
 void TrainCommandApplication::SingletonGrab() {
     TrainCommandCenterInstance_ = TrainCommandCenter::GetTrainCommandCenter();
 }

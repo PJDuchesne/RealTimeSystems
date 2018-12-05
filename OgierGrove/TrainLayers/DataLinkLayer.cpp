@@ -16,14 +16,15 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/DataLinkLayer.h"
 
-// TODO: Delete?
-#include <ISRLayer/Includes/GlobalConfig.h>
-#include <OSLayer/Includes/OperatingSystem.h>
 
 // Singleton Instance
 DataLinkLayer *DataLinkLayer::DataLinkLayerInstance_ = 0;
 
-// Note: The pre-infinite loop of this acts as an initialization sequence
+/*
+    Function: MailboxLoop
+    Brief: The main loop for checking data coming from both the Physical Layer and
+        the above application layer, performing logic in both directions
+*/
 void DataLinkLayer::MailboxLoop() {
     // Bind PhysicalLayer queue
     if (PBind(DATA_LINK_LAYER_MB, SMALL_LETTER) == false) { // Default mailbox size of 16
@@ -37,7 +38,6 @@ void DataLinkLayer::MailboxLoop() {
     uint8_t tmp_num;
 
     // initialize to 0
-    // num_packets_in_limbo_ = 0;
     tiva_ns_ = 0;
     tiva_nr_ = 0;
 
@@ -75,7 +75,7 @@ void DataLinkLayer::MailboxLoop() {
                             // Increment NR as message has been sent up
                             MOD8PLUS1(tiva_nr_);
                             // Check for piggybacking ACKS
-                            HandleACK(recv_packet_ptr->control_block.nr); // TODO: TEST THIS WORKS
+                            HandleACK(recv_packet_ptr->control_block.nr);
                             // ACK the packet with the incremented NR
                             SendACK();
                         }
@@ -92,7 +92,6 @@ void DataLinkLayer::MailboxLoop() {
                     default:
                         std::cout << "  DataLinkLayer::MailboxLoop(): ERROR: INVALID PHYSICAL LAYER TYPE\n";
                         while(1) {}
-                        // TODO: Error case
                         break;
                 }
                 break;
@@ -142,7 +141,7 @@ void DataLinkLayer::MailboxLoop() {
                         // Increment NS as this gets buffered
                         MOD8PLUS1(tiva_ns_);
                     }
-                    // TODO: Not an error state, but shouldn't really happen so this is here for testing
+                    // Not an error state, but shouldn't really happen so this is here for testing
                     else std::cout << "  DataLinkLayer::MailboxLoop(): WARNING, DATA BUFFER FULL AND PACKET LOST\n";
                 }
                 break;
@@ -150,7 +149,11 @@ void DataLinkLayer::MailboxLoop() {
     }
 }
 
-// Send message up to application layer
+/*
+    Function: MailboxLoop
+    Brief: Sends the message up to the application layer
+    Input: Packet: The message to pass
+*/
 void DataLinkLayer::SendMessageUp(packet_t* packet) {
     assert(packet->length >= 1 && packet->length <= 3);
 
@@ -174,33 +177,30 @@ void DataLinkLayer::SendMessageUp(packet_t* packet) {
     PSend(DATA_LINK_LAYER_MB, TRAIN_APPLICATION_LAYER_MB, (void *)msg_body, packet->length);
 }
 
-// num_packets_in_limbo_ INCREASED (Nothing needed)
-
-// Send packet down to application layer
+/*
+    Function: MailboxLoop
+    Brief: Sends the message down to the physical layer
+    Input: Packet: The message to pass
+*/
 void DataLinkLayer::SendPacketDown(packet_t* packet) {
     // Add packet to outgoing_messages_ buffer
     assert(packet->length + 2 <= MAX_PACKET_SIZE); // Check that memcopy isn't going to clobber other data
     memcpy(&outgoing_messages_[tiva_ns_], packet, packet->length + 2);
-
-    // This assumes that num_packets_in_limbo_ was checked for bounds before calling this function 
-    // num_packets_in_limbo_++;
 
     assert(packet->control_block.type == DATA_PT);
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, (void *)packet, packet->length + 2);
 
     SetPacketAlarm(packet->control_block.ns);
 
-    // #if DEBUGGING_TRAIN >= 1
-    // packet->tmp_array[packet->length + 2] = num_packets_in_limbo_;
-    // PSend(DATA_LINK_LAYER_MB, MONITOR_MB, (void *)packet, packet->length + 3);
-    // #endif
 }
 
-// num_packets_in_limbo_ Used
-
-// Clear appropriate message from buffer and update 'num_packets_in_limbo_' number
+/*
+    Function: HandleACK
+    Brief: Logically handles the received ACK, freeing messages from the resend list
+        and sending out any pending messages
+    Input: train_nr: The received number from the ACK msg
+*/
 void DataLinkLayer::HandleACK(uint8_t train_nr) {
-
     // All ACKs should be in the range, otherwise the ATMega is ACKting up
     assert(CheckACKRange(train_nr)); // If found to be outside the range, that's a problem
 
@@ -208,7 +208,6 @@ void DataLinkLayer::HandleACK(uint8_t train_nr) {
     uint8_t limbo_num = NumPacketsInLimbo();
 
     // Clear any packets in limbo within sliding window size backwards
-    // if (outgoing_messages_[train_nr].control_block.type != DATA_PT) return;
     for (int i = 0; i < WINDOW_SIZE; i++) {
         // If out of packets, break
         if (limbo_num == 0) break;
@@ -230,9 +229,14 @@ void DataLinkLayer::HandleACK(uint8_t train_nr) {
     }
 }
 
-// Resend all packets stuck in limbo, starting with the NACK value and continuing until
-// the sliding window is satisfied or until a UNUSED_PT is found
+/*
+    Function: HandleNACK
+    Brief: Logically handles the received NACK, resending messages as needed
+    Input: train_nr: The received number from the NACK msg
+*/
 void DataLinkLayer::HandleNACK(uint8_t train_nr) {
+    // Resend all packets stuck in limbo, starting with the NACK value and continuing until
+    // the sliding window is satisfied or until a UNUSED_PT is found
     MOD8MINUS1(train_nr);
 
     assert(train_nr <= MAX_DLL_WAITING_PACKETS);
@@ -241,7 +245,6 @@ void DataLinkLayer::HandleNACK(uint8_t train_nr) {
     assert(outgoing_messages_[train_nr].control_block.type == DATA_PT);
 
     // Resend message and any other message in sliding window
-    // TODO: Maybe redo this with a cross-reference to 'num_packets_in_limbo_'
     for (int i = 0, msg_idx = train_nr; i < WINDOW_SIZE; i++, MOD8PLUS1(msg_idx)) {
         assert(msg_idx >= 0 && msg_idx < MAX_DLL_WAITING_PACKETS);
         if (outgoing_messages_[msg_idx].control_block.type != DATA_PT) break;
@@ -249,9 +252,11 @@ void DataLinkLayer::HandleNACK(uint8_t train_nr) {
     }
 }
 
-// Send an ACK to acknowedge we receieved and accepted their message
+/*
+    Function: SendACK
+    Brief: Sends an ACK to a receieved packet from the trainset
+*/
 void DataLinkLayer::SendACK() {
-    // TODO: Get initializer to set the starting value to NACK_PT
     static control_t control_block;
 
     control_block.type = ACK_PT;
@@ -259,29 +264,29 @@ void DataLinkLayer::SendACK() {
     control_block.nr = tiva_nr_;
 
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, &control_block, 1);
-
-    #if DEBUGGING_TRAIN >= 1
-    PSend(DATA_LINK_LAYER_MB, MONITOR_MB, &control_block, 1);
-    #endif
 }
 
-// Send a nack to request the message we were expecting,
-// this is called if we get a message we were not expecting (Trainset NS didn't equal TIVA NR)
+/*
+    Function: SendACK
+    Brief: Sends a NACK to a receieved packet from the trainset, this is called if
+        an unexpected message is received (Trainset NS didn't equal TIVA NR)
+*/
 void DataLinkLayer::SendNACK() {
-    // TODO: Get initializer to set the starting value to NACK_PT
     static control_t control_block;
 
     control_block.type = NACK_PT;
-    control_block.ns = 0; // TODO: 0 this. Was changed for testing.
+    control_block.ns = 0;
     control_block.nr = tiva_nr_;
 
     PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, &control_block, 1);
-
-    #if DEBUGGING_TRAIN >= 1
-    PSend(DATA_LINK_LAYER_MB, MONITOR_MB, &control_block, 1);
-    #endif
 }
 
+/*
+    Function: InternallyACK
+    Brief: This is part of the resend buffer logic and handles clearing the resend alarm
+        associated with a given message
+    Input: buffer_idx: The index of the re-send buffer to reset
+*/
 void DataLinkLayer::InternallyACK(uint8_t buffer_idx) {
     // This should be set, this *should* not be clearing things that are not set
     assert(outgoing_messages_[buffer_idx].control_block.type == DATA_PT);
@@ -291,14 +296,15 @@ void DataLinkLayer::InternallyACK(uint8_t buffer_idx) {
 
     // 2) Clear buffer at index
     outgoing_messages_[buffer_idx].control_block.type = UNUSED_PT;
-
-    // 3) Lower Limbo Number
-    // num_packets_in_limbo_--;
-
-    // TODO: (Maybe) If num_packets_in_limbo_, could do a hard reset of all packets in the table.
-    // and alarms in timeserver. Very costly, but could prevent issues
 }
 
+/*
+    Function: SetPacketAlarm
+    Brief: This is part of the resend buffer logic and handles actually raising or
+        lowering the alarms for a given message.
+    Inputs: alarm_num: The alarm number (0-7) to set
+            set_flag: The state of the alarm (Raise or lower)
+*/
 void DataLinkLayer::SetPacketAlarm(uint8_t alarm_num, bool set_flag) {
     // Inform time server that this message has been buffered
     train_alarm_t alarm_msg;
@@ -307,6 +313,13 @@ void DataLinkLayer::SetPacketAlarm(uint8_t alarm_num, bool set_flag) {
     PSend(DATA_LINK_LAYER_MB, TRAIN_TIME_SERVER_MB, &alarm_msg, 2);
 }
 
+/*
+    Function: CheckACKRange
+    Brief: This function checks whether or not the receieved ACK makes sense with
+        the current sliding window size. If this returns false, the DLL has lost state
+    Input: incoming_nr: The NR number to check against the current system state
+    Output: Boolean logic as to whether or not the state has been lost
+*/
 bool DataLinkLayer::CheckACKRange(uint8_t incoming_nr) {
     // Check upper limit
     if (incoming_nr == tiva_ns_) return true;
@@ -324,6 +337,12 @@ bool DataLinkLayer::CheckACKRange(uint8_t incoming_nr) {
     return false;
 }
 
+/*
+    Function: MakePacket
+    Brief: This function makes a packet from the receieved Physical Layer message
+    Input: msg: The message to packetize
+    Output: packet: The resulting packet
+*/
 void DataLinkLayer::MakePacket(packet_t &packet, train_msg_t* msg) {
     // Set control block
     packet.control_block.type = DATA_PT;
@@ -332,8 +351,6 @@ void DataLinkLayer::MakePacket(packet_t &packet, train_msg_t* msg) {
 
     // Set Msg
     packet.msg.code = msg->code;
-
-    // TODO: Maybe optimize this abit, the double switch statements are a bit much
 
     // Set length
     packet.length = MsgLengthFromCode(packet.msg.code);
@@ -354,6 +371,11 @@ void DataLinkLayer::MakePacket(packet_t &packet, train_msg_t* msg) {
 }
 
 // Returns the current number of packets waiting in limbo
+/*
+    Function: MakePacket
+    Brief: Returns the current number of packets waiting in limbo (in the resend buffer)
+    Output: uint8_t: The number of packets waiting to be resent
+*/
 uint8_t DataLinkLayer::NumPacketsInLimbo() {
     uint8_t num_packets_in_limbo = 0;
     for (uint8_t i = 0; i < MAX_DLL_WAITING_PACKETS; i++) {

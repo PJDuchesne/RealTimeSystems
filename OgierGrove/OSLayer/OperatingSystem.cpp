@@ -86,16 +86,7 @@ void OperatingSystem::Inialize() {
             RegProc(&ReverseString, 124, P_THREE, "ReverseString");
             break;
         case 7: // Trains!
-            // Add Monitor (and RevereString as lithmus test (For testing))
-            // RegProc(&MonitorProcessEntry, 123, P_THREE, "Monitor");
             RegProc(&TrainMonitorLoopEntry, 205, P_THREE, "TrainMonitor");
-
-            RegProc(&ReverseString, 124, P_THREE, "ReverseString");
-
-            // Add test function
-            // RegProc(&TestLayers, 126, P_THREE, "TestLayers");
-
-            // TODO: Put layers (And Monitor?) at a higher priority!
 
             // Add physical layer loops
             RegProc(&PhysicalLayerUARTLoopEntry,   200, P_THREE, "PhysicalLayerUARTLoop");
@@ -121,11 +112,6 @@ void OperatingSystem::Inialize() {
     }
 
     if (idle_needed_flag) RegProc(&EndlessProcess, 1, P_ONE, "IdleProcess");
-
-    #if DEBUGGING_TRAIN >= 1
-    StackDebug();
-    // Custom_Fault_ISR();
-    #endif
 
     // Pass control to first process
     KickStart();
@@ -211,7 +197,6 @@ void OperatingSystem::InitStackFrame(stack_frame_t* sf) {
 */
 void OperatingSystem::KickStart() {
     set_PSP(GetNextPCB()->stack_ptr);
-    // set_PSP(GetNextPCB()->stack_ptr); // TODO: Delete
     SVC();
 }
 
@@ -222,7 +207,6 @@ void OperatingSystem::KickStart() {
 */
 pcb_t* OperatingSystem::GetCurrentPCB() {
     return current_pcb_;
-    // return TaskScheduler_->GetCurrentPCB(); // TODO: Delete
 }
 
 /*
@@ -241,7 +225,6 @@ pcb_t* OperatingSystem::GetNextPCB() {
 */
 void OperatingSystem::DeleteCurrentPCB() {
     TaskScheduler_->DeleteCurrentPCB();
-    // TaskScheduler_->DeleteCurrentPCB(current_pcb_);
 }
 
 /*
@@ -254,7 +237,6 @@ void OperatingSystem::QuantumTick() {
     DEBUGGING_quantum_flag_ = 1;
     #endif
     // Fetch CurrentPCB for function
-    // pcb_t* CurrentPCB = TaskScheduler_->GetCurrentPCB();
 
     // For debugging / statistics
     current_pcb_->q_count++;

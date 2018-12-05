@@ -28,9 +28,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include "TrainTimeServer.h"
 #include "TrainController.h"
 
-// Testing functions
-void TestLayers();   // Utilizes all three layers to test functionality
-
 // Physical layer loops
 void PhysicalLayerUARTLoopEntry();
 void PhysicalLayerPacketLoopEntry();

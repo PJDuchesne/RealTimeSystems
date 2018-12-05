@@ -74,7 +74,6 @@ void ISRMsgHandler::GetFromISRQueue(MsgType_t &type, char &data) {
 void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
     char tmpChar, first_char;
 
-    // TODO: Make this table driven
     switch (uart_num) {
         case 0:
             for (int i = 0; i < msg.length(); i++) {
@@ -105,14 +104,12 @@ void ISRMsgHandler::QueueOutputMsg(std::string msg, uint8_t uart_num) {
 
             break;
         default:
-            // TODO: Error Msg here
     }
 }
 
 void ISRMsgHandler::QueueOutputMsg(char* msg, uint8_t msg_len, uint8_t uart_num) {
     char first_char;
 
-    // TODO: Make this table driven
     switch (uart_num) {
         case 0:
             for (int i = 0; i < msg_len; i++) {
@@ -141,7 +138,6 @@ void ISRMsgHandler::QueueOutputMsg(char* msg, uint8_t msg_len, uint8_t uart_num)
 
             break;
         default:
-            // TODO: Error Msg here
     }
 }
 
@@ -155,13 +151,10 @@ void ISRMsgHandler::QueueOutputPacket(char* packet, uint16_t len) {
 
     uint8_t checksum = 0;
 
-    // std::cout << "      ISRMsgHandler::QueueOutputPacket(char): Outputting on UART1\n";
-
     uart1_output_data_buffer_->Add('\x02'); // Add start CTRL
     for (int i = 0; i < len; i++) {
         checksum += uint8_t(packet[i]);
 
-        // TODO: Ask about this efficiency versus one large if statement
         // Adds escape characters for UART1 frames
         switch (int(packet[i])) {
             // If the character is an escape character, output 0x10 and save the character for next TX
@@ -203,7 +196,6 @@ bool ISRMsgHandler::OutputBufferEmpty(uint8_t uart_num) {
         case UART1:
             return uart1_output_data_buffer_->Empty();
         default:
-            // TODO: Error case
     }
 }
 
@@ -219,7 +211,6 @@ char ISRMsgHandler::GetOutputChar(uint8_t uart_num) {
         case UART1:
             return uart1_output_data_buffer_->Get();
         default:
-            // TODO: Error case
     }
 }
 

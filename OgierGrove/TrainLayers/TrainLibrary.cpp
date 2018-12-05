@@ -16,6 +16,12 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #include "Includes/TrainLibrary.h"
 
+/*
+    Function: MsgLengthFromCode
+    Brief: Helper function to quickly get the message length from the command code
+    Input: msg_code: Code to parse
+    Output: uint8_t: Length of message
+*/
 uint8_t MsgLengthFromCode(uint8_t msg_code) {
     switch (msg_code) {
         case '\xA8':

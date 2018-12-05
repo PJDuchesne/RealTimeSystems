@@ -26,6 +26,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Empirically derived from a single test at max speed
 // when running the train between two hall sensors
 #define BOUNCE_TIME 40 // 40 Centiseconds is 0.4 seconds
+#define TIME_GAP 3 // 30 ms -> Forced gap between messages going down to the DLL
 
 // Forward Declaration
 class TrainCommandCenter;

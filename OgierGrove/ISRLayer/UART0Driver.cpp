@@ -184,7 +184,6 @@ void UART0Driver::UART0Handler() {
     }
 }
 
-// TODO: Cleanup all the debugging printouts in this function
 void UART0Driver::UART1Handler() {
     // Set up arguments for future use
     static kcallargs_t UARTArguments;
@@ -206,7 +205,6 @@ void UART0Driver::UART1Handler() {
         // Queue the incoming msg
         uart_data = UART1_DR_R;
 
-        // TODO: Pass to different queue
         KSend(&UARTArguments);
 
         /* Clear interrupt */

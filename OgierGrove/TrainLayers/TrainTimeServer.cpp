@@ -21,8 +21,8 @@ TrainTimeServer *TrainTimeServer::TrainTimeServerInstance_ = 0;
 
 /*
     Function: TrainTimeServer
-    Brief: Constructor for the TrainTimeServer class. Initailizes current time, alarm, and 
-           leap_year_ to zero values. Also initializes date to default date and 
+    Brief: Constructor for the TrainTimeServer class. Initializes the different alarms
+        to all be disabled
 */
 TrainTimeServer::TrainTimeServer() {
     currentDeciTime_ = 0;
@@ -30,6 +30,10 @@ TrainTimeServer::TrainTimeServer() {
     for (int i = 0; i <= NUM_HALL_SENSORS; i++) hallSensorAlarms[i].is_active = false;
 }
 
+/*
+    Function: TriggerResendAlarm
+    Brief: Triggers a DLL resend alarm, sending a message to the DLL
+*/
 void TrainTimeServer::TriggerResendAlarm(uint8_t alarm_num) {
     trainAlarms[alarm_num].is_active = false;
 
@@ -37,6 +41,11 @@ void TrainTimeServer::TriggerResendAlarm(uint8_t alarm_num) {
     PSend(TRAIN_TIME_SERVER_MB, DATA_LINK_LAYER_MB, (void *)msg_body, 1);
 }
 
+/*
+    Function: TriggerHallSensorAlarm
+    Brief: Triggers a hall sensor reset alarm, sending a message to the monitor
+        to visually lower the hall sensor status
+*/
 void TrainTimeServer::TriggerHallSensorAlarm(uint8_t alarm_num) {
     hallSensorAlarms[alarm_num].is_active = false;
 
@@ -48,11 +57,20 @@ void TrainTimeServer::TriggerHallSensorAlarm(uint8_t alarm_num) {
     PSend(TRAIN_TIME_SERVER_MB, TRAIN_MONITOR_MB, &sensor_msg, 2);
 }
 
+/*
+    Function: TickCentiSec
+    Brief: Increments time, checking the alarms each time
+*/
 void TrainTimeServer::TickCentiSec() {
     currentDeciTime_++;
     CheckAlarms();
 }
 
+/*
+    Function: CheckAlarms
+    Brief: Checks alarms for both the DLL trigger and the hall sensor
+        reset triggers
+*/
 void TrainTimeServer::CheckAlarms() {
     for(int i = 0; i < MAX_RESEND_ALARMS; i++) {
         if (trainAlarms[i].is_active && trainAlarms[i].alarm_time <= currentDeciTime_) {
@@ -67,6 +85,11 @@ void TrainTimeServer::CheckAlarms() {
     }
 }
 
+/*
+    Function: TrainTimeServerLoop
+    Brief: Central loop of the time server, which handles
+        inbound requests and SYSTick triggers
+*/
 void TrainTimeServer::TrainTimeServerLoop() {
     if (!PBind(TRAIN_TIME_SERVER_MB, SMALL_LETTER)) { // Default mailbox size of 16, which is MAX_RESEND_ALARMS*2
         std::cout << "TrainTimeServer::Initialize: WARNING Mailbox failed to bind\n";
@@ -75,7 +98,7 @@ void TrainTimeServer::TrainTimeServerLoop() {
 
     static uint8_t src_q;
     static uint32_t mailbox_msg_len;
-    static char msg_body[2]; // TODO: Magic number
+    static char msg_body[SMALL_LETTER];
 
     // Should just be receiving from UART and Data Link Layer
     while(1) {
@@ -111,37 +134,47 @@ void TrainTimeServer::TrainTimeServerLoop() {
     }
 }
 
+/*
+    Function: SetResendAlarm
+    Brief: Function to raise or lower an alarm for the re-send buffer of the
+        Data Link Layer
+    Input: alarm_num: Number of alarm to set
+           set_flag: The state of the alarm to set (Raise or lower)
+*/
 void TrainTimeServer::SetResendAlarm(uint8_t alarm_num, bool set_flag) {
     if(set_flag) { // Set alarm
-        // TODO: Remove debugging assert, this might not always be true?
-        // This shouldnt be this layer's responsibility to check
-        assert(trainAlarms[alarm_num].is_active == false);
-
         trainAlarms[alarm_num].is_active = true;
         trainAlarms[alarm_num].alarm_time = currentDeciTime_ + HALL_TIMEOUT_TIME ;
     }
     else { // Cancel alarm
-        // TODO: Remove debugging assert, this might not always be true?
-        // This shouldnt be this layer's responsibility to check
-        assert(trainAlarms[alarm_num].is_active == true);
-
         trainAlarms[alarm_num].is_active = false;
     }
 }
 
+/*
+    Function: SetHallSensorAlarm
+    Brief: Function to set hall sensor alarm, which will tell the monitor
+        to de-color a given hall sensor after a period of time
+    Input: alarm_num: Number of alarm to set
+*/
 void TrainTimeServer::SetHallSensorAlarm(uint8_t alarm_num) {
     hallSensorAlarms[alarm_num].is_active = true;
     hallSensorAlarms[alarm_num].alarm_time = currentDeciTime_ + HALL_TIMEOUT_TIME;
 }
 
+/*
+    Function: GetCurrentTime
+    Brief: Getter function to access current system time since startup in deciseconds
+    Output: currentDeciTime_
+*/
 uint32_t TrainTimeServer::GetCurrentTime() {
     return currentDeciTime_;
 }
 
 /*
     Function: GetTrainTimeServer
-    Output: CommandCenterInstance_: Pointer to the TrainTimeServer Singleton
     Brief: Get function for the TrainTimeServer singleton
+    Output: CommandCenterInstance_: Pointer to the TrainTimeServer Singleton
 */
 TrainTimeServer* TrainTimeServer::GetTrainTimeServer() {
     if (!TrainTimeServerInstance_) TrainTimeServerInstance_ = new TrainTimeServer;

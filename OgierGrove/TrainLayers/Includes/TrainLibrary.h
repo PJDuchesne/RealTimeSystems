@@ -17,13 +17,10 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-// TODO: Remove any unncessary includes
 #include <cstdint>
 #include <iostream>
 #include <string>
 #include <sstream>
-
-// For cleaning printing hex characters
 #include <iomanip>
 
 // Flag to turn on 
@@ -51,7 +48,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 // Macros to perform modulus 8 increments and decrements
 #define MOD8PLUS1(x) (x = (x + 1) % 8)
-#define MOD8MINUS1(x) (x = (x == 0 ? 7 : x - 1)) // TODO: Make the MINUS one more efficient
+#define MOD8MINUS1(x) (x = (x == 0 ? 7 : x - 1))
 
 // Raw Msg types
 #define SENSOR      '\xA0'
@@ -119,8 +116,6 @@ typedef struct packet {
         {
             control_t control_block; // 1 byte
             uint8_t length; // 1 byte
-            // TODO: Is this necessary?
-            // Anonymous union for direct access
             union { // 3 bytes
                 train_msg_t msg;
                 struct 
@@ -134,19 +129,6 @@ typedef struct packet {
         };
         uint8_t tmp_array[5]; // For debugging
     };
-    // control_t control_block; // 1 byte
-    // uint8_t length; // 1 byte
-    // // TODO: Is this necessary?
-    // // Anonymous union for direct access
-    // union { // 3 bytes
-    //     train_msg_t msg;
-    //     struct 
-    //     {
-    //         packet_type_t code;
-    //         uint8_t arg1;
-    //         uint8_t arg2;
-    //     };
-    // };
 } packet_t; // 5 bytes
 
 typedef struct train_alarm {
@@ -194,6 +176,7 @@ typedef struct train_settings
 
 #define NUM_SCREEN_ROWS   24
 
+/* OLD UI: With Switch numbers and hall sensor number */
 // const std::string TrainScreen[NUM_SCREEN_ROWS] = {
 //   "################################################################################",
 //   "#                      20                              19                      #",
@@ -221,7 +204,7 @@ typedef struct train_settings
 //   "################################################################################"
 // };
 
-// Version 2 with zones instead of hall sensor numbers
+/* New UI: With just zones */
 const std::string TrainScreen[NUM_SCREEN_ROWS] = {
   "################################################################################",
   "#                                       19                                     #",

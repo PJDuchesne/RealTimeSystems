@@ -25,9 +25,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <OSLayer/Includes/RingBuffer.h>
 #include <OSLayer/Includes/OperatingSystem.h>
 
-// TODO: Delete
-// #include <OSLayer/Includes/PostOffice.h/>
-
 typedef enum MsgType {
   NONE,
   UART,
@@ -56,8 +53,8 @@ class ISRMsgHandler {
         void SingletonGrab();
 
         void GetFromISRQueue(MsgType_t &type, char &data);
-        void QueueOutputMsg(std::string msg, uint8_t uart_num); // TODO: make uart_num an enum msg type
-        void QueueOutputMsg(char* msg, uint8_t msg_len, uint8_t uart_num); // TODO: make uart_num an enum msg type
+        void QueueOutputMsg(std::string msg, uint8_t uart_num);
+        void QueueOutputMsg(char* msg, uint8_t msg_len, uint8_t uart_num);
         void QueueOutputPacket(char* msg, uint16_t len);
         bool OutputBufferEmpty(uint8_t uart_num);
         char GetOutputChar(uint8_t uart_num);

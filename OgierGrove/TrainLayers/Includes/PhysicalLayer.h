@@ -21,18 +21,16 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <ApplicationLayer/Includes/ISRMsgHandler.h>
 
 #define CHAR_BUFFER_SIZE 100
-#define MAX_FRAME_SIZE 16 // TODO: Set an actual max here, this is kind of arbitrary
+#define MAX_FRAME_SIZE 16
 
 #define ONE_BYTE_MAX 255
 
-// TODO: Delete, for debugging
 class ISRMsgHandler;
 
 class PhysicalLayer {
     private:
         static PhysicalLayer* PhysicalLayerInstance_;
 
-        // TODO: Delete, for debugging
         ISRMsgHandler *ISRMsgHandlerInstance_;
 
         void PassFrame(unsigned char* frame_ptr, uint8_t frame_len);
@@ -43,8 +41,8 @@ class PhysicalLayer {
 
         void FakePacket(); // For debugging
 
-        PhysicalLayer();
-        ~PhysicalLayer();
+        PhysicalLayer() {};
+        ~PhysicalLayer() {};
         void CentralLoop();
         static PhysicalLayer* GetPhysicalLayer();
 };

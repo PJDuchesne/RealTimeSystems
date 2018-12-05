@@ -80,7 +80,6 @@ void TrainMonitor::CheckMessageHandler() {
                     break;
                 default:
                     std::cout << "TrainMonitor::CheckMessageHandler(): Invalid switch case <<" << HEX(msg_body[0]) << " <<\n";
-                    // TODO: Some sort of error/warning here
                     break;
             }
         }
@@ -134,6 +133,10 @@ void TrainMonitor::CentralLoop() {
     }
 }
 
+/*
+    Function: InputUARTChar
+    Brief: Handles inputting a character and displaying it on the monitor
+*/
 void TrainMonitor::InputUARTChar(char input_char) {
     // Print uart to screen using CUP
     static char single_char[1]; // Used to output a character
@@ -211,6 +214,10 @@ void TrainMonitor::InputUARTChar(char input_char) {
     }
 }
 
+/*
+    Function: ResetCommandLine
+    Brief: Function to reset the state of the command line
+*/
 void TrainMonitor::ResetCommandLine() {
     PrintCup(CMD_PROMPT_START_ROW, 0);
 
@@ -220,6 +227,10 @@ void TrainMonitor::ResetCommandLine() {
     PrintCup(CMD_PROMPT_START_ROW, CMD_PROMPT_START_COL);
 }
 
+/*
+    Function: PrintDefaultScreen
+    Brief: Function to print the default screen seen in the train library
+*/
 void TrainMonitor::PrintDefaultScreen() {
     std::stringstream sstream;
     sstream << "\n\r" << VT_100_RESET;
@@ -231,6 +242,13 @@ void TrainMonitor::PrintDefaultScreen() {
     }
 }
 
+/*
+    Function: PrintCup
+    Brief: Sends the CUP command to position the cursor to the given
+        row and column
+    Inputs: row: Row to set cursor to
+            col: Column to set cursor to
+*/
 void TrainMonitor::PrintCup(int row, int col) {
     static std::stringstream sstream;
     sstream << "\e[" << row << ";" << col << "H";
@@ -239,14 +257,22 @@ void TrainMonitor::PrintCup(int row, int col) {
     sstream.clear();
 }
 
+/*
+    Function: CupResetFlag
+    Brief: Raises the cup reset flag, which signifies whether or not to cup
+        to the command line on a new input or not. This also hides the cursor
+*/
 void TrainMonitor::CupResetFlag() {
-    // Hide the curosor
     ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg(VT_100_HIDE_CURSOR, UART0);
     CupReset_ = true;
 }
 
+/*
+    Function: InitializeScreen
+    Brief: Called upon startup to initialize the screen to with the train set
+        GUI in the correct state (All switches STRAIGHT and hall sensors off)
+*/
 void TrainMonitor::InitializeScreen() {
-    ISRMsgHandlerInstance_->QueueOutputMsg(CLEAR_SCREEN, UART0);
     ISRMsgHandlerInstance_->QueueOutputMsg(CLEAR_SCREEN, UART0);
 
     // Print default screen
@@ -255,8 +281,6 @@ void TrainMonitor::InitializeScreen() {
     std::stringstream sstream;
 
     // Highlight trains and set their information
-
-    // TODO: Make this a loop, everything should be functionized by now
 
     // Train 1 is green
     PrintCup(train_info_locations[0][0], train_info_locations[0][1]);
@@ -278,6 +302,12 @@ void TrainMonitor::InitializeScreen() {
     PrintCup(CMD_PROMPT_START_ROW, CMD_PROMPT_START_COL);
 }
 
+/*
+    Function: VisuallySetHallSensor
+    Brief: Function to visually set a hall sensor
+    Input: sensor_num: Sensor to trigger or clear
+           status: Boolean to set the sensor high (blue) or low (reset)
+*/
 void TrainMonitor::VisuallySetHallSensor(uint8_t sensor_num, bool status) {
     std::stringstream sstream;
 
@@ -312,14 +342,17 @@ void TrainMonitor::VisuallySetHallSensor(uint8_t sensor_num, bool status) {
         ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
 
     }
-    else {
-        // TODO: Error state
-    }
 
     // Set cup reset flag
     CupResetFlag();
 }
 
+/*
+    Function: VisuallySetSwitch
+    Brief: Function to visually set one or many hall sensors
+    Input: switch_num: Switch number to trigger
+           dir: Direction to set the sensor to
+*/
 void TrainMonitor::VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir) {
     std::stringstream sstream;
 
@@ -333,13 +366,16 @@ void TrainMonitor::VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir)
         for (uint8_t i = 1; i <= MAX_NUM_SWITCHES; i++) SetIndividualSwitch(i, dir);
     } // Or set one individual switch
     else if (switch_num != 0 && switch_num <= 6) SetIndividualSwitch(switch_num, dir);
-    else {
-        // TODO: Error state
-    }
 
     CupResetFlag();
 }
 
+/*
+    Function: SetIndividualSwitch
+    Brief: Function to visually set an individual hall sensor
+    Input: switch_num: Switch number to trigger
+           dir: Direction to set the sensor to
+*/
 void TrainMonitor::SetIndividualSwitch(uint8_t switch_num, switch_direction_t dir) {
     /* Handle straight portion first */
     TrainMonitor::PrintCup(switch_locations[switch_num][STRAIGHT][ROW], switch_locations[switch_num][STRAIGHT][COL]);
@@ -358,7 +394,14 @@ void TrainMonitor::SetIndividualSwitch(uint8_t switch_num, switch_direction_t di
     else ISRMsgHandlerInstance_->QueueOutputMsg("  ", UART0);
 }
 
-// Updates Speed and direction of the
+/*
+    Function: VisuallyUpdateTrainInfo
+    Brief: Updates the status information on the monitor to display the current speed and direction of
+        a given train
+    Input: train_num: Train number to display
+           speed: Speed of the train to display
+           dir: Direction of the train
+*/
 void TrainMonitor::VisuallyUpdateTrainInfo(uint8_t train_num, uint8_t speed, train_direction_t dir) {
     train_num--;
     assert(train_num < NUM_TRAINS);
@@ -379,6 +422,13 @@ void TrainMonitor::VisuallyUpdateTrainInfo(uint8_t train_num, uint8_t speed, tra
     ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
 }
 
+/*
+    Function: VisuallyUpdateTrainDst
+    Brief: Updates the status information on the monitor to display the current destination
+        of a given train
+    Input: train_num: Train number to display
+           dst: Destination zone of the train
+*/
 void TrainMonitor::VisuallyUpdateTrainDst(uint8_t train_num, uint8_t dst) {
     // train_num--;
     assert(train_num < NUM_TRAINS);
@@ -393,6 +443,13 @@ void TrainMonitor::VisuallyUpdateTrainDst(uint8_t train_num, uint8_t dst) {
     ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
 }
 
+/*
+    Function: VisuallySetTrainLocation
+    Brief: Function to visually show the train's location on the track
+    Input: train_num: Train number to display
+           new_zone: The zone to highlight
+           prev_zone: The zone to clear
+*/
 void TrainMonitor::VisuallySetTrainLocation(uint8_t train_num, uint8_t new_zone, uint8_t prev_zone) {
     // Clear old zone (If not NO_ZONE)
     if (prev_zone < NUM_ZONES && prev_zone != NO_ZONE) PaintZone(prev_zone, NO_COLOR);
@@ -402,6 +459,12 @@ void TrainMonitor::VisuallySetTrainLocation(uint8_t train_num, uint8_t new_zone,
     if (new_zone < NUM_ZONES) PaintZone(new_zone, train_colors[train_num]);
 }
 
+/*
+    Function: PaintZone
+    Brief: Function to actually 'paint' a zone a given color
+    Input: zone: Zone number to paint (or clear)
+           color: VT-100 color to set the zone to
+*/
 void TrainMonitor::PaintZone(uint8_t zone, color_t color) {
 
     // Select background color (if any)
@@ -436,8 +499,12 @@ void TrainMonitor::PaintZone(uint8_t zone, color_t color) {
     }
 }
 
-// TODO: Make this a table
-// Essentially a macro
+/*
+    Function: IsSwitchZone
+    Brief: Function that checks if a given zone is a switch zone or not
+    Input: zone: Zone to check
+    Output: uint8_t: The switch number (1-6) or 0 for not a switch zone
+*/
 uint8_t TrainMonitor::IsSwitchZone(uint8_t zone) {
     switch (zone) {
         case 1:
@@ -460,6 +527,14 @@ uint8_t TrainMonitor::IsSwitchZone(uint8_t zone) {
 #define TX_ROW 21
 #define TX_COL 50
 #define MAX_TX_NUM_CHARS 29
+
+/*
+    Function: VisuallyDisplayTX
+    Brief: This function visually displays a given packet on the monitor in the TX
+        position
+    Input: msg: Message to display
+           msg_len: Length of message
+*/
 void TrainMonitor::VisuallyDisplayTX(char* msg, uint8_t msg_len) {
     msg_len = MIN(msg_len, MAX_TX_NUM_CHARS); // Arbitrary number of characters
 
@@ -479,6 +554,13 @@ void TrainMonitor::VisuallyDisplayTX(char* msg, uint8_t msg_len) {
 
 #define STATUS_ROW 3
 #define STATUS_COL 5
+
+/*
+    Function: UpdateCommandStatus
+    Brief: This function visually updates the status of a given command, typically
+        green for a valid command and red for an invalid command
+    Input: color: Message to display
+*/
 void TrainMonitor::UpdateCommandStatus(color_t color) {
     PrintCup(STATUS_ROW, STATUS_COL);
 
@@ -492,6 +574,15 @@ void TrainMonitor::UpdateCommandStatus(color_t color) {
 
 #define TC_STATUS_ROW 4
 #define TC_STATUS_COL 5
+
+/*
+    Function: UpdateTCCommandStatus
+    Brief: This function visually updates the monitor with the state of the
+        last train command sent, typically the color of the train for movement
+        and red for stopping. This was used to debug things to tell when a
+        stop/go command was sent
+    Input: color: Message to display
+*/
 void TrainMonitor::UpdateTCCommandStatus(color_t color) {
     PrintCup(TC_STATUS_ROW, TC_STATUS_COL);
 

@@ -14,12 +14,30 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
+/* General Note:
+    
+    This is essentially the same command center from the previous 2 assignments,
+    the only difference is the commands themselves and the logic to cleanly
+    create any of the of 4 controller packets
+
+ */
+
 #include "Includes/TrainCommandCenter.h"
 
 // Singleton Instance
 TrainCommandCenter *TrainCommandCenter::TrainCommandCenterInstance_ = 0;
 
-void TrainCommandCenter::TrainCommand(std::string args) { // Two arguments
+/*
+    Function: TrainCommand
+    Brief: This function gives the user manual control over sending commands
+        to the train. This was used for testing before the train controller
+        logic was put in place.
+    Input: Args in the form of an unparsed string (three arguments)
+        1) Train num (1 or 2)
+        2) Train speed (0 to 15)
+        3) Train direction (CW or CCW)
+*/
+void TrainCommandCenter::TrainCommand(std::string args) {
     int tmp_code = TokenizeArguments(args);
     if (tmp_code == -1 || tmp_code != 3) {
         SendErrorMsg("[TrainCommandCenter::TrainCommand] Error! Malformed Command (due to number of args)!\n");
@@ -42,10 +60,18 @@ void TrainCommandCenter::TrainCommand(std::string args) { // Two arguments
         return;
     }
 
-    // TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendTrainCommand(train_num, train_speed, train_dir);
 }
 
+/*
+    Function: SwitchCommand
+    Brief: This function gives the user manual control over sending commands
+        to the switches. This was used for testing before the train controller
+        logic was put in place.
+    Input: Arg in the form of an unparsed string (Two Arguments)
+        1) Switch Number (1 to 6, or 255 for all)
+        2) Switch state (STR or DIV)
+*/
 void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
     int tmp_code = TokenizeArguments(args);
     if (tmp_code == -1 || tmp_code != 2) {
@@ -68,11 +94,17 @@ void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
         return;
     }
 
-    // TrainMonitor::GetTrainMonitor()->VisuallySetSwitch(switch_num, switch_dir);
-    // TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendSwitchCommand(switch_num, switch_dir);
 }
 
+/*
+    Function: SensorCommand
+    Brief: This function gives the user manual control over sending reset commands
+        to the hall sensors. This was used for testing before the train controller
+        logic was put in place.
+    Input: Arg in the form of an unparsed string (1 argument)
+        1) 
+*/
 void TrainCommandCenter::SensorCommand(std::string arg) {
     int tmp_code = TokenizeArguments(arg);
     if (tmp_code == -1 || tmp_code != 1) {
@@ -87,30 +119,48 @@ void TrainCommandCenter::SensorCommand(std::string arg) {
         return;
     }
     
-    // TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendSensorAcknowledge(sensor_num);
 }
 
+/*
+    Function: QueueResetCommand
+    Brief: This function gives the user manual control over sending the hall queue reset
+        command to the Atmega. This was used for testing before the train controller
+        logic was put in place.
+    Input: Args in the form of an unparsed string (Should be empty)
+*/
 void TrainCommandCenter::QueueResetCommand(std::string arg) {
     if (arg != "") {
         SendErrorMsg("[TrainCommandCenter::QueueResetCommand] Error! Queue Command does not take arguments\n");
         return;
     }
 
-    // TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendSensorQueueReset();
 }
 
+/*
+    Function: RefreshCommand
+    Brief: This function gives the user manual control over refreshing the UI screen
+        in case something went wrong. This was useful when testing the UI and not so much
+        after the UI was stabilized
+    Input: Args in the form of an unparsed string (Should be empty)
+*/
 void TrainCommandCenter::RefreshCommand(std::string arg) {
     if (arg != "") {
         SendErrorMsg("[TrainCommandCenter::QueueResetCommand] Error! Refresh Command does not take arguments\n");
         return;
     }
 
-    // TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     TrainMonitor::GetTrainMonitor()->InitializeScreen();
 }
 
+/*
+    Function: InitCommand
+    Brief: This function initializes the train's internal state to a given zone and
+        updates the monitor accordingly
+    Input: Args in the form of an unparsed string (One argument)
+        1) Train Num (1 or 2)
+*/
 void TrainCommandCenter::InitCommand(std::string arg) {
     int tmp_code = TokenizeArguments(arg);
 
@@ -134,13 +184,17 @@ void TrainCommandCenter::InitCommand(std::string arg) {
     PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)init_msg, 3);
 }
 
-// Two arguments
-// 1) Train Num
-// 2) Destination Zone
+/*
+    Function: TrainGoCommand
+    Brief: This function gets the train to go to the given destination using the routing table
+    Input: Args in the form of an unparsed string: (Two Arguments)
+        1) Train num (1 or 2)
+        2) Destination Zone (0 to 19)
+*/
 void TrainCommandCenter::TrainGoCommand(std::string arg) {
     int tmp_code = TokenizeArguments(arg);
 
-    if (tmp_code != 2) { // TODO: Add option to allow multiple routes, increase number of arguments taken
+    if (tmp_code != 2) {
         SendErrorMsg("[TrainCommandCenter::TrainGoCommand] Error! Malformed Command (due to number of args)!\n");
         return;
     }
@@ -158,7 +212,7 @@ void TrainCommandCenter::TrainGoCommand(std::string arg) {
         }
     }
 
-    if ( (train_go_msg[1] >= NUM_TRAINS) || (train_go_msg[2] > NUM_ZONES) ) { // TODO: Fix hard-coding
+    if ( (train_go_msg[1] >= NUM_TRAINS) || (train_go_msg[2] > NUM_ZONES) ) {
         SendErrorMsg("[TrainCommandCenter::TrainGoCommand] Error! Malformed Command (due to numbers)!\n");
         return;
     }
@@ -167,8 +221,14 @@ void TrainCommandCenter::TrainGoCommand(std::string arg) {
     PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)train_go_msg, 3);
 }
 
-// One argument
-// 1) Train num
+/*
+    Function: KickTrainCommand
+    Brief: This function attempts ot jumpstart the train if the current command
+        has failed. This was useful due ot he inconsistent nature of the
+        trains when responding to commands
+    Input: Arg in the form of an unparsed string: (one Argument)
+        1) Train num (1 or 2)
+*/
 void TrainCommandCenter::KickTrainCommand(std::string arg) {
     int tmp_code = TokenizeArguments(arg);
 
@@ -186,8 +246,13 @@ void TrainCommandCenter::KickTrainCommand(std::string arg) {
     PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)train_go_msg, 2);
 }
 
-// One argument
-// 1) Train num
+/*
+    Function: SudoStopCommand
+    Brief: This function directly sends a command to stop the train, it also
+        updates the train controller so the state is updated
+    Input: Arg in the form of an unparsed string: (one Argument)
+        1) Train num (1 or 2)
+*/
 void TrainCommandCenter::SudoStopCommand(std::string arg) {
     int tmp_code = TokenizeArguments(arg);
 
@@ -210,8 +275,14 @@ void TrainCommandCenter::SudoStopCommand(std::string arg) {
 
 }
 
-// One argument
-// 1) Train num
+/*
+    Function: StopCommand
+    Brief: This function sends a message to the controller to stop the train
+        when it enters the next zone. This was a step in the direction of
+        halting and re-routing trains
+    Input: Arg in the form of an unparsed string: (one Argument)
+        1) Train num (1 or 2)
+*/
 void TrainCommandCenter::StopCommand(std::string arg) {
     int tmp_code = TokenizeArguments(arg);
 
@@ -230,10 +301,27 @@ void TrainCommandCenter::StopCommand(std::string arg) {
     PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)stop_msg, 2);
 }
 
+/*
+    Function: SendErrorMsg
+    Brief: This function is used to indicate that an input command was invalid
+        due to the reasoning given in the message. This simply updates an error
+        status on the UI in the upper left to indicate to the user that their
+        command was invalid.
+    Input: msg (Not actually used)
+*/
 void TrainCommandCenter::SendErrorMsg(std::string msg) {
     TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(RED);
 }
 
+/*
+    Function: TokenizeArguments
+    Brief: This function tokenizes the input arguments of a command into
+        variables stored within the class (to save allocation/deallocation times),
+        while returning the number of arguments found.
+    Input: arg: The argument string to parse
+    Output: int: The number of arguments found
+            TokenizedArgs_: The arguments themselves, tokenized into this array
+*/
 int TrainCommandCenter::TokenizeArguments(std::string &arg) {
     // Zero previous arguments (Not strictly necessary, but avoids any future complications)
     for (int i = 0; i < MAX_NUM_TRAIN_ARGUMENTS; i++) TokenizedArgs_[i] = "";
@@ -241,7 +329,6 @@ int TrainCommandCenter::TokenizeArguments(std::string &arg) {
     // Tokenize input
     int token_idx = 0;
     for (int i = 0; i < arg.length(); i++ ) {
-        // Should only have 2 tokens --> TODO: Increase this later
         if (token_idx == MAX_NUM_TRAIN_TOKENS) {
             return -1;
         }
@@ -252,7 +339,14 @@ int TrainCommandCenter::TokenizeArguments(std::string &arg) {
     return token_idx + 1; // Return number of arguments
 }
 
-// Construct a message to command a train and send to TrainCommand mailbox
+/*
+    Function: SendTrainCommand
+    Brief: Construct a message to command a train and send to TrainCommand mailbox
+    Input: train_num: Number of train to command (1 or 2)
+           speed: Speed to set train to (0 to 15)
+           direction: Direction to set train to (CW or CCW)
+           srq_q: Mailbox that this message came from (Defaults to the TRAIN_MONITOR_MB)
+*/
 void TrainCommandCenter::SendTrainCommand(uint8_t train_num, uint8_t speed, train_direction_t direction, uint8_t src_q) {
     // Direction doesn't matter if the speed is set to 0
     if (direction == STAY) assert(speed == 0);
@@ -274,7 +368,13 @@ void TrainCommandCenter::SendTrainCommand(uint8_t train_num, uint8_t speed, trai
     PSend(tmp_num, TRAIN_MONITOR_MB, msg_body, 3);
 }
 
-// Construct a message to throw switch(es) and send to TrainCommand mailbox
+/*
+    Function: SendSwitchCommand
+    Brief: Construct a message to throw switch(es) and send to TrainCommand mailbox
+    Input: switch_num: Number of train to command (1 to 6 or 255)
+           direction: Direction to set switch to (STRAIGHT or DIVERTED)
+           srq_q: Mailbox that this message came from (Defaults to the TRAIN_MONITOR_MB)
+*/
 void TrainCommandCenter::SendSwitchCommand(uint8_t switch_num, switch_direction_t direction, uint8_t src_q) {
     static char msg_body[3];
 
@@ -296,6 +396,12 @@ void TrainCommandCenter::SendSwitchCommand(uint8_t switch_num, switch_direction_
     }
 }
 
+/*
+    Function: SendSensorAcknowledge
+    Brief: Construct a message to acknowledge a sensor trigger
+    Input: sensor_number: Number of train to command (1 to 24)
+           srq_q: Mailbox that this message came from (Defaults to the TRAIN_MONITOR_MB)
+*/
 void TrainCommandCenter::SendSensorAcknowledge(uint8_t sensor_number, uint8_t src_q) {
     static char msg_body[2];
 
@@ -307,7 +413,11 @@ void TrainCommandCenter::SendSensorAcknowledge(uint8_t sensor_number, uint8_t sr
     }
 }
 
-// Construct a message to reset sensor queue and send to TrainCommand mailbox
+/*
+    Function: SendSensorQueueReset
+    Brief: Construct a message to reset sensor queue and send to TrainCommand mailbox
+    Input: srq_q: Mailbox that this message came from (Defaults to the TRAIN_MONITOR_MB)
+*/
 void TrainCommandCenter::SendSensorQueueReset(uint8_t src_q) {
     static char msg_body[1];
 
@@ -331,7 +441,7 @@ void TrainCommandCenter::ToUpper(std::string& str) {
 }
 
 /*
-    Function: ParseDateArg
+    Function: SafeStoi
     Input:  input_substr: Input string to parse from character inters to an integer value
     Output: (stoi result): Output integer
     Brief: Wrapper function for std::stoi to check that all input characters are valid integer characters
@@ -360,7 +470,7 @@ TrainCommandCenter::TrainCommandCenter() {
 
 /*
     Function: HandleCommand
-    Input:  command_str: Input string to tokenize and call command function on
+    Input: command_str: Input string to tokenize and call command function on
     Brief: Breaks the input string into tokens and calls the correct command based on the first token
 */
 void TrainCommandCenter::HandleCommand(std::string command_str) {

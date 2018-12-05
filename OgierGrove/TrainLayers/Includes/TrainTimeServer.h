@@ -20,7 +20,7 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 // Note: Works with DeciSecond Prevision
 
 #define HALL_TIMEOUT_TIME  40 // In centisecond precision
-#define MAX_RESEND_ALARMS  8 // TODO: Tie to MAX_DLL_WAITING_PACKETS from Data Link Layer
+#define MAX_RESEND_ALARMS  8
 
 #include "TrainLibrary.h"
 #include <OSLayer/Includes/OSLibrary.h>
