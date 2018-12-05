@@ -418,7 +418,7 @@ void TrainMonitor::VisuallyUpdateTrainInfo(uint8_t train_num, uint8_t speed, tra
 
     // Print Direction
     PrintCup(train_info_locations[train_num][0], train_info_locations[train_num][3]);
-    sstream << "    " << '\x7F' << '\x7F' << '\x7F' << '\x7F' << train_direction_strings[dir];
+    sstream << "    " << '\x7F' << '\x7F' << '\x7F' << '\x7F' << train_direction_strings[(dir == CW) ? 0 : 1];
     ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
 }
 
