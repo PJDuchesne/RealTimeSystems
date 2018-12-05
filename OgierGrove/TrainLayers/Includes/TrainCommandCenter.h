@@ -56,6 +56,8 @@ class TrainCommandCenter {
         void InitCommand(std::string arg);
         void TrainGoCommand(std::string arg);
         void KickTrainCommand(std::string arg);
+        void SudoStopCommand(std::string arg);
+        void StopCommand(std::string arg);
 
         // Internal helpers
         void ToUpper(std::string &str);

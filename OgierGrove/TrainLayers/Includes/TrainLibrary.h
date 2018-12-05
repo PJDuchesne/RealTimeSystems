@@ -60,14 +60,15 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #define SWITCH      '\xE2'
 
 typedef enum ctrl_msg_type {
-    STOP_CMD    = 0x80,  // 1 or 2 bytes: 1 for this enum, and 1 (optionally) for the train number (Default to both)
-    HALL_SENSOR,         // 2 Bytes:      1 for this enum, 1 for control block
+    HALL_SENSOR = 0x80,  // 2 Bytes:      1 for this enum, 1 for control block
     SWITCH_CHANGE,       // 2 Bytes:      1 for this enum, 1 for control block
     ZONE_CMD,            // 3 Bytes:      1 for this enum, 1 for the train number and 1 for the train zone
     ZONE_CHANGE,         // 4 Bytes:      1 for this enum, 1 for the train number, 1 for new zone, and 1 for old zone
     PARTIAL_ZONE_CHANGE, // 3 Bytes:      1 for this enum, 1 for the train number, 1 for partial zone
     TRAIN_GO_CMD,        // 3+ Bytes:     1 for this enum, 1 for train num, and at least 1 more for destination(s)
     KICK_CMD,            // 2 Bytes:      1 for this enum, 1 for train num
+    SUDO_STOP_CMD,       // 2 Bytes:      1 for this enum, 1 for train num
+    STOP_CMD,            // 2 Bytes:      1 for this enum, 1 for train num
 } ctrl_msg_type_t;
 
 enum train_layer_mailboxes {

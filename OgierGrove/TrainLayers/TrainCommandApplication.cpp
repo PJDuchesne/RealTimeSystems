@@ -26,6 +26,7 @@ TrainCommandApplication *TrainCommandApplication::TrainCommandApplicationInstanc
     Function: UARTMailboxLoop
     Brief: <>
 */
+#define TIME_GAP 3 // 30 ms
 void TrainCommandApplication::MailboxLoop() {
     // Bind TrainCommandApplication queue
     if (!PBind(TRAIN_APPLICATION_LAYER_MB, SMALL_LETTER)) { // Default mailbox size of 16
@@ -39,6 +40,8 @@ void TrainCommandApplication::MailboxLoop() {
     uint32_t mailbox_msg_len = 7;
     char msg_body[SMALL_LETTER];
 
+    static uint32_t last_time = 0;
+
     while (1) {
         // Blocking message request
         PRecv(src_q, TRAIN_APPLICATION_LAYER_MB, &msg_body, mailbox_msg_len);
@@ -48,6 +51,8 @@ void TrainCommandApplication::MailboxLoop() {
 
         // Handle mailbox depending on SRC
         if (src_q == DATA_LINK_LAYER_MB) {
+            while(TrainTimeServer::GetTrainTimeServer()->GetCurrentTime() - last_time < TIME_GAP) {}
+
             // Handle message coming from DLL
             HandleDLLMessage(msg_body, mailbox_msg_len);
         }

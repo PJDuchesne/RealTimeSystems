@@ -42,7 +42,7 @@ void TrainCommandCenter::TrainCommand(std::string args) { // Two arguments
         return;
     }
 
-    TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
+    // TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendTrainCommand(train_num, train_speed, train_dir);
 }
 
@@ -68,8 +68,8 @@ void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
         return;
     }
 
-    TrainMonitor::GetTrainMonitor()->VisuallySetSwitch(switch_num, switch_dir);
-    TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
+    // TrainMonitor::GetTrainMonitor()->VisuallySetSwitch(switch_num, switch_dir);
+    // TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendSwitchCommand(switch_num, switch_dir);
 }
 
@@ -87,7 +87,7 @@ void TrainCommandCenter::SensorCommand(std::string arg) {
         return;
     }
     
-    TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
+    // TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendSensorAcknowledge(sensor_num);
 }
 
@@ -97,7 +97,7 @@ void TrainCommandCenter::QueueResetCommand(std::string arg) {
         return;
     }
 
-    TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
+    // TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     SendSensorQueueReset();
 }
 
@@ -107,7 +107,7 @@ void TrainCommandCenter::RefreshCommand(std::string arg) {
         return;
     }
 
-    TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
+    // TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(GREEN);
     TrainMonitor::GetTrainMonitor()->InitializeScreen();
 }
 
@@ -186,6 +186,50 @@ void TrainCommandCenter::KickTrainCommand(std::string arg) {
     PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)train_go_msg, 2);
 }
 
+// One argument
+// 1) Train num
+void TrainCommandCenter::SudoStopCommand(std::string arg) {
+    int tmp_code = TokenizeArguments(arg);
+
+    if (tmp_code != 1) {
+        SendErrorMsg("[TrainCommandCenter::KickTrainCommand] Error! Malformed Command (due to number of args)!\n");
+        return;
+    }
+
+    // Directly stop the train
+    SendTrainCommand(SafeStoi(TokenizedArgs_[0]), 0, CW);
+
+    // Update the controller so it is aware of state
+    static uint8_t stop_msg[2];
+
+    stop_msg[0] = SUDO_STOP_CMD;
+    stop_msg[1] = SafeStoi(TokenizedArgs_[0]) - 1; // Train #: Decremented to match table in control system
+
+    // If correctly formed, send a message to the controller to start the train routing
+    PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)stop_msg, 2);
+
+}
+
+// One argument
+// 1) Train num
+void TrainCommandCenter::StopCommand(std::string arg) {
+    int tmp_code = TokenizeArguments(arg);
+
+    if (tmp_code != 1) {
+        SendErrorMsg("[TrainCommandCenter::KickTrainCommand] Error! Malformed Command (due to number of args)!\n");
+        return;
+    }
+
+    // Politely ask the controller to stop
+    static uint8_t stop_msg[2];
+
+    stop_msg[0] = STOP_CMD;
+    stop_msg[1] = SafeStoi(TokenizedArgs_[0]) - 1; // Train #: Decremented to match table in control system
+
+    // If correctly formed, send a message to the controller to start the train routing
+    PSend(TRAIN_MONITOR_MB, TRAIN_CONTROLLER_MB, (void *)stop_msg, 2);
+}
+
 void TrainCommandCenter::SendErrorMsg(std::string msg) {
     TrainMonitor::GetTrainMonitor()->UpdateCommandStatus(RED);
 }
@@ -232,10 +276,6 @@ void TrainCommandCenter::SendTrainCommand(uint8_t train_num, uint8_t speed, trai
 
 // Construct a message to throw switch(es) and send to TrainCommand mailbox
 void TrainCommandCenter::SendSwitchCommand(uint8_t switch_num, switch_direction_t direction, uint8_t src_q) {
-    // Switch 5 and 6 were reversed on Dec 3rd, 2018
-    if (switch_num == 5) switch_num = 6;
-    else if (switch_num == 6) switch_num = 5;
-
     static char msg_body[3];
 
     msg_body[0] = '\xE0';

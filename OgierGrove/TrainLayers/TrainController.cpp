@@ -26,8 +26,6 @@ TrainController::TrainController() {
     for(uint8_t i = 0; i < NUM_TRAINS; i++) {
         trains_[i].current_zone               = NO_ZONE;
         trains_[i].current_dst                = NO_ZONE;
-        trains_[i].last_hall_triggered        = NO_HALL;
-        trains_[i].second_last_hall_triggered = NO_HALL;
         trains_[i].default_speed              = 5; // TODO: Un-hardcode this speed
 
         // Set up control block
@@ -36,6 +34,7 @@ TrainController::TrainController() {
         trains_[i].train_ctrl.dir = STAY;
 
         trains_[i].initialized = false;
+        trains_[i].stop_req = false;
 
         // Clear triggered_sensors
         for (uint8_t x = 0; x < MAX_DIFF_SENSORS; x++) {
@@ -60,14 +59,15 @@ void TrainController::CmdTrain(train_ctrl_t train_ctrl) {
     TrainCommandCenterInstance_->SendTrainCommand(train_ctrl.num + 1, train_ctrl.speed, (train_direction_t)train_ctrl.dir, TRAIN_CONTROLLER_MB);
 }
 
-void TrainController::StopTrain(uint8_t train_num) {
+void TrainController::StopTrain(uint8_t train_num, bool physically_stop) {
     trains_[train_num].train_ctrl.speed = 0;
     trains_[train_num].train_ctrl.dir = STAY;
+    trains_[train_num].stop_req = false;
 
     // Reset zone 
     trains_[train_num].current_dst = NO_ZONE;
 
-    CmdTrain(trains_[train_num].train_ctrl);
+    if (physically_stop) CmdTrain(trains_[train_num].train_ctrl);
 
     // Update monitor with new destination (NO_ZONE)
     static uint8_t msg_body[3];
@@ -196,7 +196,7 @@ void TrainController::CheckIfRoutingNeeded(uint8_t train_num) {
 // Also in charge of stopping the train!
 void TrainController::RouteTrain(uint8_t train_num, bool kick) {
     // Check if at current destination:
-    if(trains_[train_num].current_zone == trains_[train_num].current_dst) {
+    if(trains_[train_num].stop_req || trains_[train_num].current_zone == trains_[train_num].current_dst) {
         // Stop train
         StopTrain(train_num);
         return;
@@ -408,6 +408,14 @@ void TrainController::TrainControllerLoop() {
                 if(trains_[msg_body[1]].initialized == true) {
                     RouteTrain(msg_body[1], true);
                 }
+                break;
+            case SUDO_STOP_CMD:
+                assert(msg_body[1] != 0 && msg_body[1] <= NUM_TRAINS);
+                StopTrain(msg_body[1], false);
+                break;
+            case STOP_CMD:
+                assert(msg_body[1] != 0 && msg_body[1] <= NUM_TRAINS);
+                trains_[msg_body[1]].stop_req = true;
                 break;
             default:
                 std::cout << "TrainController::TrainControllerLoop(): ERROR: Invalid COMMAND >>" << HEX(msg_body[0]) << "<<\n";

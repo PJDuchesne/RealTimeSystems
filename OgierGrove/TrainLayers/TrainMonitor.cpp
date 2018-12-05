@@ -321,10 +321,6 @@ void TrainMonitor::VisuallySetHallSensor(uint8_t sensor_num, bool status) {
 }
 
 void TrainMonitor::VisuallySetSwitch(uint8_t switch_num, switch_direction_t dir) {
-    // Switch 5 and 6 were reversed on Dec 3rd, 2018
-    if (switch_num == 5) switch_num = 6;
-    else if (switch_num == 6) switch_num = 5;
-    
     std::stringstream sstream;
 
     assert(dir != NOT_NEEDED);
@@ -485,6 +481,19 @@ void TrainMonitor::VisuallyDisplayTX(char* msg, uint8_t msg_len) {
 #define STATUS_COL 5
 void TrainMonitor::UpdateCommandStatus(color_t color) {
     PrintCup(STATUS_ROW, STATUS_COL);
+
+    std::stringstream sstream;
+    sstream << VT_100_BR_COLORS[color] << "CMD" << VT_100_RESET;
+
+    ISRMsgHandlerInstance_->QueueOutputMsg(sstream.str(), UART0);
+
+    CupResetFlag();
+}
+
+#define TC_STATUS_ROW 4
+#define TC_STATUS_COL 5
+void TrainMonitor::UpdateTCCommandStatus(color_t color) {
+    PrintCup(TC_STATUS_ROW, TC_STATUS_COL);
 
     std::stringstream sstream;
     sstream << VT_100_BR_COLORS[color] << "CMD" << VT_100_RESET;

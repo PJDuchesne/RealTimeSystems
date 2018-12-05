@@ -69,6 +69,7 @@ class TrainMonitor {
         void VisuallyDisplayTX(char* msg, uint8_t msg_len);
 
         void UpdateCommandStatus(color_t color);
+        void UpdateTCCommandStatus(color_t color);
 
         static TrainMonitor* GetTrainMonitor();
 };

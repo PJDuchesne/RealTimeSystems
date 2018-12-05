@@ -138,15 +138,6 @@ typedef struct train_state {
     // 1) Number of triggers that has happened
     sensor_trigger_t triggered_sensors[MAX_DIFF_SENSORS];
 
-    union {
-        struct
-        {
-            uint8_t last_hall_triggered;
-            uint8_t second_last_hall_triggered;
-        };
-        uint16_t last_two_hall_triggers;
-    };
-
     // Number, direction, and speed
     train_ctrl_t train_ctrl;
 
@@ -154,6 +145,7 @@ typedef struct train_state {
     uint8_t default_speed;
 
     bool initialized;
+    bool stop_req;
 } train_state_t;
 
 #define MAX_NUM_SENSORS_FROM_A_ZONE_FOR_A_DIRECTION 2
@@ -236,7 +228,7 @@ class TrainController {
 
         void SetSwitch(switch_ctrl_t ctrl);
         void CmdTrain(train_ctrl_t train_ctrl);
-        void StopTrain(uint8_t train_num);
+        void StopTrain(uint8_t train_num, bool physically_stop = true);
         uint8_t WhichTrain(uint8_t hall_sensor_num);
         void HandleZoneChange(uint8_t hall_sensor_num, uint8_t train_num);
 
