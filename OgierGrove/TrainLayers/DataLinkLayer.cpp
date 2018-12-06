@@ -68,6 +68,21 @@ void DataLinkLayer::MailboxLoop() {
                         assert(mailbox_msg_len >= 3 && mailbox_msg_len <= 5);
                         assert(recv_packet_ptr->length <= 3);
 
+                        /* New Method */ // TODO: REVERT THIS
+
+                        if (recv_packet_ptr->control_block.ns != tiva_nr_) ResetState(recv_packet_ptr->control_block.ns);
+
+                        // If valid, send packet to application layer
+                        SendMessageUp(recv_packet_ptr); // This increments the tiva_nr_
+                        // Increment NR as message has been sent up
+                        MOD8PLUS1(tiva_nr_);
+                        // Check for piggybacking ACKS
+                        HandleACK(recv_packet_ptr->control_block.nr);
+                        // ACK the packet with the incremented NR
+                        SendACK();
+
+                        /* Old Method
+
                         // Ensure ns/nr is correct, drop and send NACK if necessary
                         if (recv_packet_ptr->control_block.ns == tiva_nr_) {
                             // If valid, send packet to application layer
@@ -79,7 +94,12 @@ void DataLinkLayer::MailboxLoop() {
                             // ACK the packet with the incremented NR
                             SendACK();
                         }
-                        else SendNACK();
+                        else {
+                            SendNACK();
+                        }
+                        
+                        */ 
+
                         break;
                     case ACK_PT:
                         assert(mailbox_msg_len == 1 || mailbox_msg_len == 2); // Apparently the length field is present but zero?
@@ -100,7 +120,12 @@ void DataLinkLayer::MailboxLoop() {
                 // Should always just get a single char from the train server
                 assert(mailbox_msg_len == 1);
 
-                recv_packet_ptr = &outgoing_messages_[*((uint8_t *)msg_body)];
+                // Grab packet number to retransmit
+                tmp_num = *((uint8_t *)msg_body);
+
+                if (outgoing_messages_[tmp_num].control_block.type == UNUSED_PT) break;
+
+                recv_packet_ptr = &outgoing_messages_[tmp_num];
 
                 // assert(recv_packet_ptr->control_block.type == DATA_PT);
 
@@ -133,8 +158,6 @@ void DataLinkLayer::MailboxLoop() {
                 // Else, buffer the msg for later
                 else {
                     if (!packet_buffer_->Full()) {
-                        std::cout << "BF\n";
-
                         // Make packet to send
                         packet_buffer_->Add(&newly_made_packet);
 
@@ -254,6 +277,14 @@ void DataLinkLayer::HandleNACK(uint8_t train_nr) {
         if (outgoing_messages_[msg_idx].control_block.type != DATA_PT) break;
         PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, &outgoing_messages_[msg_idx], outgoing_messages_[msg_idx].length + 2);
     }
+}
+
+void DataLinkLayer::ResetState(uint8_t train_ns) {
+    // Set NR correctly
+    tiva_nr_ = train_ns;
+
+    // Clear outgoing buffer
+    for (uint8_t i = 0; i < MAX_DLL_WAITING_PACKETS; i++) outgoing_messages_[i].control_block.type = UNUSED_PT;
 }
 
 /*

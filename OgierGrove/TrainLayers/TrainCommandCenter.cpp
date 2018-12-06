@@ -74,7 +74,7 @@ void TrainCommandCenter::TrainCommand(std::string args) {
 */
 void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
     int tmp_code = TokenizeArguments(args);
-    if (tmp_code == -1 || tmp_code != 2) {
+    if (tmp_code != 2) {
         SendErrorMsg("[TrainCommandCenter::SwitchCommand] Error! Malformed Command (due to number of args)!\n");
         return;
     }
@@ -107,7 +107,7 @@ void TrainCommandCenter::SwitchCommand(std::string args) { // Two arguments
 */
 void TrainCommandCenter::SensorCommand(std::string arg) {
     int tmp_code = TokenizeArguments(arg);
-    if (tmp_code == -1 || tmp_code != 1) {
+    if (tmp_code != 1) {
         SendErrorMsg("[TrainCommandCenter::SensorCommand] Error! Malformed Command (due to number of args)!\n");
         return;
     }

@@ -120,7 +120,7 @@ void CommandCenter::ReverseCommand(std::string arg) {
     delete[] char_array;
 }
 
-// TODO: Fix or delete this. This is currently a mess
+// Note: This command is broken
 void CommandCenter::TrainYardCommand(std::string arg) {
     // Make a new monitor process
     OSInstance_->RegProc(&TrainMonitorLoopEntry, 220, P_THREE, "TrainMonitor");

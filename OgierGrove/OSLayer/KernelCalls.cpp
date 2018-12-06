@@ -311,7 +311,6 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
 
     // If required, put message to sleep
     if (put_to_sleep) {
-        // TODO: Delete this silly assertion
         assert(requested_mailbox->currently_blocked == false);
 
         // Deattach PCB
@@ -355,7 +354,6 @@ kernel_responses_t KRecv(kcallargs_t *kcaptr) {
 */
 bool KBind(kcallargs_t *kcaptr) {
     // Get requested mailbox
-    // mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->dst_q); // TODO: Delete
     mailbox_t* requested_mailbox = PostOfficeInstance->GetMailBox(kcaptr->req_q);
 
     // Check if it is in use

@@ -550,6 +550,8 @@ void TrainMonitor::VisuallyDisplayTX(char* msg, uint8_t msg_len) {
     ISRMsgHandler::GetISRMsgHandler()->QueueOutputMsg(sstream.str(), UART0);
     sstream.str("");
     sstream.clear();
+
+    CupResetFlag();
 }
 
 #define STATUS_ROW 3

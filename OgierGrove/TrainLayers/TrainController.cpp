@@ -155,13 +155,11 @@ uint8_t TrainController::WhichTrain(uint8_t hall_sensor_num) {
      if (train_num == NO_TRAIN) {
        for(uint8_t x = 0; x < NUM_TRAINS; x++) {
             if (trains_[x].initialized == false || trains_[x].train_ctrl.dir == STAY) continue;
-            // TODO: Need to turn this back on and test
-             // tmp_distance = zone_hall_distance_table[trains_[x].train_ctrl.dir][trains_[x].current_zone][hall_sensor_num];
-             tmp_distance = 0;
+             tmp_distance = zone_hall_distance_table[trains_[x].train_ctrl.dir][trains_[x].current_zone][hall_sensor_num];
              if (tmp_distance == lowest_distance) {
                 std::cout << "WARNING: TWO TRAINS OF EQUAL DISTANCE TO A HALL SENSOR TRIGGER (NOW GAMBLING)\n";
             }
-            else if (tmp_distance < lowest_distance) {
+            else if (tmp_distance <= lowest_distance) {
                 train_num = x;
                 lowest_distance = tmp_distance;
             }
@@ -237,7 +235,7 @@ void TrainController::CheckIfRoutingNeeded(uint8_t train_num) {
 */
 void TrainController::RouteTrain(uint8_t train_num, bool kick) {
     // Check if at current destination:
-    if(trains_[train_num].stop_req || trains_[train_num].current_zone == trains_[train_num].current_dst) {
+    if(trains_[train_num].stop_req || (trains_[train_num].current_zone == trains_[train_num].current_dst)) {
         // Stop train
         StopTrain(train_num);
         return;
@@ -246,11 +244,11 @@ void TrainController::RouteTrain(uint8_t train_num, bool kick) {
     /* Check if any switching needs to be done */
 
     switch_ctrl_t switch_ctrl;
-    switch_ctrl.req_state = routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][1];
+    switch_ctrl.req_state = routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][ROUTE_SWITCH_DIR];
 
     // If switching is required, fetch the number and send the command *FIRST*
     if (switch_ctrl.req_state != NOT_NEEDED) {
-        switch_ctrl.num = routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][2];
+        switch_ctrl.num = routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][ROUTE_SWITCH_NUM];
         assert(switch_ctrl.num != 0 && switch_ctrl.num <= 6);
 
         SetSwitch(switch_ctrl);
@@ -261,7 +259,7 @@ void TrainController::RouteTrain(uint8_t train_num, bool kick) {
 
     // Fetch direction the train should go, storing the old direction for a later test
     switch_direction_t old_dir = (switch_direction_t)trains_[train_num].train_ctrl.dir;
-    trains_[train_num].train_ctrl.dir = routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][0];
+    trains_[train_num].train_ctrl.dir = routing_table[trains_[train_num].current_zone][trains_[train_num].current_dst][ROUTE_DIR];
 
     // Stop the train if the routing table indicates that the train should be stopped
     if (trains_[train_num].train_ctrl.dir == STAY) { // If this happens, stop the train
@@ -271,7 +269,7 @@ void TrainController::RouteTrain(uint8_t train_num, bool kick) {
     }
 
     // Route the train if kicking or if the train has changed direction
-    if (!kick && trains_[train_num].train_ctrl.dir == old_dir) return;
+    // if (!kick || trains_[train_num].train_ctrl.dir == old_dir) return;
 
     trains_[train_num].train_ctrl.speed = trains_[train_num].default_speed;
     CmdTrain(trains_[train_num].train_ctrl);
@@ -398,20 +396,18 @@ void TrainController::TrainControllerLoop() {
                 break;
             case ZONE_CMD: // Internal Init cmd
                 // Only allowed to initialize train while it is not en route (signified by dst == NO_ZONE)
-                if (trains_[msg_body[1]].initialized == false) {
-                    trains_[msg_body[1]].initialized = true;
+                trains_[msg_body[1]].initialized = true;
 
-                    assert(trains_[msg_body[1]].train_ctrl.dir == STAY); // If train is not en_route, it should be stationary
-                    trains_[msg_body[1]].current_zone = msg_body[2];
+                assert(trains_[msg_body[1]].train_ctrl.dir == STAY); // If train is not en_route, it should be stationary
+                trains_[msg_body[1]].current_zone = msg_body[2];
 
-                    // Update monitor with zone changes
-                    msg_body[0] = ZONE_CHANGE;
-                    // msg_body[1] = msg_body[1]; // Already in place
-                    // msg_body[2] = msg_body[2];
-                    msg_body[3] = NO_ZONE;
+                // Update monitor with zone changes
+                msg_body[0] = ZONE_CHANGE;
+                // msg_body[1] = msg_body[1]; // Already in place
+                // msg_body[2] = msg_body[2];
+                msg_body[3] = NO_ZONE;
 
-                    PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 4);
-                }
+                PSend(TRAIN_CONTROLLER_MB, TRAIN_MONITOR_MB, msg_body, 4);
                 break;
 
             case TRAIN_GO_CMD:
