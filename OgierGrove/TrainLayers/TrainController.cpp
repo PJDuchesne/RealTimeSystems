@@ -269,7 +269,7 @@ void TrainController::RouteTrain(uint8_t train_num, bool kick) {
     }
 
     // Route the train if kicking or if the train has changed direction
-    // if (!kick || trains_[train_num].train_ctrl.dir == old_dir) return;
+    if (!kick || trains_[train_num].train_ctrl.dir == old_dir) return;
 
     trains_[train_num].train_ctrl.speed = trains_[train_num].default_speed;
     CmdTrain(trains_[train_num].train_ctrl);
@@ -356,7 +356,6 @@ void TrainController::TrainControllerLoop() {
     static char msg_body[SMALL_LETTER];
 
     static switch_ctrl_t switch_ctrl;
-    static train_ctrl_t train_ctrl;
 
     uint8_t tmp_num;
 

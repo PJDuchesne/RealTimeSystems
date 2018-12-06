@@ -23,9 +23,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 #include <sstream>
 #include <iomanip>
 
-// Flag to turn on 
-#define RESEND_TIMERS 0
-
 #define HEX(x) " " << std::setw(2) << std::setfill('0') << std::hex << int(x) << " " << std::dec
 
 #define DELAY(x) i_DELAY = 0; while(i_DELAY++ < x) {}

@@ -48,7 +48,6 @@ class DataLinkLayer {
         void SendPacketDown(packet_t* packet); // Down to physical layer
         void HandleACK(uint8_t train_nr);
         void HandleNACK(uint8_t train_nr);
-        void ResetState(uint8_t train_ns);
         void SendACK();
         void SendNACK();
 

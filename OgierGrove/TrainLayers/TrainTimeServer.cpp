@@ -117,9 +117,7 @@ void TrainTimeServer::TrainTimeServerLoop() {
                 assert((int)msg_body[0] <= 8);
                 assert((int)msg_body[1] <= 1);
 
-                #if RESEND_TIMERS == 1
                 SetResendAlarm((int)msg_body[0], (bool)msg_body[1]);
-                #endif
                 break;
             case TRAIN_APPLICATION_LAYER_MB:
                 assert(mailbox_msg_len == 1);

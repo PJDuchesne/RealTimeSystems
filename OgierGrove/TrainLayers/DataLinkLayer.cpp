@@ -68,21 +68,6 @@ void DataLinkLayer::MailboxLoop() {
                         assert(mailbox_msg_len >= 3 && mailbox_msg_len <= 5);
                         assert(recv_packet_ptr->length <= 3);
 
-                        /* New Method */ // TODO: REVERT THIS
-
-                        if (recv_packet_ptr->control_block.ns != tiva_nr_) ResetState(recv_packet_ptr->control_block.ns);
-
-                        // If valid, send packet to application layer
-                        SendMessageUp(recv_packet_ptr); // This increments the tiva_nr_
-                        // Increment NR as message has been sent up
-                        MOD8PLUS1(tiva_nr_);
-                        // Check for piggybacking ACKS
-                        HandleACK(recv_packet_ptr->control_block.nr);
-                        // ACK the packet with the incremented NR
-                        SendACK();
-
-                        /* Old Method
-
                         // Ensure ns/nr is correct, drop and send NACK if necessary
                         if (recv_packet_ptr->control_block.ns == tiva_nr_) {
                             // If valid, send packet to application layer
@@ -97,8 +82,6 @@ void DataLinkLayer::MailboxLoop() {
                         else {
                             SendNACK();
                         }
-                        
-                        */ 
 
                         break;
                     case ACK_PT:
@@ -277,14 +260,6 @@ void DataLinkLayer::HandleNACK(uint8_t train_nr) {
         if (outgoing_messages_[msg_idx].control_block.type != DATA_PT) break;
         PSend(DATA_LINK_LAYER_MB, PACKET_PHYSICAL_LAYER_MB, &outgoing_messages_[msg_idx], outgoing_messages_[msg_idx].length + 2);
     }
-}
-
-void DataLinkLayer::ResetState(uint8_t train_ns) {
-    // Set NR correctly
-    tiva_nr_ = train_ns;
-
-    // Clear outgoing buffer
-    for (uint8_t i = 0; i < MAX_DLL_WAITING_PACKETS; i++) outgoing_messages_[i].control_block.type = UNUSED_PT;
 }
 
 /*

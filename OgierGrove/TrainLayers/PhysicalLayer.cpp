@@ -145,7 +145,6 @@ void PhysicalLayer::PacketMailboxLoop() {
     static uint8_t src_q;
     static uint32_t mailbox_msg_len;
     static char msg_body[SMALL_LETTER];
-    static uint8_t frame_len = 0;
 
     while (1) {
         // Blocking message request
