@@ -164,7 +164,7 @@ void TrainTimeServer::SetHallSensorAlarm(uint8_t alarm_num) {
 
 /*
     Function: GetCurrentTime
-    Brief: Getter function to access current system time since startup in deciseconds
+    Brief: Getter function to access current system time since startup in centiseconds
     Output: currentDeciTime_
 */
 uint32_t TrainTimeServer::GetCurrentTime() {

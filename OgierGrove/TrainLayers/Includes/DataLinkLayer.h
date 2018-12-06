@@ -28,31 +28,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 
 #define WINDOW_SIZE 2 // "A window size of 2 is quite common"
 
-#if DEBUGGING_TRAIN >= 1
-typedef struct DataLinkLayer_flags {
-    union {
-        struct
-        {
-            uint8_t SendMessageUp_flag : 1;
-            uint8_t SendPacketDown_flag : 1;
-            uint8_t HandleACK_flag : 1;
-            uint8_t HandleNACK_flag : 1;
-            uint8_t SendACK_flag : 1;
-            uint8_t SendNACK_flag : 1;
-            uint8_t MakePacket_flag : 1;
-            uint8_t RecvLoop_flag : 1;
-            uint8_t MainLoop0_flag : 1;
-            uint8_t MainLoop1_flag : 1;
-            uint8_t MainLoop2_flag : 1;
-            uint8_t MainLoop3_flag : 1;
-            uint8_t MainLoop4_flag : 1;
-            uint8_t MainLoop5_flag : 1;
-        };
-        uint16_t all;
-    };
-} DataLinkLayer_flags_t;
-#endif
-
 class DataLinkLayer {
     private:
         static DataLinkLayer* DataLinkLayerInstance_;

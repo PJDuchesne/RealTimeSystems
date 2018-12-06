@@ -220,7 +220,6 @@ class TrainController {
         TrainMonitor* TrainMonitorInstance_;
 
         RingBuffer<switch_ctrl_t> *switch_msg_buffer_;
-        // RingBuffer<train_ctrl_t> *train_msg_buffer_;
 
         train_ctrl_t last_train_cmds[NUM_TRAINS];
 

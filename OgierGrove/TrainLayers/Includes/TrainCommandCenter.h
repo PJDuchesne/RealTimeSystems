@@ -42,9 +42,6 @@ class TrainCommandCenter {
         static TrainCommandCenter* TrainCommandCenterInstance_;
         typedef void (TrainCommandCenter::*FunctionPtr)(std::string arg);
         FunctionPtr FunctionTable[NUM_VALID_TRAIN_COMMANDS];
-
-        bool cup_reset;
-
         std::string TokenizedArgs_[MAX_NUM_TRAIN_ARGUMENTS];
 
         // Individual Commands

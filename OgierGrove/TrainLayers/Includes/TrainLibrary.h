@@ -127,7 +127,6 @@ typedef struct packet {
                 };
             };
         };
-        uint8_t tmp_array[5]; // For debugging
     };
 } packet_t; // 5 bytes
 

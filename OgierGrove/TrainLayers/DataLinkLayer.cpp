@@ -224,6 +224,10 @@ void DataLinkLayer::HandleACK(uint8_t train_nr) {
     while(limbo_num < WINDOW_SIZE) {
         if (packet_buffer_->Empty()) break;
         packet = packet_buffer_->Get();
+
+        // Set the current NR before transmitting
+        packet.control_block.nr = tiva_nr_;
+
         SendPacketDown(&packet);
         limbo_num++;
     }

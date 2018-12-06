@@ -17,8 +17,6 @@ __/\\\\\\\\\\\\\_____/\\\\\\\\\\\__/\\\\\\\\\\\\____
 -> Contact: pl332718@dal.ca
 */
 
-// Note: Works with DeciSecond Prevision
-
 #define HALL_TIMEOUT_TIME  40 // In centisecond precision
 #define MAX_RESEND_ALARMS  8
 
@@ -32,6 +30,7 @@ typedef struct trainMsgAlarm {
     uint32_t alarm_time;
 } trainMsgAlarm_t;
 
+// used to be different, should be merged with the other alarm now
 typedef struct hallSensorAlarm {
     bool is_active;
     uint32_t alarm_time;
